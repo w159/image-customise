@@ -71,14 +71,14 @@
             {
                 "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
                 "name": "TaskbarGlomLevel",
-                "value": 1,
+                "value": 0,
                 "type": "DWord",
                 "note": "Configures Taskbar buttons on the primary monitor to combine when the Taskbar is full"
             },
             {
                 "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
                 "name": "MMTaskbarGlomLevel",
-                "value": 1,
+                "value": 0,
                 "type": "DWord",
                 "note": "Configures Taskbar buttons on secondary monitors to combine when the Taskbar is full"
             },
