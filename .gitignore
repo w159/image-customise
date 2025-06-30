@@ -51,3 +51,5 @@ site
 enricomi-publish-action-venv
 codecov.exe.SHA256SUM
 codecov.exe.SHA256SUM.sig
+.enricomi-publish-action-venv
+.enricomi-publish-action-pip
