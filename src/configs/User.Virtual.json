@@ -92,41 +92,6 @@
             },
             {
                 "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
-                "name": "SubscribedContent-338393Enabled",
-                "value": 0,
-                "type": "DWord",
-                "note": "Disables suggested content in the Settings app"
-            },
-            {
-                "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
-                "name": "SubscribedContent-353694Enabled",
-                "value": 0,
-                "type": "DWord",
-                "note": "Disables suggested content in the Settings app"
-            },
-            {
-                "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
-                "name": "SubscribedContent-353696Enabled",
-                "value": 0,
-                "type": "DWord",
-                "note": "Disables suggested content in the Settings app"
-            },
-            {
-                "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
-                "name": "SubscribedContent-338388Enabled",
-                "value": 0,
-                "type": "DWord",
-                "note": "Disables suggested content in the Settings app"
-            },
-            {
-                "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
-                "name": "SubscribedContent-338389Enabled",
-                "value": 0,
-                "type": "DWord",
-                "note": "Disables suggested content in the Settings app"
-            },
-                        {
-                "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
                 "name": "SubscribedContent-310093Enabled",
                 "value": 0,
                 "type": "DWord",

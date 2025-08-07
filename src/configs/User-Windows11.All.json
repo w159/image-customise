@@ -46,6 +46,62 @@
                 "value": 1,
                 "type": "DWord",
                 "note": "Tells Windows that the Copilot PWA has been installed"
+            },
+            {
+                "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Privacy",
+                "name": "TailoredExperiencesWithDiagnosticDataEnabled",
+                "value": 0,
+                "type": "DWord",
+                "note": "Disables 'Settings / Privacy & Security / Recommendations & offers / Personalised offers'"
+            },
+            {
+                "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\CPSS\\Store\\AdvertisingInfo",
+                "name": "Value",
+                "value": 0,
+                "type": "DWord",
+                "note": "Disables 'Settings / Privacy & Security / Recommendations & offers / Advertising ID'"
+            },
+            {
+                "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo",
+                "name": "Enabled",
+                "value": 0,
+                "type": "DWord",
+                "note": "Disables 'Settings / Privacy & Security / Recommendations & offers / Advertising ID'"
+            },
+            {
+                "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+                "name": "SubscribedContent-338393Enabled",
+                "value": 0,
+                "type": "DWord",
+                "note": "Disables suggested content in the Settings app"
+            },
+            {
+                "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+                "name": "SubscribedContent-353694Enabled",
+                "value": 0,
+                "type": "DWord",
+                "note": "Disables suggested content in the Settings app"
+            },
+            {
+                "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+                "name": "SubscribedContent-353696Enabled",
+                "value": 0,
+                "type": "DWord",
+                "note": "Disables suggested content in the Settings app"
+            },
+            {
+                "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+                "name": "SubscribedContent-338388Enabled",
+                "value": 0,
+                "type": "DWord",
+                "note": "Disables suggested content in the Settings app"
+            },
+            {
+                "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+                "name": "SubscribedContent-338389Enabled",
+                "value": 0,
+                "type": "DWord",
+                "note": "Disables suggested content in the Settings app"
             }
         ],
         "SetOthers": [
@@ -62,6 +118,20 @@
                 "value": 0,
                 "type": "DWord",
                 "note": "Removes the Task View button on the Taskbar"
+            },
+            {
+                "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+                "name": "Start_TrackProgs",
+                "value": 0,
+                "type": "DWord",
+                "note": "Disables 'Settings / Privacy & Security / Recommendations & offers / Improve Start and search results'"
+            },
+            {
+                "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\SystemSettings\\AccountNotifications",
+                "name": "EnableAccountNotifications",
+                "value": 0,
+                "type": "DWord",
+                "note": "Disables 'Settings / Privacy & Security / Recommendations & offers / Show notifications in Settings'"
             }
         ]
     }
