@@ -322,6 +322,7 @@ function Set-Registry {
                             /f `
                             /reg:64 `
                             /z
+                        Write-LogFile -Message "Set protected registry property: $($Item.path); $($Item.name), $($Item.value)"
                         Remove-Item -Path $RegExe -Force -ErrorAction "SilentlyContinue"
                     }
                 }
@@ -447,6 +448,7 @@ function Set-DefaultUserProfile {
                                 /f `
                                 /reg:64 `
                                 /z
+                            Write-LogFile -Message "Set protected registry property: $($Item.path); $($Item.name), $($Item.value)"
                             Remove-Item -Path $RegExe -Force -ErrorAction "SilentlyContinue"
                         }
                     }
