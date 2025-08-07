@@ -17,7 +17,8 @@
                 "name": "TaskbarDa",
                 "value": 0,
                 "type": "DWord",
-                "note": "Remove the Widgets icon from the Taskbar - note: this value is protected by permissions"
+                "note": "Remove the Widgets icon from the Taskbar - note: this value is protected by permissions",
+                "protected": true
             },
             {
                 "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Start",

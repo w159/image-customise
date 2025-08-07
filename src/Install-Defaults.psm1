@@ -311,16 +311,33 @@ function Set-Registry {
                     $Value = $Item.value
                 }
 
-                $params = @{
-                    Path        = $Item.path
-                    Name        = $Item.name
-                    Value       = $Value
-                    Type        = $Item.type
-                    Force       = $true
-                    ErrorAction = "Continue"
+                if ($Item.protected -eq $true) {
+                    #  Use reg1.exe to set protected registry values
+                    $RegExe = Copy-RegExe
+                    if ($RegExe) {
+                        & $RegExe add ($Item.path -replace "\:", "") `
+                            /v $Item.name `
+                            /t $Item.type `
+                            /d $Value `
+                            /f `
+                            /reg:64 `
+                            /z
+                        Remove-Item -Path $RegExe -Force -ErrorAction "SilentlyContinue"
+                    }
                 }
-                Set-ItemProperty @params | Out-Null
-                Write-LogFile -Message "Set registry property: $($Item.path); $($Item.name), $($Item.value)"
+                else {
+                    # Use Set-ItemProperty to set the registry value
+                    $params = @{
+                        Path        = $Item.path
+                        Name        = $Item.name
+                        Value       = $Value
+                        Type        = $Item.type
+                        Force       = $true
+                        ErrorAction = "Continue"
+                    }
+                    Set-ItemProperty @params | Out-Null
+                    Write-LogFile -Message "Set registry property: $($Item.path); $($Item.name), $($Item.value)"
+                }
             }
         }
         catch {
@@ -419,16 +436,33 @@ function Set-DefaultUserProfile {
                         $Value = $Item.value
                     }
 
-                    $params = @{
-                        Path        = $RegPath
-                        Name        = $Item.name
-                        Value       = $Value
-                        Type        = $Item.type
-                        Force       = $true
-                        ErrorAction = "Continue"
+                    if ($Item.protected -eq $true) {
+                        #  Use reg1.exe to set protected registry values
+                        $RegExe = Copy-RegExe
+                        if ($RegExe) {
+                            & $RegExe add ($RegPath -replace "\:", "") `
+                                /v $Item.name `
+                                /t $Item.type `
+                                /d $Value `
+                                /f `
+                                /reg:64 `
+                                /z
+                            Remove-Item -Path $RegExe -Force -ErrorAction "SilentlyContinue"
+                        }
                     }
-                    Set-ItemProperty @params | Out-Null
-                    Write-LogFile -Message "Set registry property: $($Item.path); $($Item.name), $($Item.value)"
+                    else {
+                        # Use Set-ItemProperty to set the registry value
+                        $params = @{
+                            Path        = $RegPath
+                            Name        = $Item.name
+                            Value       = $Value
+                            Type        = $Item.type
+                            Force       = $true
+                            ErrorAction = "Continue"
+                        }
+                        Set-ItemProperty @params | Out-Null
+                        Write-LogFile -Message "Set registry property: $($Item.path); $($Item.name), $($Item.value)"
+                    }
                 }
             }
             catch {
@@ -529,7 +563,7 @@ function Remove-Path {
                     $params = @{
                         Path        = $Item
                         Recurse     = $true
-                        Confirm      = $false
+                        Confirm     = $false
                         Force       = $true
                         ErrorAction = "Continue"
                     }
@@ -794,4 +828,27 @@ namespace Api {
     $IsOOBEComplete = $false
     [Void][Api.Kernel32]::OOBEComplete([ref] $IsOOBEComplete)
     return [System.Boolean]$IsOOBEComplete
+}
+
+function Copy-RegExe {
+    [CmdletBinding()]
+    param()
+    process {
+        try {
+            $OutputPath = "$Env:Temp\reg1.exe"
+            $params = @{
+                Path        = "$Env:SystemRoot\System32\reg.exe"
+                Destination = $OutputPath
+                Force       = $true
+                ErrorAction = "Stop"
+            }
+            Copy-Item @params
+            Write-LogFile -Message "Copied '$Env:SystemRoot\System32\reg.exe' to '$OutputPath'"
+            return $OutputPath
+        }
+        catch {
+            Write-LogFile -Message "Failed to copy reg.exe: $($_.Exception.Message)" -LogLevel 3
+            return $null
+        }
+    }
 }
