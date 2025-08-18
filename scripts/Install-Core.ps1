@@ -1,20 +1,19 @@
 <#
-    Update a Windows install with Visual C++ Redistributables, .NET Runtime, and OneDrive
+    Update a Windows install with Visual C++ Redistributables, .NET Runtime, Windows App SDK, Desktop App Installer, and OneDrive
+    # [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture
 #>
-
-# Path to save binaries
-$Path = "C:\Apps"
+[CmdletBinding(SupportsShouldProcess = $false)]
+param (
+    [Parameter(Mandatory = $false)]
+    [ValidateNotNullOrEmpty()]
+    [System.String] $Path = "C:\Apps" #Path to save binaries
+)
 
 # Configure the environment
 $ProgressPreference = "SilentlyContinue"
 $InformationPreference = "Continue"
 $ErrorActionPreference = "Stop"
-if ([System.Enum]::IsDefined([System.Net.SecurityProtocolType], "Tls13")) {
-    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor [System.Net.SecurityProtocolType]::Tls13
-}
-else {
-    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
-}
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
 
 # Create path
 New-Item -Path $Path -ItemType "Directory" -Force | Out-Null
@@ -25,8 +24,8 @@ $VcList = @{
     x86   = "https://aka.ms/vs/17/release/VC_redist.x86.exe"
     arm64 = "https://aka.ms/vs/17/release/VC_redist.arm64.exe"
 }
-switch ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture) {
-    "X64" {
+switch ($Env:PROCESSOR_ARCHITECTURE) {
+    "AMD64" {
         $VcList.x86, $VcList.x64 | ForEach-Object {
             $OutFile = Join-Path -Path $Path -ChildPath (Split-Path -Path $_ -Leaf)
             Invoke-WebRequest -Uri $_ -OutFile $OutFile -UseBasicParsing
@@ -39,7 +38,7 @@ switch ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture) {
             Start-Process @params
         }
     }
-    "Arm64" {
+    "ARM64" {
         $VcList.x86, $VcList.x64, $VcList.arm64 | ForEach-Object {
             $OutFile = Join-Path -Path $Path -ChildPath (Split-Path -Path $_ -Leaf)
             Invoke-WebRequest -Uri $_ -OutFile $OutFile -UseBasicParsing
@@ -55,14 +54,15 @@ switch ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture) {
     default { throw "Unsupported architecture." }
 }
 
+
 # Install the Microsoft .NET LTS
 $VersionUrl = "https://dotnetcli.blob.core.windows.net/dotnet/Runtime/LTS/latest.version"
 $DotNet = @{
     x64   = "https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/#version/windowsdesktop-runtime-#version-win-x64.exe"
     arm64 = "https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/#version/windowsdesktop-runtime-#version-win-arm64.exe"
 }
-switch ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture) {
-    "X64" {
+switch ($Env:PROCESSOR_ARCHITECTURE) {
+    "AMD64" {
         $DotNet.x64 | ForEach-Object {
             $Version = Invoke-RestMethod -Uri $VersionUrl -UseBasicParsing
             $Url = $_ -replace "#version", $Version
@@ -77,7 +77,7 @@ switch ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture) {
             Start-Process @params
         }
     }
-    "Arm64" {
+    "ARM64" {
         $DotNet.x64, $DotNet.arm64 | ForEach-Object {
             $Version = Invoke-RestMethod -Uri $VersionUrl -UseBasicParsing
             $Url = $_ -replace "#version", $Version
@@ -95,6 +95,67 @@ switch ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture) {
     default { throw "Unsupported architecture." }
 }
 
+
+# Install the Microsoft Windows App SDK
+# https://learn.microsoft.com/en-us/windows/apps/windows-app-sdk/downloads
+function Resolve-Url ($Url) {
+    try {
+        $req = [System.Net.WebRequest]::Create($Url)
+        $req.Method = "HEAD"
+        $req.AllowAutoRedirect = $false
+        $resp = $req.GetResponse()
+        return $resp.GetResponseHeader("Location")
+
+    }
+    catch [System.Net.WebException] {
+        $resp = $_.Exception.Response
+        return $resp.GetResponseHeader("Location")
+    }
+    finally {
+        $resp.Close()
+        $resp.Dispose()
+    }
+}
+$AppSdk = @{
+    x64   = "https://aka.ms/windowsappsdk/1.7/latest/windowsappruntimeinstall-x64.exe"
+    arm64 = "https://aka.ms/windowsappsdk/1.7/latest/windowsappruntimeinstall-arm64.exe"
+}
+switch ($Env:PROCESSOR_ARCHITECTURE) {
+    "AMD64" {
+        $AppSdk.x64 | ForEach-Object {
+            $OutFile = Join-Path -Path $Path -ChildPath (Split-Path -Path $_ -Leaf)
+            Invoke-WebRequest -Uri (Resolve-Url -Url $_) -OutFile $OutFile -UseBasicParsing -MaximumRedirection 3
+        }
+    }
+    "ARM64" {
+        $AppSdk.arm64 | ForEach-Object {
+            $OutFile = Join-Path -Path $Path -ChildPath (Split-Path -Path $_ -Leaf)
+            Invoke-WebRequest -Uri (Resolve-Url -Url $_) -OutFile $OutFile -UseBasicParsing -MaximumRedirection 3
+        }
+    }
+    default { throw "Unsupported architecture." }
+}
+$params = @{
+    FilePath     = $OutFile
+    ArgumentList = "--msix --quiet"
+    Wait         = $true
+    NoNewWindow  = $true
+}
+Start-Process @params
+
+
+# Desktop App Installer
+# https://learn.microsoft.com/en-us/windows/msix/app-installer/install-update-app-installer
+$OutFile = "$Path\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+$params = @{
+    Uri             = "https://aka.ms/getwinget"
+    OutFile         = $OutFile
+    UseBasicParsing = $true
+}
+Invoke-WebRequest @params
+Add-AppxPackage -Path $OutFile
+
+
 # Update Microsoft OneDrive and install per-machine
 $params = @{
     Uri             = "https://g.live.com/1rewlive5skydrive/OneDriveProductionV2"
@@ -106,13 +167,13 @@ $params = @{
 }
 Invoke-WebRequest @params
 [System.Xml.XmlDocument]$OneDriveXml = Get-Content -Path "$Path\OneDrive.xml" -Encoding "utf8"
-switch ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture) {
-    "X64" {
+switch ($Env:PROCESSOR_ARCHITECTURE) {
+    "AMD64" {
         $Url = $OneDriveXml.root.update.amd64binary.url
         $OutFile = Join-Path -Path $Path -ChildPath (Split-Path -Path $Url -Leaf)
         Invoke-WebRequest -Uri $Url -OutFile $OutFile -UseBasicParsing
     }
-    "Arm64" {
+    "ARM64" {
         $Url = $OneDriveXml.root.update.arm64binary.url
         $OutFile = Join-Path -Path $Path -ChildPath (Split-Path -Path $Url -Leaf)
         Invoke-WebRequest -Uri $Url -OutFile $OutFile -UseBasicParsing
