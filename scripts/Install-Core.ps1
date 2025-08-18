@@ -153,7 +153,12 @@ $params = @{
     UseBasicParsing = $true
 }
 Invoke-WebRequest @params
-Add-AppxPackage -Path $OutFile
+try {
+    Add-AppxPackage -Path $OutFile
+}
+catch {
+    Add-AppxPackage -Path $OutFile -ErrorAction "SilentlyContinue" -ForceApplicationShutdown
+}
 
 
 # Update Microsoft OneDrive and install per-machine
