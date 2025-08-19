@@ -1,12 +1,12 @@
 <#
-    Update a Windows install with Visual C++ Redistributables, .NET Runtime, Windows App SDK, Desktop App Installer, and OneDrive
-    # [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture
+    Update a Windows install with Visual C++ Redistributables, .NET Runtime,
+        Windows App SDK, Desktop App Installer, PowerShell, and OneDrive
 #>
 [CmdletBinding(SupportsShouldProcess = $false)]
 param (
     [Parameter(Mandatory = $false)]
     [ValidateNotNullOrEmpty()]
-    [System.String] $Path = "C:\Apps" #Path to save binaries
+    [System.String] $Path = "${Env:SystemDrive}\Apps" #Path to save binaries
 )
 
 # Configure the environment
@@ -57,17 +57,16 @@ switch ($Env:PROCESSOR_ARCHITECTURE) {
 
 # Install the Microsoft .NET LTS
 $VersionUrl = "https://dotnetcli.blob.core.windows.net/dotnet/Runtime/LTS/latest.version"
+$Version = Invoke-RestMethod -Uri $VersionUrl -UseBasicParsing
 $DotNet = @{
-    x64   = "https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/#version/windowsdesktop-runtime-#version-win-x64.exe"
-    arm64 = "https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/#version/windowsdesktop-runtime-#version-win-arm64.exe"
+    x64   = "https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/$Version/windowsdesktop-runtime-$Version-win-x64.exe"
+    arm64 = "https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/$Version/windowsdesktop-runtime-$Version-win-arm64.exe"
 }
 switch ($Env:PROCESSOR_ARCHITECTURE) {
     "AMD64" {
         $DotNet.x64 | ForEach-Object {
-            $Version = Invoke-RestMethod -Uri $VersionUrl -UseBasicParsing
-            $Url = $_ -replace "#version", $Version
-            $OutFile = Join-Path -Path $Path -ChildPath (Split-Path -Path $Url -Leaf)
-            Invoke-WebRequest -Uri $Url -OutFile $OutFile -UseBasicParsing
+            $OutFile = Join-Path -Path $Path -ChildPath (Split-Path -Path $_ -Leaf)
+            Invoke-WebRequest -Uri $_ -OutFile $OutFile -UseBasicParsing
             $params = @{
                 FilePath     = $OutFile
                 ArgumentList = "/install /quiet /norestart"
@@ -79,10 +78,8 @@ switch ($Env:PROCESSOR_ARCHITECTURE) {
     }
     "ARM64" {
         $DotNet.x64, $DotNet.arm64 | ForEach-Object {
-            $Version = Invoke-RestMethod -Uri $VersionUrl -UseBasicParsing
-            $Url = $_ -replace "#version", $Version
-            $OutFile = Join-Path -Path $Path -ChildPath (Split-Path -Path $Url -Leaf)
-            Invoke-WebRequest -Uri $Url -OutFile $OutFile -UseBasicParsing
+            $OutFile = Join-Path -Path $Path -ChildPath (Split-Path -Path $_ -Leaf)
+            Invoke-WebRequest -Uri $_ -OutFile $OutFile -UseBasicParsing
             $params = @{
                 FilePath     = $OutFile
                 ArgumentList = "/install /quiet /norestart"
@@ -124,13 +121,13 @@ switch ($Env:PROCESSOR_ARCHITECTURE) {
     "AMD64" {
         $AppSdk.x64 | ForEach-Object {
             $OutFile = Join-Path -Path $Path -ChildPath (Split-Path -Path $_ -Leaf)
-            Invoke-WebRequest -Uri (Resolve-Url -Url $_) -OutFile $OutFile -UseBasicParsing -MaximumRedirection 3
+            Invoke-WebRequest -Uri (Resolve-Url -Url $_) -OutFile $OutFile -UseBasicParsing
         }
     }
     "ARM64" {
         $AppSdk.arm64 | ForEach-Object {
             $OutFile = Join-Path -Path $Path -ChildPath (Split-Path -Path $_ -Leaf)
-            Invoke-WebRequest -Uri (Resolve-Url -Url $_) -OutFile $OutFile -UseBasicParsing -MaximumRedirection 3
+            Invoke-WebRequest -Uri (Resolve-Url -Url $_) -OutFile $OutFile -UseBasicParsing
         }
     }
     default { throw "Unsupported architecture." }
@@ -160,6 +157,36 @@ catch {
     Add-AppxPackage -Path $OutFile -ErrorAction "SilentlyContinue" -ForceApplicationShutdown
 }
 
+# PowerShell LTS
+$VersionUrl = "https://raw.githubusercontent.com/PowerShell/PowerShell/master/tools/metadata.json"
+$Version = (Invoke-RestMethod -Uri $VersionUrl -UseBasicParsing).LTSReleaseTag[0] -replace "v", ""
+$Pwsh = @{
+    x64   = "https://github.com/PowerShell/PowerShell/releases/download/v$Version/PowerShell-$Version-win-x64.msi"
+    arm64 = "https://github.com/PowerShell/PowerShell/releases/download/v$Version/PowerShell-$Version-win-arm64.msi"
+}
+switch ($Env:PROCESSOR_ARCHITECTURE) {
+    "AMD64" {
+        $Pwsh.x64 | ForEach-Object {
+            $OutFile = Join-Path -Path $Path -ChildPath (Split-Path -Path $_ -Leaf)
+            Invoke-WebRequest -Uri $_ -OutFile $OutFile -UseBasicParsing
+        }
+    }
+    "ARM64" {
+        $Pwsh.arm64 | ForEach-Object {
+            $OutFile = Join-Path -Path $Path -ChildPath (Split-Path -Path $_ -Leaf)
+            Invoke-WebRequest -Uri $_ -OutFile $OutFile -UseBasicParsing
+        }
+    }
+    default { throw "Unsupported architecture." }
+}
+$params = @{
+    FilePath     = "$Env:SystemRoot\System32\msiexec.exe"
+    ArgumentList = "/package `"$OutFile`" /quiet /norestart USE_MU=1 ENABLE_MU=1"
+    Wait         = $true
+    NoNewWindow  = $true
+}
+Start-Process @params
+
 
 # Update Microsoft OneDrive and install per-machine
 $params = @{
@@ -167,7 +194,6 @@ $params = @{
     ContentType     = "application/xml; charset=utf-8"
     Method          = "Default"
     OutFile         = "$Path\OneDrive.xml"
-    PassThru        = $false
     UseBasicParsing = $true
 }
 Invoke-WebRequest @params
@@ -191,7 +217,6 @@ $params = @{
     ArgumentList = "/silent /allusers"
     Wait         = $false
     NoNewWindow  = $true
-    ErrorAction  = "Stop"
 }
 Start-Process @params
 do {
