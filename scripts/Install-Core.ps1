@@ -10,12 +10,33 @@ param (
 )
 
 # Configure the environment
-$ProgressPreference = "SilentlyContinue"
-$InformationPreference = "Continue"
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
+$InformationPreference = [System.Management.Automation.ActionPreference]::Continue
+$ProgressPreference = [System.Management.Automation.ActionPreference]::SilentlyContinue
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
 
+# Functions
+function Resolve-Url ($Url) {
+    try {
+        $req = [System.Net.WebRequest]::Create($Url)
+        $req.Method = "HEAD"
+        $req.AllowAutoRedirect = $false
+        $resp = $req.GetResponse()
+        return $resp.GetResponseHeader("Location")
+
+    }
+    catch [System.Net.WebException] {
+        $resp = $_.Exception.Response
+        return $resp.GetResponseHeader("Location")
+    }
+    finally {
+        $resp.Close()
+        $resp.Dispose()
+    }
+}
+
 # Create path
+Write-Information -MessageData "$($PSStyle.Foreground.Cyan)Create path: $Path"
 New-Item -Path $Path -ItemType "Directory" -Force | Out-Null
 
 # Install VcRedists
@@ -28,7 +49,9 @@ switch ($Env:PROCESSOR_ARCHITECTURE) {
     "AMD64" {
         $VcList.x86, $VcList.x64 | ForEach-Object {
             $OutFile = Join-Path -Path $Path -ChildPath (Split-Path -Path $_ -Leaf)
+            Write-Information -MessageData "$($PSStyle.Foreground.Cyan)Download: $_"
             Invoke-WebRequest -Uri $_ -OutFile $OutFile -UseBasicParsing
+            Write-Information -MessageData "$($PSStyle.Foreground.Green)Installing: $OutFile"
             $params = @{
                 FilePath     = $OutFile
                 ArgumentList = "/install /quiet /norestart"
@@ -41,7 +64,9 @@ switch ($Env:PROCESSOR_ARCHITECTURE) {
     "ARM64" {
         $VcList.x86, $VcList.x64, $VcList.arm64 | ForEach-Object {
             $OutFile = Join-Path -Path $Path -ChildPath (Split-Path -Path $_ -Leaf)
+            Write-Information -MessageData "$($PSStyle.Foreground.Cyan)Download: $_"
             Invoke-WebRequest -Uri $_ -OutFile $OutFile -UseBasicParsing
+            Write-Information -MessageData "$($PSStyle.Foreground.Green)Installing: $OutFile"
             $params = @{
                 FilePath     = $OutFile
                 ArgumentList = "/install /quiet /norestart"
@@ -66,7 +91,9 @@ switch ($Env:PROCESSOR_ARCHITECTURE) {
     "AMD64" {
         $DotNet.x64 | ForEach-Object {
             $OutFile = Join-Path -Path $Path -ChildPath (Split-Path -Path $_ -Leaf)
+            Write-Information -MessageData "$($PSStyle.Foreground.Cyan)Download: $_"
             Invoke-WebRequest -Uri $_ -OutFile $OutFile -UseBasicParsing
+            Write-Information -MessageData "$($PSStyle.Foreground.Green)Installing: $OutFile"
             $params = @{
                 FilePath     = $OutFile
                 ArgumentList = "/install /quiet /norestart"
@@ -79,7 +106,9 @@ switch ($Env:PROCESSOR_ARCHITECTURE) {
     "ARM64" {
         $DotNet.x64, $DotNet.arm64 | ForEach-Object {
             $OutFile = Join-Path -Path $Path -ChildPath (Split-Path -Path $_ -Leaf)
+            Write-Information -MessageData "$($PSStyle.Foreground.Cyan)Download: $_"
             Invoke-WebRequest -Uri $_ -OutFile $OutFile -UseBasicParsing
+            Write-Information -MessageData "$($PSStyle.Foreground.Green)Installing: $OutFile"
             $params = @{
                 FilePath     = $OutFile
                 ArgumentList = "/install /quiet /norestart"
@@ -95,24 +124,6 @@ switch ($Env:PROCESSOR_ARCHITECTURE) {
 
 # Install the Microsoft Windows App SDK
 # https://learn.microsoft.com/en-us/windows/apps/windows-app-sdk/downloads
-function Resolve-Url ($Url) {
-    try {
-        $req = [System.Net.WebRequest]::Create($Url)
-        $req.Method = "HEAD"
-        $req.AllowAutoRedirect = $false
-        $resp = $req.GetResponse()
-        return $resp.GetResponseHeader("Location")
-
-    }
-    catch [System.Net.WebException] {
-        $resp = $_.Exception.Response
-        return $resp.GetResponseHeader("Location")
-    }
-    finally {
-        $resp.Close()
-        $resp.Dispose()
-    }
-}
 $AppSdk = @{
     x64   = "https://aka.ms/windowsappsdk/1.7/latest/windowsappruntimeinstall-x64.exe"
     arm64 = "https://aka.ms/windowsappsdk/1.7/latest/windowsappruntimeinstall-arm64.exe"
@@ -121,17 +132,20 @@ switch ($Env:PROCESSOR_ARCHITECTURE) {
     "AMD64" {
         $AppSdk.x64 | ForEach-Object {
             $OutFile = Join-Path -Path $Path -ChildPath (Split-Path -Path $_ -Leaf)
+            Write-Information -MessageData "$($PSStyle.Foreground.Cyan)Download: $_"
             Invoke-WebRequest -Uri (Resolve-Url -Url $_) -OutFile $OutFile -UseBasicParsing
         }
     }
     "ARM64" {
         $AppSdk.arm64 | ForEach-Object {
             $OutFile = Join-Path -Path $Path -ChildPath (Split-Path -Path $_ -Leaf)
+            Write-Information -MessageData "$($PSStyle.Foreground.Cyan)Download: $_"
             Invoke-WebRequest -Uri (Resolve-Url -Url $_) -OutFile $OutFile -UseBasicParsing
         }
     }
     default { throw "Unsupported architecture." }
 }
+Write-Information -MessageData "$($PSStyle.Foreground.Green)Installing: $OutFile"
 $params = @{
     FilePath     = $OutFile
     ArgumentList = "--msix --quiet"
@@ -144,16 +158,20 @@ Start-Process @params
 # Desktop App Installer
 # https://learn.microsoft.com/en-us/windows/msix/app-installer/install-update-app-installer
 $OutFile = "$Path\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+$Url = Resolve-Url -Url "https://aka.ms/getwinget"
+Write-Information -MessageData "$($PSStyle.Foreground.Cyan)Download: $Url"
 $params = @{
-    Uri             = "https://aka.ms/getwinget"
+    Uri             = $Url
     OutFile         = $OutFile
     UseBasicParsing = $true
 }
 Invoke-WebRequest @params
 try {
+    Write-Information -MessageData "$($PSStyle.Foreground.Green)Installing: $OutFile"
     Add-AppxPackage -Path $OutFile
 }
 catch {
+    Write-Information -MessageData "$($PSStyle.Foreground.Green)Retrying: $OutFile"
     Add-AppxPackage -Path $OutFile -ErrorAction "SilentlyContinue" -ForceApplicationShutdown
 }
 
@@ -168,17 +186,20 @@ switch ($Env:PROCESSOR_ARCHITECTURE) {
     "AMD64" {
         $Pwsh.x64 | ForEach-Object {
             $OutFile = Join-Path -Path $Path -ChildPath (Split-Path -Path $_ -Leaf)
+            Write-Information -MessageData "$($PSStyle.Foreground.Cyan)Download: $_"
             Invoke-WebRequest -Uri $_ -OutFile $OutFile -UseBasicParsing
         }
     }
     "ARM64" {
         $Pwsh.arm64 | ForEach-Object {
             $OutFile = Join-Path -Path $Path -ChildPath (Split-Path -Path $_ -Leaf)
+            Write-Information -MessageData "$($PSStyle.Foreground.Cyan)Download: $_"
             Invoke-WebRequest -Uri $_ -OutFile $OutFile -UseBasicParsing
         }
     }
     default { throw "Unsupported architecture." }
 }
+Write-Information -MessageData "$($PSStyle.Foreground.Green)Installing: $OutFile"
 $params = @{
     FilePath     = "$Env:SystemRoot\System32\msiexec.exe"
     ArgumentList = "/package `"$OutFile`" /quiet /norestart USE_MU=1 ENABLE_MU=1"
@@ -201,17 +222,17 @@ Invoke-WebRequest @params
 switch ($Env:PROCESSOR_ARCHITECTURE) {
     "AMD64" {
         $Url = $OneDriveXml.root.update.amd64binary.url
-        $OutFile = Join-Path -Path $Path -ChildPath (Split-Path -Path $Url -Leaf)
-        Invoke-WebRequest -Uri $Url -OutFile $OutFile -UseBasicParsing
     }
     "ARM64" {
         $Url = $OneDriveXml.root.update.arm64binary.url
-        $OutFile = Join-Path -Path $Path -ChildPath (Split-Path -Path $Url -Leaf)
-        Invoke-WebRequest -Uri $Url -OutFile $OutFile -UseBasicParsing
     }
     default { throw "Unsupported architecture." }
 }
+$OutFile = Join-Path -Path $Path -ChildPath (Split-Path -Path $Url -Leaf)
+Write-Information -MessageData "$($PSStyle.Foreground.Cyan)Download: $Url"
+Invoke-WebRequest -Uri $Url -OutFile $OutFile -UseBasicParsing
 reg add "HKLM\Software\Microsoft\OneDrive" /v "AllUsersInstall" /t REG_DWORD /d 1 /reg:64 /f *> $null
+Write-Information -MessageData "$($PSStyle.Foreground.Green)Installing: $OutFile"
 $params = @{
     FilePath     = $OutFile
     ArgumentList = "/silent /allusers"
@@ -223,8 +244,10 @@ do {
     Start-Sleep -Seconds 5
 } while (Get-Process -Name "OneDriveSetup" -ErrorAction "SilentlyContinue")
 Get-Process -Name "OneDrive" -ErrorAction "SilentlyContinue" | ForEach-Object {
+    Write-Information -MessageData "$($PSStyle.Foreground.Cyan)Stop process: $($_.Name)"
     Stop-Process -Name $_.Name -Force -ErrorAction "SilentlyContinue"
 }
 
 # Cleanup downloads
+Write-Information -MessageData "$($PSStyle.Foreground.Cyan)Remove path: $Path"
 Remove-Item -Path $Path -Recurse -Force -ErrorAction "SilentlyContinue"
