@@ -221,10 +221,10 @@ Invoke-WebRequest @params
 [System.Xml.XmlDocument]$OneDriveXml = Get-Content -Path "$Path\OneDrive.xml" -Encoding "utf8"
 switch ($Env:PROCESSOR_ARCHITECTURE) {
     "AMD64" {
-        $Url = $OneDriveXml.root.update.amd64binary.url
+        $Url = $OneDriveXml.root.update.amd64binary.url | Select-Object -First 1
     }
     "ARM64" {
-        $Url = $OneDriveXml.root.update.arm64binary.url
+        $Url = $OneDriveXml.root.update.arm64binary.url | Select-Object -First 1
     }
     default { throw "Unsupported architecture." }
 }
