@@ -5,7 +5,7 @@ layout: doc
 
 To customise the solution, download the [latest release](https://github.com/aaronparker/defaults/releases) in `.zip` format and extract the archive. You should then see a folder listing similar to the following.
 
-![A folder listing of the Windows Custom Default files](assets/img/src.png)
+![A folder listing of the Windows Custom Default files](/assets/img/src.png)
 
 In most cases, you may want to customise the default Start menu; however, you may also have a requirement to add or remove registry settings.
 

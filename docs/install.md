@@ -7,7 +7,7 @@ layout: doc
 
 To use the solution in an operating system deployment pipeline, download the zip file (`defaults.zip`) attached to the [latest release](https://github.com/aaronparker/defaults/releases/latest) and import the extracted files into your OS deployment solution (e.g., the Microsoft Deployment Toolkit, Microsoft Intune, Microsoft Configuration Manager, etc.).
 
-![Windows Enterprise Defaults release hosted on GitHub](assets/img/githubrelease.jpeg)
+![Windows Enterprise Defaults release hosted on GitHub](/assets/img/githubrelease.jpeg)
 
 ## Install
 
@@ -94,7 +94,7 @@ The solution is also provided in `.intunewin` format to enable direct import int
 
 Settings for importing the Windows Enterprise Defaults as a Win32 package into Intune are maintained here: [App.json](https://github.com/aaronparker/defaults/blob/main/App.json). This can be used with the [IntuneWin32AppPackager](https://github.com/MSEndpointMgr/IntuneWin32AppPackager) to automate import into Intune.
 
-![Windows Enterprise Defaults as a Win32 application in Microsoft Intune](assets/img/intuneapp.jpeg)
+![Windows Enterprise Defaults as a Win32 application in Microsoft Intune](/assets/img/intuneapp.jpeg)
 
 ::: note
 To enable support for multiple languages, create multiple Win32 applications with different command lines - one for each required language.
@@ -104,7 +104,7 @@ To enable support for multiple languages, create multiple Win32 applications wit
 
 To ensure the solution applies to a target machine during Windows Autopilot, add the application package to the list of Blocking Apps in the [Enrollment Status Page](https://learn.microsoft.com/en-us/autopilot/enrollment-status).
 
-![Adding the Windows Enterprise Defaults to an Enrollment Status Page](assets/img/enrollmentstatuspage.jpeg)
+![Adding the Windows Enterprise Defaults to an Enrollment Status Page](/assets/img/enrollmentstatuspage.jpeg)
 
 ## Quick Install
 

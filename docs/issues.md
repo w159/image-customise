@@ -29,4 +29,4 @@ For gold images, ensure the latest Windows Updates are installed before installi
 
 The screenshot below shows this issue when manually running the solution in [Windows OOBE](https://learn.microsoft.com/en-us/windows-hardware/customize/desktop/customize-oobe-in-windows-11).
 
-![Install language issue in Windows 11 OOBE](assets/img/languageerror.png)
+![Install language issue in Windows 11 OOBE](/assets/img/languageerror.png)

@@ -10,4 +10,4 @@ Windows Enterprise Defaults logs actions to the following locations:
 
 Data is logged in Configuration Manager format, so it can be viewed with the Support Center Log File Viewer from the Configuration Manager Support Center tools:
 
-[![Viewing the log file in the Microsoft Support Center log viewer](assets/img/logs.png)](assets/img/logs.png)
+[![Viewing the log file in the Microsoft Support Center log viewer](/assets/img/logs.png)](/assets/img/logs.png)

@@ -66,7 +66,7 @@ In the targeted mode, the script will remove a list of specified AppX packages, 
 
 `Remove-AppxApps.ps1` supports the `-WhatIf` parameter, so that you can see which packages will be removed from the local machine before running the script without the `-WhatIf` parameter.
 
-[![Output from Remove-AppxApps.ps1 -WhatIf](assets/img/removeappx.png)](assets/img/removeappx.png)
+[![Output from Remove-AppxApps.ps1 -WhatIf](/assets/img/removeappx.png)](/assets/img/removeappx.png)
 
 ## Parameters
 
