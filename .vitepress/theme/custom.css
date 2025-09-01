@@ -1,0 +1,7 @@
+/* .vitepress/theme/custom.css */
+:root {
+  --vp-c-brand-1: #629df9;
+  --vp-c-brand-2: #4f7dc9;
+  --vp-home-hero-name-color: #629df9;
+  --vp-c-indigo-3: #629df9;
+}

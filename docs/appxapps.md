@@ -1,9 +1,8 @@
 ---
-title: Remove Universal Windows Platform / AppX apps
-summary:
-authors:
-    - Aaron Parker
+layout: doc
 ---
+# Remove Universal Windows Platform / AppX apps
+
 [`Remove-AppxApps.ps1`](https://github.com/aaronparker/defaults/blob/main/src/Remove-AppxApps.ps1) will remove Universal Windows Platform (UWP) / Microsoft Store apps from the local Windows OS. This script runs in two modes:
 
 ## Safe Package List
@@ -17,9 +16,9 @@ This mode should be run in [Windows OOBE](https://learn.microsoft.com/en-us/wind
 
 This allows you to optimise a Windows install or gold image by removing all but a specified list of AppX packages from the the local system to prevent new installs of unwanted apps when new users log onto the system.
 
-!!!warning
-
-    It is not recommended to run this script on existing Windows PCs, as it will likely remove applications that users are actively using.
+::: warning
+It is not recommended to run this script on existing Windows PCs, as it will likely remove applications that users are actively using.
+:::
 
 ### Default Packages
 

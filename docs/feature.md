@@ -1,9 +1,8 @@
 ---
-title: Feature upgrades
-summary:
-authors:
-    - Aaron Parker
+layout: doc
 ---
+# Feature Upgrades
+
 Windows Enterprise Defaults supports running as a custom action at the end of a successful Windows feature upgrade - [Run custom actions during feature update](https://learn.microsoft.com/en-au/windows-hardware/manufacture/desktop/windows-setup-enable-custom-actions?view=windows-11).
 
 When `Install-Defaults.ps1` runs, it copies the project files to `C:\WINDOWS\System32\update\run\f38de27b-799e-4c30-8a01-bfdedc622944`. This enables the solution to be re-run after the feature update is complete and ensure the desired system configuration is maintained. 

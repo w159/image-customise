@@ -1,9 +1,8 @@
 ---
-title: Logging
-summary:
-authors:
-    - Aaron Parker
+layout: doc
 ---
+# Logging
+
 Windows Enterprise Defaults logs actions to the following locations:
 
 * The default log file path is: `C:\Windows\Logs\defaults\WindowsEnterpriseDefaults.log`

@@ -1,3 +1,6 @@
+---
+layout: doc
+---
 # Registry Settings
 
 ## Machine-W1123H2.All.json

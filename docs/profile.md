@@ -1,9 +1,8 @@
 ---
-title: Customise the Default Profile
-summary:
-authors:
-    - Aaron Parker
+layout: doc
 ---
+# Customise the Default Profile
+
 Customising the default user profile is an important step in configuring the default environment that will user see at first sign-in.
 
 Configuring the default profile allows the administrator to reduce noise for the end-user while still allowing them to customise their environment afterwards. This is a better approach that enforcing settings via Group Policy and this will also work for Azure AD joined scenarios.

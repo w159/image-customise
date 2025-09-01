@@ -1,9 +1,8 @@
 ---
-title: Customise
-summary:
-authors:
-    - Aaron Parker
+layout: doc
 ---
+# Customise
+
 To customise the solution, download the [latest release](https://github.com/aaronparker/defaults/releases) in `.zip` format and extract the archive. You should then see a folder listing similar to the following.
 
 ![A folder listing of the Windows Custom Default files](assets/img/src.png)

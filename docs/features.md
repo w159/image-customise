@@ -1,3 +1,7 @@
+---
+layout: doc
+---
+
 # Removed Capabilities and Features
 
 ## Build.All.json

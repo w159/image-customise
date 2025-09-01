@@ -1,9 +1,8 @@
 ---
-title: Results
-summary:
-authors:
-    - Aaron Parker
+layout: doc
 ---
+# Results
+
 Windows Enterprise Defaults will configure the Windows image ready for the enterprise and an improved end-user experience.
 
 Here's the default Windows 11 desktop with many of the in-box applications pinned to the Start menu, Windows spotlight set as the default wallpaper, Microsoft Edge web search box on the desktop, and Microsoft Copilot and the Microsoft Store pinned to the taskbar.

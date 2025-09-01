@@ -1,3 +1,7 @@
+---
+layout: doc
+---
+
 # Files
 
 ## Machine.Client.json
@@ -20,9 +24,6 @@
 | ------------- | ------------- | ---- |
 | 10.0.26100 | 10.0.99999 | DefaultProfile |
 
-|  |
-||
-
 ## User.Client.json
 
 **Default user profile settings for all Windows client editions**
@@ -31,9 +32,6 @@
 | ------------- | ------------- | ---- |
 | 10.0.14393 | 10.0.99999 | DefaultProfile |
 
-|  |
-||
-
 ## User.Server.json
 
 **Default user profile settings for all Windows Server editions.**
@@ -41,6 +39,3 @@
 | Minimum build | Maximum build | Type |
 | ------------- | ------------- | ---- |
 | 10.0.14393 | 10.0.20348 | DefaultProfile |
-
-|  |
-||

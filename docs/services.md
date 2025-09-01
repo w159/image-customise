@@ -1,3 +1,6 @@
+---
+layout: doc
+---
 # Services
 
 ## Machine.Server.json

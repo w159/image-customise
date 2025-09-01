@@ -1,9 +1,8 @@
 ---
-title: Machine settings
-summary:
-authors:
-    - Aaron Parker
+layout: doc
 ---
+# Machine Settings
+
 Machine specific settings are implemented to configure the local Windows OS with various settings for roles. Settings include:
 
 ## All Windows SKUs
@@ -14,7 +13,7 @@ Machine specific settings are implemented to configure the local Windows OS with
 
 ## Windows Server
 
-* Enables the Windows Search and Audio services if the Remote Desktop Session Host role is enabled. This uses a specification in the JSON that will enable a list of services, if a specified Windows feature is enabled:
+Enables the Windows Search and Audio services if the Remote Desktop Session Host role is enabled. This uses a specification in the JSON that will enable a list of services, if a specified Windows feature is enabled:
 
 ```json
 "Services": {
@@ -42,11 +41,11 @@ Machine specific settings are implemented to configure the local Windows OS with
     }
 ```
 
-!!! note ""
+::: warning
+WindowsMediaPlayer is included by default with the expectation that you are deploying an alternative, modern media player, such as VLC Player. Removal of the Windows Media Player may affect some media playback features.
+:::
 
-    `WindowsMediaPlayer` is included by default with the expectation that you are deploying an alternative, modern media player, such as VLC Player. Removal of the Windows Media Player may affect some media playback features.
-
-* Removes the following capabilities that are not used on most enterprise end-user desktops: `App.Support.QuickAssist~~~~0.0.1.0`, `Media.WindowsMediaPlayer~~~~0.0.12.0`, `XPS.Viewer~~~~0.0.1.0`. Capabilities to remove can be listed in the JSON as below:
+Removes the following capabilities that are not used on most enterprise end-user desktops: `App.Support.QuickAssist~~~~0.0.1.0`, `Media.WindowsMediaPlayer~~~~0.0.12.0`, `XPS.Viewer~~~~0.0.1.0`. Capabilities to remove can be listed in the JSON as below:
 
 ```json
 "Capabilities": {
@@ -62,7 +61,7 @@ Machine specific settings are implemented to configure the local Windows OS with
 
 Windows 10 2004 (10.0.19041) and above will include the following configuration changes:
 
-* Removes the following capabilities that are not used on most end-user desktops: `Microsoft.Windows.PowerShell.ISE~~~~0.0.1.0`, `Microsoft.Windows.WordPad~~~~0.0.1.0`, `Print.Fax.Scan~~~~0.0.1.0`, `Print.Management.Console~~~~0.0.1.0`. Capabilities to remove from a specific Windows build, or higher, can be listed in the JSON as below:
+Removes the following capabilities that are not used on most end-user desktops: `Microsoft.Windows.PowerShell.ISE~~~~0.0.1.0`, `Microsoft.Windows.WordPad~~~~0.0.1.0`, `Print.Fax.Scan~~~~0.0.1.0`, `Print.Management.Console~~~~0.0.1.0`. Capabilities to remove from a specific Windows build, or higher, can be listed in the JSON as below:
 
 ```json
 {

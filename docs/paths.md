@@ -1,5 +1,7 @@
+---
+layout: doc
+---
 # Removed Paths
-
 
 ## Machine.All.json
 

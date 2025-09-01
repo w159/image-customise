@@ -1,9 +1,8 @@
 ---
-title: Configurations
-summary:
-authors:
-    - Aaron Parker
+layout: doc
 ---
+# Configurations
+
 Configuration changes are implemented with `Install-Defaults.ps1`. This script reads configurations in JSON format and configures the local Windows instance with Windows feature states, registry settings, copies files into specified paths, imports a default Start menu, and modifies the default user profile.
 
 Configurations are stored in the following JSON files with the logic to make changes to Windows includes in `Install-Defaults.ps1`:

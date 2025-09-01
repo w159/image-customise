@@ -1,9 +1,8 @@
 ---
-title: Install Defaults
-summary:
-authors:
-    - Aaron Parker
+layout: doc
 ---
+# Installing Defaults
+
 ## Download the Latest Release
 
 To use the solution in an operating system deployment pipeline, download the zip file (`defaults.zip`) attached to the [latest release](https://github.com/aaronparker/defaults/releases/latest) and import the extracted files into your OS deployment solution (e.g., the Microsoft Deployment Toolkit, Microsoft Intune, Microsoft Configuration Manager, etc.).
@@ -47,9 +46,9 @@ Use `Install-Defaults.ps1 -Language "<language code>"` to install a language pac
 
 This uses the [Install-Language](https://learn.microsoft.com/en-au/powershell/module/languagepackmanagement/install-language) module to install the appropriate language pack. This module is only available on current version of Windows 10, Windows 11 and Windows Server 2025.
 
-!!! note
-
-    Installation of a language pack on Windows 10 requires a reboot.
+::: note
+Installation of a language pack on Windows 10 requires a reboot.
+:::
 
 Additional locale settings can be configured for any version of Windows 10, Windows 11 and Windows Server 2016+ with the `International` PowerShell module. `Install-Defaults.ps1` will also configure culture, locale, and language settings using the language value specified in `-Language`.
 
@@ -67,9 +66,9 @@ Set-WinHomeLocation -GeoId $RegionInfo.GeoId
 Set-SystemPreferredUILanguage -Language $Language
 ```
 
-!!! warning
-
-    Run `Remove-AppxApps.ps1` before using `Install-Defaults.ps1` to install language packs, otherwise the language pack will be removed.
+::: warning
+Run `Remove-AppxApps.ps1` before using `Install-Defaults.ps1` to install language packs, otherwise the language pack will be removed.
+:::
 
 ### Set a Time Zone
 
@@ -97,9 +96,9 @@ Settings for importing the Windows Enterprise Defaults as a Win32 package into I
 
 ![Windows Enterprise Defaults as a Win32 application in Microsoft Intune](assets/img/intuneapp.jpeg)
 
-!!! note ""
-
-    To enable support for multiple languages, create multiple Win32 applications with different command lines - one for each required language.
+::: note
+To enable support for multiple languages, create multiple Win32 applications with different command lines - one for each required language.
+:::
 
 ### Enrollment Status Page
 
@@ -109,9 +108,9 @@ To ensure the solution applies to a target machine during Windows Autopilot, add
 
 ## Quick Install
 
-!!! warning
-
-    Do not use this method on an existing Windows PC. This script will run `Remove-AppxApps.ps1` which will remove AppX / Store apps except for the list specified in the script.
+::: warning
+Do not use this method on an existing Windows PC. This script will run `Remove-AppxApps.ps1` which will remove AppX / Store apps except for the list specified in the script.
+:::
 
 To simplify download and install during an automated image build pipeline, or to install manually into an image, a [quick install script](https://raw.githubusercontent.com/aaronparker/defaults/main/Install.ps1) is provided that can be executed with the following PowerShell:
 
