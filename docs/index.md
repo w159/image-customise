@@ -25,23 +25,23 @@ hero:
 
 features:
   - title: Gold images
-    details: Optimise image from the stock Microsoft Windows ISO or public cloud with enterprise-ready defaults.
+    details: Optimise images from the stock Microsoft Windows ISO or public cloud with enterprise-ready defaults.
     icon:
       src: /icons/ic_fluent_ribbon_32_color.svg
   - title: Windows Autopilot
-    details: Optimise Windows during Windows Autopilot (or OSD with ConfigMgr) to make any PC enterprise-ready.
+    details: Optimise Windows during Autopilot (or any OSD tool) to make all PCs enterprise-ready.
     icon:
       src: /icons/ic_fluent_laptop_48_color.svg
   - title: Default user profile
-    details: Configures the default user profile (incl. the Start menu) to improve the first sign-in user experience.
+    details: Configure the default user profile (incl. the Start menu) to improve the first sign-in user experience.
     icon:
       src: /icons/ic_fluent_people_home_48_color.svg
   - title: Language packs
-    details: Install language packs and configure locale settings to enable Windows in user's native language.
+    details: Install language packs and configure Windows locale settings to support user's native regions.
     icon:
       src: /icons/ic_fluent_person_feedback_48_color.svg
   - title: Inbox apps
-    details: Remove unneccesary inbox Windows apps completey - no fluff or other settings required.
+    details: Remove unneccesary inbox Windows apps completey before users sign-in - no other settings required.
     icon:
       src: /icons/ic_fluent_apps_48_color.svg
   - title: Registry settings
