@@ -29,7 +29,7 @@ The solution is intended for operating system deployment via various methods, in
 * Imported into the Microsoft Deployment Toolkit as an application for use during Lite Touch deployments - [Create a New Application in the Deployment Workbench](https://docs.microsoft.com/en-us/mem/configmgr/mdt/use-the-mdt#CreateaNewApplicationintheDeploymentWorkbench)
 * Or even run manually on a Windows PC or virtual machine gold image if you're not using automation at all
 
-## Supported Platforms
+## Supported PowerShell
 
 ::: info
 Windows PowerShell only is supported - typically during operating system deployments, there should be no strict requirement for PowerShell 6 or above. While the solution will work OK on PowerShell 6+, no testing is done on those versions.
