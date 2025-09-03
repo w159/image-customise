@@ -46,7 +46,7 @@ Use `Install-Defaults.ps1 -Language "<language code>"` to install a language pac
 
 This uses the [Install-Language](https://learn.microsoft.com/en-au/powershell/module/languagepackmanagement/install-language) module to install the appropriate language pack. This module is only available on current version of Windows 10, Windows 11 and Windows Server 2025.
 
-::: note
+::: info
 Installation of a language pack on Windows 10 requires a reboot.
 :::
 
@@ -96,7 +96,7 @@ Settings for importing the Windows Enterprise Defaults as a Win32 package into I
 
 ![Windows Enterprise Defaults as a Win32 application in Microsoft Intune](/assets/img/intuneapp.jpeg)
 
-::: note
+::: info
 To enable support for multiple languages, create multiple Win32 applications with different command lines - one for each required language.
 :::
 
