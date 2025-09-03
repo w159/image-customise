@@ -13,6 +13,13 @@ export default defineConfig({
   },
   cleanUrls: true,
   // ignoreDeadLinks: true,
+  markdown: {
+    image: {
+      // image lazy loading is disabled by default
+      lazyLoading: true
+    },
+    toc: { level: [1, 2, 3] },
+  },
 
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config

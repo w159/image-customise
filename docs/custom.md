@@ -133,60 +133,60 @@ Importing a default Start menu is implemented with the following JSON; however, 
 
 For Windows 10 or Windows 11, the Start menu layout to import, is specified with the `Windows10` or `Windows11` property; while for Windows Server, the Start menu layout is specified by the presence or not of a specified Windows feature - in the example below a specific layout is imported is the Remote Desktop Session Host role is installed.
 
-=== "Client"
+::: code-group
 
-    ```json
-    {
-        "MinimumBuild": "10.0.14393",
-        "StartMenu": {
-            "Type": "Client",
-            "Feature": "",
-            "Windows10": [
-                {
-                    "Source": "Windows10StartMenuLayout.xml",
-                    "Destination": "C:\\Users\\Default\\AppData\\Local\\Microsoft\\Windows\\Shell\\LayoutModification.xml"
-                }
-            ],
-            "Windows11": [
-                {
-                    "Source": "Windows11StartMenuLayout.json",
-                    "Destination": "C:\\Users\\Default\\AppData\\Local\\Microsoft\\Windows\\Shell\\LayoutModification.json"
-                },
-                {
-                    "Source": "Windows11TaskbarLayout.xml",
-                    "Destination": "C:\\Users\\Default\\AppData\\Local\\Microsoft\\Windows\\Shell\\LayoutModification.xml"
-                },
-                {
-                    "Source": "Windows11Start.bin",
-                    "Destination": "C:\\Users\\Default\\AppData\\Local\\Packages\\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\\LocalState\\start2.bin"
-                }
-            ]
-        }
+```json [User.Client.json]
+{
+    "MinimumBuild": "10.0.14393",
+    "StartMenu": {
+        "Type": "Client",
+        "Feature": "",
+        "Windows10": [
+            {
+                "Source": "Windows10StartMenuLayout.xml",
+                "Destination": "C:\\Users\\Default\\AppData\\Local\\Microsoft\\Windows\\Shell\\LayoutModification.xml"
+            }
+        ],
+        "Windows11": [
+            {
+                "Source": "Windows11StartMenuLayout.json",
+                "Destination": "C:\\Users\\Default\\AppData\\Local\\Microsoft\\Windows\\Shell\\LayoutModification.json"
+            },
+            {
+                "Source": "Windows11TaskbarLayout.xml",
+                "Destination": "C:\\Users\\Default\\AppData\\Local\\Microsoft\\Windows\\Shell\\LayoutModification.xml"
+            },
+            {
+                "Source": "Windows11Start.bin",
+                "Destination": "C:\\Users\\Default\\AppData\\Local\\Packages\\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\\LocalState\\start2.bin"
+            }
+        ]
     }
-    ```
+}
+```
 
-=== "Server"
-
-    ```json
-    {
-        "StartMenu": {
-            "Type": "Server",
-            "Feature": "RDS-RD-Server",
-            "Exists": [
-                {
-                    "Source": "WindowsRDSStartMenuLayout.xml",
-                    "Destination": "C:\\Users\\Default\\AppData\\Local\\Microsoft\\Windows\\Shell\\LayoutModification.xml"
-                }
-            ],
-            "NotExists": [
-                {
-                    "Source": "WindowsServerStartMenuLayout.xml",
-                    "Destination": "C:\\Users\\Default\\AppData\\Local\\Microsoft\\Windows\\Shell\\LayoutModification.xml"
-                }
-            ]
-        }
+```json [User.Server.json]
+{
+    "StartMenu": {
+        "Type": "Server",
+        "Feature": "RDS-RD-Server",
+        "Exists": [
+            {
+                "Source": "WindowsRDSStartMenuLayout.xml",
+                "Destination": "C:\\Users\\Default\\AppData\\Local\\Microsoft\\Windows\\Shell\\LayoutModification.xml"
+            }
+        ],
+        "NotExists": [
+            {
+                "Source": "WindowsServerStartMenuLayout.xml",
+                "Destination": "C:\\Users\\Default\\AppData\\Local\\Microsoft\\Windows\\Shell\\LayoutModification.xml"
+            }
+        ]
     }
-    ```
+}
+```
+
+:::
 
 ### Windows 11 Start menu
 

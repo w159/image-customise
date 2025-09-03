@@ -1,4 +1,4 @@
----
+﻿---
 layout: doc
 ---
 # Registry Settings
@@ -46,7 +46,6 @@ layout: doc
 | HKLM: \Software \Microsoft \Windows \CurrentVersion \Explorer | DisableEdgeDesktopShortcutCreation | 1 | Prevents the Microsoft Edge short added to the public desktop |
 | HKLM: \Software \Policies \Microsoft \Windows \CloudContent | DisableWindowsConsumerFeatures | 1 | Disables the Microsoft Windows consumer features |
 | HKLM: \Software \Policies \Microsoft \Windows \CloudContent | DisableCloudOptimizedContent | 1 | Disables the customisation of the taskbar with additional shortcuts (e.g. new Outlook) |
-
 
 **Computer level settings for Windows client editions.**
 
@@ -168,8 +167,8 @@ layout: doc
 | ---- | ---- | ----- | ---- |
 | HKCU: \Software \Microsoft \Windows \CurrentVersion \Explorer \Wallpapers | BackgroundType | 0 | Sets the desktop background type to a picture |
 | HKCU: \Software \Microsoft \Windows \CurrentVersion \DesktopSpotlight \Settings | EnabledState | 0 | Disables Windows spotlight |
-| HKCU: \Console \%%Startup | DelegationConsole | {2EACA947-7F5F-4CFA-BA87-8F7FBEEFBE69} | Sets Windows Terminal as the default terminal |
-| HKCU: \Console \%%Startup | DelegationTerminal | {E12CFF52-A866-4C77-9A90-F570A7AA2C6B} | Sets Windows Terminal as the default terminal |
+| HKCU: \Console \%%Startup | DelegationConsole | 2EACA947-7F5F-4CFA-BA87-8F7FBEEFBE69 | Sets Windows Terminal as the default terminal |
+| HKCU: \Console \%%Startup | DelegationTerminal | E12CFF52-A866-4C77-9A90-F570A7AA2C6B | Sets Windows Terminal as the default terminal |
 
 ## User.Server.json
 

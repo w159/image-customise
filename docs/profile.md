@@ -5,7 +5,7 @@ layout: doc
 
 Customising the default user profile is an important step in configuring the default environment that will user see at first sign-in.
 
-Configuring the default profile allows the administrator to reduce noise for the end-user while still allowing them to customise their environment afterwards. This is a better approach that enforcing settings via Group Policy and this will also work for Azure AD joined scenarios.
+Configuring the default profile allows the administrator to reduce noise for the end-user while still allowing them to customise their environment afterwards. This is a better approach that enforcing settings via Group Policy, and will work for Entra joined scenarios.
 
 The approach used by these scripts is to make changes directly to the default user profile found at `C:\Users\Default`. When users sign into Windows for the first time, their profile starts as a copy of the default profile, thus it will pick up the customisations.
 
@@ -25,28 +25,53 @@ Imports a Start menu and taskbar layout (`Windows10StartMenuLayout.xml` or `Wind
 
 These settings are imported into the default profile via direct file copies. The source file and destination are defined in the JSON sources as in the examples below. Here Windows 10 and Windows 11 default Start menu and taskbar layouts are defined in the included files and are copied to the specified destination.
 
-```json
-"Windows10": [
-    {
-        "Source": "Windows10StartMenuLayout.xml",
-        "Destination": "C:\\Users\\Default\\AppData\\Local\\Microsoft\\Windows\\Shell\\LayoutModification.xml"
-    }
-],
-"Windows11": [
-    {
-        "Source": "Windows11StartMenuLayout.json",
-        "Destination": "C:\\Users\\Default\\AppData\\Local\\Microsoft\\Windows\\Shell\\LayoutModification.json"
-    },
-    {
-        "Source": "Windows11TaskbarLayout.xml",
-        "Destination": "C:\\Users\\Default\\AppData\\Local\\Microsoft\\Windows\\Shell\\LayoutModification.xml"
-    },
-    {
-        "Source": "Windows11Start.bin",
-        "Destination": "C:\\Users\\Default\\AppData\\Local\\Packages\\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\\LocalState\\start.bin"
-    }
-]
+::: code-group
+```json [User.Client.json]
+"StartMenu": {
+    "Type": "Client",
+    "Feature": "",
+    "Windows10": [
+        {
+            "Source": "start\\Windows10StartMenuLayout.xml",
+            "Destination": "C:\\Users\\Default\\AppData\\Local\\Microsoft\\Windows\\Shell\\LayoutModification.xml"
+        }
+    ],
+    "Windows11": [
+        {
+            "Source": "start\\Windows11StartMenuLayout.json",
+            "Destination": "C:\\Users\\Default\\AppData\\Local\\Microsoft\\Windows\\Shell\\LayoutModification.json"
+        },
+        {
+            "Source": "start\\Windows11TaskbarLayout.xml",
+            "Destination": "C:\\Users\\Default\\AppData\\Local\\Microsoft\\Windows\\Shell\\LayoutModification.xml"
+        },
+        {
+            "Source": "start\\Windows11Start.bin",
+            "Destination": "C:\\Users\\Default\\AppData\\Local\\Packages\\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\\LocalState\\start2.bin"
+        }
+    ]
+}
 ```
+
+```json [User.Server.json]
+"StartMenu": {
+    "Type": "Server",
+    "Feature": "RDS-RD-Server",
+    "Exists": [
+        {
+            "Source": "start\\WindowsRDSStartMenuLayout.xml",
+            "Destination": "C:\\Users\\Default\\AppData\\Local\\Microsoft\\Windows\\Shell\\LayoutModification.xml"
+        }
+    ],
+    "NotExists": [
+        {
+            "Source": "start\\WindowsServerStartMenuLayout.xml",
+            "Destination": "C:\\Users\\Default\\AppData\\Local\\Microsoft\\Windows\\Shell\\LayoutModification.xml"
+        }
+    ]
+}
+```
+:::
 
 ## Virtual Machines
 
