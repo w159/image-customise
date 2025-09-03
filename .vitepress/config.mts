@@ -1,7 +1,8 @@
 import { defineConfig } from 'vitepress'
+import { withMermaid } from "vitepress-plugin-mermaid";
 
 // https://vitepress.dev/reference/site-config
-export default defineConfig({
+export default withMermaid(defineConfig({
   srcDir: './docs',
   title: "Windows Enterprise Defaults",
   description: "Make Windows enterprise-ready.",
@@ -12,7 +13,6 @@ export default defineConfig({
     hostname: 'https://stealthpuppy.com/defaults/'
   },
   cleanUrls: true,
-  // ignoreDeadLinks: true,
   markdown: {
     image: {
       // image lazy loading is disabled by default
@@ -87,4 +87,4 @@ export default defineConfig({
       pattern: 'https://github.com/aaronparker/defaults/edit/main/:path'
     }
   }
-})
+}))
