@@ -35,8 +35,7 @@
     - The script must be run with elevated privileges to remove provisioned packages and delete specific registry keys.
     - The script checks the operating system version to determine whether it is running on Windows 10 or Windows 11 and adjusts the removal process accordingly.
 #>
-
-[CmdletBinding(SupportsShouldProcess = $true, DefaultParameterSetName = "Default")]
+[CmdletBinding(SupportsShouldProcess = $true, DefaultParameterSetName = "Default", ConfirmImpact = "High")]
 param (
     [Parameter(Mandatory = $false, ParameterSetName = "Default")]
     [System.Collections.ArrayList] $SafePackageList = @(
@@ -52,6 +51,7 @@ param (
         "Microsoft.WindowsSoundRecorder_8wekyb3d8bbwe", # Voice recording app
         "Microsoft.WindowsTerminal_8wekyb3d8bbwe", # Essential terminal app
         "Microsoft.MicrosoftEdge.Stable_8wekyb3d8bbwe", # Microsoft Edge browser
+        "Microsoft.Edge.GameAssist_8wekyb3d8bbwe", # Microsoft Edge browser component
         "Microsoft.ZuneMusic_8wekyb3d8bbwe", # Windows Media Player, video and music player
 
         # System applications
@@ -60,12 +60,15 @@ param (
         "Microsoft.ApplicationCompatibilityEnhancements_8wekyb3d8bbwe",
         "Microsoft.SecHealthUI_8wekyb3d8bbwe",
         "Microsoft.StorePurchaseApp_8wekyb3d8bbwe",
+        "Microsoft.StartExperiencesApp_8wekyb3d8bbwe",
         "Microsoft.Wallet_8wekyb3d8bbwe",
         "MicrosoftWindows.CrossDevice_cw5n1h2txyewy",
         "MicrosoftWindows.Client.WebExperience_cw5n1h2txyewy",
-        "Microsoft.WidgetsPlatformRuntime_8wekyb3d8bbwe",
-        "MicrosoftCorporationII.WinAppRuntime.Main.1.5_8wekyb3d8bbwe",
+        "Microsoft.WidgetsPlatformRuntime_8wekyb3d8bbwe", # Ensure policy disables Widgets 
         "MicrosoftCorporationII.WinAppRuntime.Singleton_8wekyb3d8bbwe",
+        "Microsoft.Winget.Source_8wekyb3d8bbwe", # Winget package
+        "Microsoft.WindowsPackageManagerManifestCreator_8wekyb3d8bbwe", # App to create manifests for winget
+        "Microsoft.OneDriveSync_8wekyb3d8bbwe", # OneDrive sync client
 
         # Image & video codecs
         "Microsoft.MPEG2VideoExtension_8wekyb3d8bbwe",
@@ -77,6 +80,14 @@ param (
         "Microsoft.VP9VideoExtensions_8wekyb3d8bbwe",
         "Microsoft.WebMediaExtensions_8wekyb3d8bbwe",
         "Microsoft.WebpImageExtension_8wekyb3d8bbwe"),
+
+    [Parameter(Mandatory = $false, ParameterSetName = "Default")]
+    [System.Collections.ArrayList] $SafePackageWildCard = @(
+        # Packages that include version numbers, so static names aren't effective
+        "MicrosoftCorporationII.WinAppRuntime.Main*",
+        "Microsoft.WinAppRuntime.DDLM*",
+        "Microsoft.LanguageExperiencePack*",
+        "Microsoft.Teams.SlimCoreVdi*"),
 
     # Use Targeted switch to remove a targeted list of packages. Useful for in-place feature updates
     [Parameter(Mandatory = $false, ParameterSetName = "Targeted")]
@@ -98,14 +109,31 @@ param (
         "Microsoft.XboxGameOverlay_8wekyb3d8bbwe",
         "Microsoft.XboxIdentityProvider_8wekyb3d8bbwe",
         "Microsoft.XboxSpeechToTextOverlay_8wekyb3d8bbwe",
-        # "MSTeams_8wekyb3d8bbwe",
+        "MSTeams_8wekyb3d8bbwe",
         "Microsoft.ZuneVideo_8wekyb3d8bbwe")
 )
 
 begin {
-    # Get elevated status. if elevated we'll remove packages from all users and provisioned packages
-    $Role = [Security.Principal.WindowsBuiltInRole] "Administrator"
-    [System.Boolean] $Elevated = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole($Role)
+    #region Functions
+    function Test-IsOobeComplete {
+        # https://oofhours.com/2023/09/15/detecting-when-you-are-in-oobe/
+        $TypeDef = @"
+using System;
+using System.Text;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+namespace Api {
+    public class Kernel32 {
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern int OOBEComplete(ref int bIsOOBEComplete);
+    }
+}
+"@
+        Add-Type -TypeDefinition $TypeDef -Language "CSharp"
+        $IsOOBEComplete = $false
+        [Void][Api.Kernel32]::OOBEComplete([ref] $IsOOBEComplete)
+        return [System.Boolean]$IsOOBEComplete
+    }
 
     function Add-DeprovisionedPackageKey {
         # Explicitly create the registry key for deprovisioned packages
@@ -124,6 +152,15 @@ begin {
         catch {
             Write-Verbose -Message "Failed to create registry key: $Path. Error: $($_.Exception.Message)"
         }
+    }
+    #endregion
+
+    # Get elevated status. if elevated we'll remove packages from all users and provisioned packages
+    $Role = [Security.Principal.WindowsBuiltInRole] "Administrator"
+    [System.Boolean] $Elevated = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole($Role)
+
+    if (Test-IsOobeComplete) {
+        Write-Warning -Message "OOBE is complete. Removing applications on an existing desktop may remove applications that users rely on."
     }
 }
 
@@ -157,6 +194,15 @@ process {
         # Remove all AppX packages, except for packages that can't be removed, frameworks, and the safe packages list
         $AppxPackagesToRemove = $AppxPackages | `
             Where-Object { $_.NonRemovable -eq $false -and $_.IsFramework -eq $false -and $_.PackageFamilyName -notin $SafePackageList }
+
+        # Further filter out packages that match the safe wildcard patterns
+        $MatchingPackages = $AppxPackagesToRemove | Where-Object {
+            $Package = $_.PackageFamilyName
+            $SafePackageWildCard | Where-Object { $Package -like $_ }
+        }
+        if ($MatchingPackages) {
+            $AppxPackagesToRemove = $AppxPackagesToRemove | Where-Object { $_.PackageFamilyName -notin $MatchingPackages.PackageFamilyName }
+        }
         Write-Verbose -Message "We found $($AppxPackagesToRemove.Count) packages to remove."
 
         # Check if we're running on Windows 11 or Windows Server 2025, or above
