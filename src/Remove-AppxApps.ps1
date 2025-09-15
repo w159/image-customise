@@ -50,9 +50,15 @@ param (
         "Microsoft.WindowsNotepad_8wekyb3d8bbwe", # Notepad app
         "Microsoft.WindowsSoundRecorder_8wekyb3d8bbwe", # Voice recording app
         "Microsoft.WindowsTerminal_8wekyb3d8bbwe", # Essential terminal app
+        "Microsoft.ZuneMusic_8wekyb3d8bbwe", # Windows Media Player, video and music player
+
+        # Apps and packages on a Microsoft 365 / Intune managed desktop
+        "Microsoft.CompanyPortal_8wekyb3d8bbwe", # Intune Company Portal
         "Microsoft.MicrosoftEdge.Stable_8wekyb3d8bbwe", # Microsoft Edge browser
         "Microsoft.Edge.GameAssist_8wekyb3d8bbwe", # Microsoft Edge browser component
-        "Microsoft.ZuneMusic_8wekyb3d8bbwe", # Windows Media Player, video and music player
+        "Microsoft.OfficePushNotificationUtility_8wekyb3d8bbwe", # Microsoft 365 apps
+        "Microsoft.Office.ActionsServer_8wekyb3d8bbwe", # Microsoft 365 apps
+        "aimgr_8wekyb3d8bbwe", # Microsoft 365 apps, Artificial Intelligence Manager
 
         # System applications
         "Microsoft.WindowsStore_8wekyb3d8bbwe",
