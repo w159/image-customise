@@ -18,7 +18,7 @@ Describe "Remove-AppxApps script execution validation" {
     Context "Validate <script.Name>." {
         It "<script.Name> should execute OK" {
             Push-Location -Path $([System.IO.Path]::Combine($env:GITHUB_WORKSPACE, "src"))
-            { & $Script.FullName } | Should -Not -Throw
+            { & $Script.FullName -Confirm:$false } | Should -Not -Throw
             Pop-Location
         }
     }
