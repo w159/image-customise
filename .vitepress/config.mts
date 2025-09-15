@@ -18,7 +18,7 @@ export default withMermaid(defineConfig({
       // image lazy loading is disabled by default
       lazyLoading: true
     },
-    toc: { level: [1, 2, 3] },
+    toc: { level: [1, 2, 3] }
   },
 
   themeConfig: {
@@ -42,8 +42,18 @@ export default withMermaid(defineConfig({
         items: [
           { text: 'About', link: 'about.md' },
           { text: 'Results', link: 'results.md' },
-          { text: 'Installing', link: 'install.md' },
           { text: 'Known issues', link: 'issues.md' }
+        ]
+      },
+      {
+        text: 'Install',
+        collapsed: false,
+        items: [
+          { text: 'Download', link: 'download.md' },
+          { text: 'Installing', link: 'install.md' },
+          { text: 'Localising Windows', link: 'localisation.md' },
+          { text: 'Quick Install', link: 'quick.md' },
+          { text: 'Microsoft Intune', link: 'intune.md' }
         ]
       },
       {

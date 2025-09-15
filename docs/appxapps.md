@@ -10,14 +10,15 @@ layout: doc
 In this default mode, the script includes an explicit list of applications that it will keep, including packages that cannot be removed or are frameworks (packages that support other applications). **All other application packages will be removed**.
 
 This mode should be run in [Windows OOBE](https://learn.microsoft.com/en-us/windows-hardware/customize/desktop/customize-oobe-in-windows-11) (1) (i.e. via Windows Autopilot or Device provisioning) or in a gold image, where the intention it to optimise the Windows installation by keeping only a core set of applications that provide valuable features to end-users.
-{ .annotate }
 
-1.  Windows OOBE stands for Windows Out-of-Box Experience. It's the setup process that occurs when you turn on a new Windows device for the first time or after resetting it to its factory settings. During OOBE, you're guided through various steps to personalize and configure your device, such as: connecting to a Wi-Fi network, setting up device preferences like region, keyboard layout, and privacy settings, and signing in with a Microsoft account.
+::: info
+Windows OOBE stands for Windows Out-of-Box Experience. It's the setup process that occurs when you turn on a new Windows device for the first time or after resetting it to its factory settings. During OOBE, you're guided through various steps to personalize and configure your device, such as: connecting to a Wi-Fi network, setting up device preferences like region, keyboard layout, and privacy settings, and signing in with a Microsoft account.
+:::
 
 This allows you to optimise a Windows install or gold image by removing all but a specified list of AppX packages from the the local system to prevent new installs of unwanted apps when new users log onto the system.
 
 ::: warning
-It is not recommended to run this script on existing Windows PCs, as it will likely remove applications that users are actively using.
+Validate which packages will be removed before running on an existing Windows PC. Removing applications on an existing desktop may remove applications that users rely on. If required, update the **SafePackageList** parameter to avoid removal of required applications.
 :::
 
 ### Default Packages
@@ -89,7 +90,7 @@ An optional parameter that specifies a targeted list of AppX package family name
 Remove all applications in the current Windows installation except for the default list of applications listed in `-SafePackages`, are non-removable or are package frameworks.
 
 ```powershell
-PS C:\> .\Remove-AppxApps.ps1
+PS C:\> .\Remove-AppxApps.ps1 -Confirm:$false
 ```
 
 Remove all applications in the current Windows installation except for those applications passed to `-SafePackages`, are non-removable or are package frameworks.
@@ -117,5 +118,5 @@ PS C:\> .\Remove-AppxApps.ps1 -SafePackages $Packages
 Remove a set of applications in the current Windows installation listed in `-TargetedPackageList`.
 
 ```powershell
-PS C:\> .\Remove-AppxApps.ps1 -Targeted
+PS C:\> .\Remove-AppxApps.ps1 -Targeted -Confirm:$false
 ```
