@@ -811,7 +811,7 @@ function Set-TimeZoneUsingName {
     }
 }
 
-function Get-IsOobeComplete {
+function Test-IsOobeComplete {
     # https://oofhours.com/2023/09/15/detecting-when-you-are-in-oobe/
     $TypeDef = @"
 using System;
