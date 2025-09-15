@@ -70,7 +70,7 @@ param (
         "Microsoft.Wallet_8wekyb3d8bbwe",
         "MicrosoftWindows.CrossDevice_cw5n1h2txyewy",
         "MicrosoftWindows.Client.WebExperience_cw5n1h2txyewy",
-        "Microsoft.WidgetsPlatformRuntime_8wekyb3d8bbwe", # Ensure policy disables Widgets 
+        "Microsoft.WidgetsPlatformRuntime_8wekyb3d8bbwe", # Ensure policy disables Widgets
         "MicrosoftCorporationII.WinAppRuntime.Singleton_8wekyb3d8bbwe",
         "Microsoft.Winget.Source_8wekyb3d8bbwe", # Winget package
         "Microsoft.WindowsPackageManagerManifestCreator_8wekyb3d8bbwe", # App to create manifests for winget

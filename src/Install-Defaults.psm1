@@ -834,6 +834,7 @@ namespace Api {
 
 function Copy-RegExe {
     [CmdletBinding()]
+    [OutputType([System.String])]
     param()
     process {
         try {
