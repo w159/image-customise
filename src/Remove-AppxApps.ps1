@@ -19,15 +19,15 @@
     An optional parameter that specifies a targeted list of AppX package family names to be removed when the -Targeted switch is used.
 
     .EXAMPLE
-    .\Remove-AppxApps.ps1
+    .\Remove-AppxApps.ps1 -Confirm:$false
     Runs the script with the default list of safe packages and removes all other removable AppX packages.
 
     .EXAMPLE
-    .\Remove-AppxApps.ps1 -SafePackagesList @("Microsoft.WindowsCalculator_8wekyb3d8bbwe")
+    .\Remove-AppxApps.ps1 -SafePackagesList @("Microsoft.WindowsCalculator_8wekyb3d8bbwe") -Confirm:$false
     Runs the script while preserving only the specified package (Microsoft.WindowsCalculator_8wekyb3d8bbwe) and removes all other removable AppX packages.
 
     .EXAMPLE
-    .\Remove-AppxApps.ps1 -Targeted
+    .\Remove-AppxApps.ps1 -Targeted -Confirm:$false
     Runs the script with a targeted list of packages to be removed during a Windows feature upgrade.
 
     .NOTES

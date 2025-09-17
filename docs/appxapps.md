@@ -110,7 +110,7 @@ $Packages = @(
         "MicrosoftWindows.CrossDevice_cw5n1h2txyewy",
         "MicrosoftWindows.Client.WebExperience_cw5n1h2txyewy",
         "Microsoft.WidgetsPlatformRuntime_8wekyb3d8bbwe")
-PS C:\> .\Remove-AppxApps.ps1 -SafePackages $Packages
+PS C:\> .\Remove-AppxApps.ps1 -SafePackages $Packages -Confirm:$false
 ```
 
 ### Example 2

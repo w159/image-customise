@@ -27,7 +27,7 @@ if ($null -ne $release) {
         Push-Location -Path $TmpDir
         Expand-Archive -Path $OutFile -DestinationPath $TmpDir -Force
         Get-ChildItem -Path $TmpDir -Recurse | Unblock-File
-        & .\Remove-AppxApps.ps1
+        & .\Remove-AppxApps.ps1 -Confirm:$false
         & .\Install-Defaults.ps1
         Pop-Location
         Remove-Item -Path $TmpDir -Recurse -Force

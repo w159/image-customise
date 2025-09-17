@@ -34,7 +34,7 @@ Set-SystemPreferredUILanguage -Language $Language
 ```
 
 ::: warning
-Run `Remove-AppxApps.ps1` before using `Install-Defaults.ps1` to install language packs, otherwise the language pack will be removed.
+Run `Remove-AppxApps.ps1` before using `Install-Defaults.ps1` to install language packs, otherwise the language pack may be removed.
 :::
 
 # Set a Time Zone
