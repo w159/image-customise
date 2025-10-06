@@ -251,5 +251,5 @@ Remove-Item -Path $Path -Recurse -Force -ErrorAction "SilentlyContinue"
 # Trust the PSGallery for modules
 Write-Information -MessageData "$($PSStyle.Foreground.Cyan)Install NuGet, PowerShellGet"
 Install-PackageProvider -Name "NuGet" -Force
-Install-PackageProvider -Name "PowerShellGet" -MinimumVersion "2.2.5" -AllowClobber -Force
+Install-PackageProvider -Name "PowerShellGet" -MinimumVersion "2.2.5" -Force
 Set-PSRepository -Name "PSGallery" -InstallationPolicy "Trusted"
