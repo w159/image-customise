@@ -79,7 +79,6 @@ switch ($Env:PROCESSOR_ARCHITECTURE) {
     default { throw "Unsupported architecture." }
 }
 
-
 # Install the Microsoft .NET LTS
 $VersionUrl = "https://dotnetcli.blob.core.windows.net/dotnet/Runtime/LTS/latest.version"
 $Version = Invoke-RestMethod -Uri $VersionUrl -UseBasicParsing
@@ -121,7 +120,6 @@ switch ($Env:PROCESSOR_ARCHITECTURE) {
     default { throw "Unsupported architecture." }
 }
 
-
 # Install the Microsoft Windows App SDK
 # https://learn.microsoft.com/en-us/windows/apps/windows-app-sdk/downloads
 $AppSdk = @{
@@ -153,7 +151,6 @@ $params = @{
     NoNewWindow  = $true
 }
 Start-Process @params
-
 
 # Desktop App Installer
 # https://learn.microsoft.com/en-us/windows/msix/app-installer/install-update-app-installer
@@ -208,7 +205,6 @@ $params = @{
 }
 Start-Process @params
 
-
 # Update Microsoft OneDrive and install per-machine
 $params = @{
     Uri             = "https://g.live.com/1rewlive5skydrive/OneDriveProductionV2"
@@ -251,3 +247,9 @@ Get-Process -Name "OneDrive" -ErrorAction "SilentlyContinue" | ForEach-Object {
 # Cleanup downloads
 Write-Information -MessageData "$($PSStyle.Foreground.Cyan)Remove path: $Path"
 Remove-Item -Path $Path -Recurse -Force -ErrorAction "SilentlyContinue"
+
+# Trust the PSGallery for modules
+Write-Information -MessageData "$($PSStyle.Foreground.Cyan)Install NuGet, PowerShellGet"
+Install-PackageProvider -Name "NuGet" -Force
+Install-PackageProvider -Name "PowerShellGet" -MinimumVersion "2.2.5" -AllowClobber -Force
+Set-PSRepository -Name "PSGallery" -InstallationPolicy "Trusted"
