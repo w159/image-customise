@@ -148,6 +148,10 @@ namespace Api {
             [Parameter(Mandatory = $true)]
             [System.String] $PackageFamilyName
         )
+        if ($null -ne $PackageFamilyName -or $PackageFamilyName -eq "") {
+            Write-Verbose -Message "PackageFamilyName is null or empty. Skipping registry key creation."
+            return
+        }
         try {
             $Deprovisioned = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned"
             $Path = "$Deprovisioned\$($PackageFamilyName)"
