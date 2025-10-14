@@ -119,7 +119,7 @@ jobs:
 
       - name: Commit changes
         id: commit
-        uses: stefanzweifel/git-auto-commit-action@v6
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "${{ steps.get-version.outputs.version }}"
           commit_user_name: ${{ secrets.COMMIT_NAME }}
