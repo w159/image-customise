@@ -42,7 +42,10 @@
 param (
     [Parameter(Mandatory = $false)]
     [ValidateNotNullOrEmpty()]
-    [System.Globalization.CultureInfo] $Language,
+    [System.Globalization.CultureInfo] $Language, # Set the specified locale / language
+
+    [Parameter(Mandatory = $false)]
+    [System.Management.Automation.SwitchParameter] $InstallLanguagePack, # Install the language pack for the specified language
 
     [Parameter(Mandatory = $false)]
     [ValidateNotNullOrEmpty()]
@@ -237,8 +240,11 @@ if ($Platform -eq "Client") {
 #region Set system language, locale and regional settings
 if ($PSBoundParameters.ContainsKey('Language')) {
     if ($OSVersion -ge [System.Version]"10.0.22000") {
-        # Set language support by installing the specified language pack
-        Install-SystemLanguage -Language $Language
+        
+        if ($InstallLanguagePack.IsPresent) {
+            # Set language support by installing the specified language pack
+            Install-SystemLanguage -Language $Language
+        }
 
         # Set locale settings
         Set-SystemLocale -Language $Language
