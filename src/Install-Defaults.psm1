@@ -12,7 +12,7 @@ function Write-Msg {
     )
     process {
         $Msg = [HostInformationMessage]@{
-            Message         = "[$(Get-Date -Format 'dd.MM.yyyy HH:mm:ss')]"
+            Message         = "[$(Get-Date -Format 'HH:mm:ss')]"
             ForegroundColor = "Black"
             BackgroundColor = "DarkCyan"
             NoNewline       = $true
@@ -30,6 +30,82 @@ function Write-Msg {
         }
         Write-Information @params
     }
+}
+
+function Get-Symbol {
+    [CmdletBinding()]
+    param (
+        [Parameter()]
+        [ValidateSet("Tick", "Cross")]
+        [System.String] $Symbol = "Tick"
+    )
+
+    switch ($Symbol) {
+        "Tick" {
+            return [System.Text.Encoding]::UTF32.GetString((19, 39, 0, 0))
+        }
+        "Cross" {
+            return [System.Text.Encoding]::UTF32.GetString((23, 39, 0, 0))
+        }
+        default {
+            return $null
+        }
+    }
+}
+
+function Write-Message {
+    [CmdletBinding(SupportsShouldProcess = $false)]
+    param (
+        [Parameter(Mandatory = $false)]
+        [System.String] $Message,
+
+        [ValidateSet(1, 2, 3)]
+        [System.Int16] $LogLevel = 1
+    )
+    
+    # Get the time stamp
+    $Date = "[$(Get-Date -Format 'HH:mm:ss')]"
+
+    switch ($LogLevel) {
+        1 {
+            $ForegroundColor = "Black"
+            $BackgroundColor = "DarkGreen"
+            $Message = "$Date [$(Get-Symbol -Symbol "Tick")] $Message"
+        }
+        2 {
+            $ForegroundColor = "Black"
+            $BackgroundColor = "DarkYellow"
+            $Message = "$Date [!] $Message"
+        }
+        3 {
+            $ForegroundColor = "White"
+            $BackgroundColor = "DarkRed"
+            $Message = "$Date [$(Get-Symbol -Symbol "Cross")] $Message"
+        }
+    }
+
+    try {
+        # Ensure the message is padded to the console width
+        $Width = [System.Console]::WindowWidth
+    }
+    catch {
+        # Catch issues in headless environments (e.g. CI pipelines)
+        # "The handle is invalid"
+        $Width = 0
+    }
+
+    $Msg = [HostInformationMessage]@{
+        Message         = "$($Message.PadRight($Width))"
+        ForegroundColor = $ForegroundColor
+        BackgroundColor = $BackgroundColor
+        NoNewline       = $false
+    }
+    $params = @{
+        MessageData       = $Msg
+        InformationAction = "Continue"
+        Tags              = "Evergreen"
+    }
+    Write-Information @params
 }
 
 function Write-LogFile {
@@ -95,12 +171,12 @@ function Write-LogFile {
 
             # Add content to the log file and output to the console
             Add-Content -Value $Line -Path $LogFile
-            Write-Msg -Message $Msg
+            Write-Message -Message $Msg -LogLevel $LogLevel
 
             # Write-Warning for log level 2 or 3
-            if ($LogLevel -eq 3 -or $LogLevel -eq 2) {
-                Write-Warning -Message "[$TimeGenerated] $Msg"
-            }
+            # if ($LogLevel -eq 3 -or $LogLevel -eq 2) {
+            #     Write-Warning -Message "[$TimeGenerated] $Msg"
+            # }
         }
     }
 }
@@ -855,3 +931,30 @@ function Copy-RegExe {
         }
     }
 }
+
+Export-ModuleMember -Function `
+    "Copy-File",
+    "Copy-RegExe",
+    "Get-CurrentUserSid",
+    "Get-Model",
+    "Get-OSName",
+    "Get-Platform",
+    "Get-SettingsContent",
+    "Install-SystemLanguage",
+    "New-Directory",
+    "Remove-Capability",
+    "Remove-Feature",
+    "Remove-Package",
+    "Remove-Path",
+    "Remove-RegistryPath",
+    "Restart-NamedService",
+    "Set-DefaultUserProfile",
+    "Set-Registry",
+    "Set-RegistryOwner",
+    "Set-SystemLocale",
+    "Set-TimeZoneUsingName",
+    "Start-NamedService",
+    "Stop-NamedService",
+    "Test-IsOobeComplete",
+    "Write-LogFile",
+    "Write-Msg"
