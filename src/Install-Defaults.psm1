@@ -290,12 +290,12 @@ function Get-Model {
 function Get-SettingsContent ($Path) {
     # Return a JSON object from the text/JSON file passed
     try {
+        Write-LogFile -Message "Importing: $Path"
         $params = @{
             Path        = $Path
             ErrorAction = "Continue"
         }
-        Write-LogFile -Message "Importing: $Path"
-        $Settings = Get-Content @params | ConvertFrom-Json -ErrorAction "Stop"
+        $Settings = Get-Content @params | ConvertFrom-Json
     }
     catch {
         # If we have an error we won't get usable data
@@ -846,13 +846,16 @@ function Install-SystemLanguage {
 
     try {
         if ($PSCmdlet.ShouldProcess($Language, "Install-Language")) {
-            Write-LogFile -Message "Language pack install: $Language"
+            Write-LogFile -Message "Language pack install (this may take some time): $Language"
             $params = @{
                 Language        = $Language
                 CopyToSettings  = $true
                 ExcludeFeatures = $false
             }
-            Install-Language @params | Out-Null
+            $InstalledLanguage = Install-Language @params
+            $InstalledLanguage | ForEach-Object {
+                Write-LogFile -Message "Installed LanguageId: $($_.LanguageId); Installed LanguagePacks: $($_.LanguagePacks.ToString())"
+            }
             Write-LogFile -Message "Language pack install complete"
         }
     }
