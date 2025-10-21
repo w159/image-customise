@@ -5,6 +5,12 @@ using namespace System.Management.Automation
 [CmdletBinding(SupportsShouldProcess = $true)]
 param ()
 
+$ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
+$InformationPreference = [System.Management.Automation.ActionPreference]::Continue
+$ProgressPreference = [System.Management.Automation.ActionPreference]::SilentlyContinue
+$WarningPreference = [System.Management.Automation.ActionPreference]::SilentlyContinue
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+
 function Get-Symbol {
     [CmdletBinding()]
     param (
@@ -291,11 +297,7 @@ function Get-SettingsContent ($Path) {
     # Return a JSON object from the text/JSON file passed
     try {
         Write-LogFile -Message "Importing: $Path"
-        $params = @{
-            Path        = $Path
-            ErrorAction = "Continue"
-        }
-        $Settings = Get-Content @params | ConvertFrom-Json
+        $Settings = Get-Content -Path $Path | ConvertFrom-Json
     }
     catch {
         # If we have an error we won't get usable data
@@ -391,10 +393,9 @@ function Set-Registry {
             try {
                 if ($PSCmdlet.ShouldProcess($RegPath, "New-Item")) {
                     $params = @{
-                        Path        = $Item.path
-                        Type        = "RegistryKey"
-                        Force       = $true
-                        ErrorAction = "SilentlyContinue"
+                        Path  = $Item.path
+                        Type  = "RegistryKey"
+                        Force = $true
                     }
                     $ItemResult = New-Item @params
                     Write-LogFile -Message "New registry path: $($Item.path)"
@@ -431,18 +432,17 @@ function Set-Registry {
                             /reg:64 `
                             /z
                         Write-LogFile -Message "Set protected registry property: $($Item.path); $($Item.name), $($Item.value)"
-                        Remove-Item -Path $RegExe -Force -ErrorAction "SilentlyContinue"
+                        Remove-Item -Path $RegExe -Force
                     }
                 }
                 else {
                     # Use Set-ItemProperty to set the registry value
                     $params = @{
-                        Path        = $Item.path
-                        Name        = $Item.name
-                        Value       = $Value
-                        Type        = $Item.type
-                        Force       = $true
-                        ErrorAction = "Continue"
+                        Path  = $Item.path
+                        Name  = $Item.name
+                        Value = $Value
+                        Type  = $Item.type
+                        Force = $true
                     }
                     Set-ItemProperty @params | Out-Null
                     Write-LogFile -Message "Set registry property: $($Item.path); $($Item.name), $($Item.value)"
@@ -464,9 +464,8 @@ function Remove-RegistryPath {
         try {
             if ($PSCmdlet.ShouldProcess($Item.path, "Remove-Item")) {
                 $params = @{
-                    Path        = $Item.path
-                    Force       = $true
-                    ErrorAction = "Continue"
+                    Path  = $Item.path
+                    Force = $true
                 }
                 Remove-Item @params | Out-Null
                 Write-LogFile -Message "Remove registry path: $($Item.path)"
@@ -497,7 +496,6 @@ function Set-DefaultUserProfile {
                     Wait         = $true
                     PassThru     = $true
                     WindowStyle  = "Hidden"
-                    ErrorAction  = "Continue"
                 }
                 $Result = Start-Process @params
                 Write-LogFile -Message "Load default user: $RegPath"
@@ -515,10 +513,9 @@ function Set-DefaultUserProfile {
                 try {
                     if ($PSCmdlet.ShouldProcess($RegPath, "New-Item")) {
                         $params = @{
-                            Path        = $RegPath
-                            Type        = "RegistryKey"
-                            Force       = $true
-                            ErrorAction = "Continue"
+                            Path  = $RegPath
+                            Type  = "RegistryKey"
+                            Force = $true
                         }
                         $ItemResult = New-Item @params
                         Write-LogFile -Message "New registry path: $($Item.path)"
@@ -529,7 +526,7 @@ function Set-DefaultUserProfile {
                 }
                 finally {
                     if ($null -ne $Result) {
-                        if ("Handle" -in ($ItemResult | Get-Member -ErrorAction "SilentlyContinue" | Select-Object -ExpandProperty "Name")) { $ItemResult.Handle.Close() }
+                        if ("Handle" -in ($ItemResult | Get-Member | Select-Object -ExpandProperty "Name")) { $ItemResult.Handle.Close() }
                     }
                 }
             }
@@ -557,18 +554,17 @@ function Set-DefaultUserProfile {
                                 /reg:64 `
                                 /z
                             Write-LogFile -Message "Set protected registry property: $($Item.path); $($Item.name), $($Item.value)"
-                            Remove-Item -Path $RegExe -Force -ErrorAction "SilentlyContinue"
+                            Remove-Item -Path $RegExe -Force
                         }
                     }
                     else {
                         # Use Set-ItemProperty to set the registry value
                         $params = @{
-                            Path        = $RegPath
-                            Name        = $Item.name
-                            Value       = $Value
-                            Type        = $Item.type
-                            Force       = $true
-                            ErrorAction = "Continue"
+                            Path  = $RegPath
+                            Name  = $Item.name
+                            Value = $Value
+                            Type  = $Item.type
+                            Force = $true
                         }
                         Set-ItemProperty @params | Out-Null
                         Write-LogFile -Message "Set registry property: $($Item.path); $($Item.name), $($Item.value)"
@@ -593,7 +589,6 @@ function Set-DefaultUserProfile {
                     ArgumentList = "unload $($DefaultUserPath -replace ':', '')"
                     Wait         = $true
                     WindowStyle  = "Hidden"
-                    ErrorAction  = "Continue"
                 }
                 $Result = Start-Process @params
                 Write-LogFile -Message "Unload default user: $DefaultUserPath"
@@ -613,7 +608,7 @@ function Copy-File {
         $Source = $(Join-Path -Path $Parent -ChildPath $Item.Source)
         Write-LogFile -Message "Source: $Source"
         Write-LogFile -Message "Destination: $($Item.Destination)"
-        if (Test-Path -Path $Source -ErrorAction "Continue") {
+        if (Test-Path -Path $Source) {
             New-Directory -Path $(Split-Path -Path $Item.Destination -Parent)
             try {
                 if ($PSCmdlet.ShouldProcess("$Source to $($Item.Destination)", "Copy-Item")) {
@@ -622,7 +617,6 @@ function Copy-File {
                         Destination = $Item.Destination
                         Confirm     = $false
                         Force       = $true
-                        ErrorAction = "Continue"
                     }
                     Copy-Item @params
                     Write-LogFile -Message "Copy file: $Source to $($Item.Destination)"
@@ -641,16 +635,15 @@ function New-Directory {
     # Create a new directory
     [CmdletBinding(SupportsShouldProcess = $true)]
     param ($Path)
-    if (Test-Path -Path $Path -ErrorAction "Continue") {
+    if (Test-Path -Path $Path) {
         Write-LogFile -Message "Path exists: $Path"
     }
     else {
         try {
             if ($PSCmdlet.ShouldProcess($Path, "New-Item")) {
                 $params = @{
-                    Path        = $Path
-                    ItemType    = "Directory"
-                    ErrorAction = "Continue"
+                    Path     = $Path
+                    ItemType = "Directory"
                 }
                 New-Item @params | Out-Null
                 Write-LogFile -Message "New path: $Path"
@@ -667,15 +660,14 @@ function Remove-Path {
     [CmdletBinding(SupportsShouldProcess = $true)]
     param ($Path)
     foreach ($Item in $Path) {
-        if (Test-Path -Path $Item -ErrorAction "Continue") {
+        if (Test-Path -Path $Item) {
             try {
                 if ($PSCmdlet.ShouldProcess($Item, "Remove-Item")) {
                     $params = @{
-                        Path        = $Item
-                        Recurse     = $true
-                        Confirm     = $false
-                        Force       = $true
-                        ErrorAction = "Continue"
+                        Path    = $Item
+                        Recurse = $true
+                        Confirm = $false
+                        Force   = $true
                     }
                     Remove-Item @params
                     Write-LogFile -Message "Remove path: $Item"
@@ -694,7 +686,7 @@ function Remove-Feature {
     param ($Feature)
 
     if ($Feature.Count -ge 1) {
-        $Feature | ForEach-Object { Get-WindowsOptionalFeature -Online -FeatureName $_ -ErrorAction "Continue" } | `
+        $Feature | ForEach-Object { Get-WindowsOptionalFeature -Online -FeatureName $_ } | `
             ForEach-Object {
             try {
                 if ($PSCmdlet.ShouldProcess($_.FeatureName, "Disable-WindowsOptionalFeature")) {
@@ -702,7 +694,6 @@ function Remove-Feature {
                         FeatureName = $_.FeatureName
                         Online      = $true
                         NoRestart   = $true
-                        ErrorAction = "Continue"
                     }
                     Disable-WindowsOptionalFeature @params | Out-Null
                     Write-LogFile -Message "Remove feature: $($_.FeatureName)"
@@ -725,9 +716,8 @@ function Remove-Capability {
             try {
                 if ($PSCmdlet.ShouldProcess($Item, "Remove-WindowsCapability")) {
                     $params = @{
-                        Name        = $Item
-                        Online      = $true
-                        ErrorAction = "Continue"
+                        Name   = $Item
+                        Online = $true
                     }
                     Remove-WindowsCapability @params | Out-Null
                     Write-LogFile -Message "Remove capability: $($Item)"
@@ -747,14 +737,13 @@ function Remove-Package {
 
     if ($Package.Count -ge 1) {
         foreach ($Item in $Package) {
-            Get-WindowsPackage -Online -ErrorAction "Continue" | Where-Object { $_.PackageName -match $Item } | `
+            Get-WindowsPackage -Online | Where-Object { $_.PackageName -match $Item } | `
                 ForEach-Object {
                 try {
                     if ($PSCmdlet.ShouldProcess($_.PackageName, "Remove-WindowsPackage")) {
                         $params = @{
                             PackageName = $_.PackageName
                             Online      = $true
-                            ErrorAction = "Continue"
                         }
                         Remove-WindowsPackage @params | Out-Null
                         Write-LogFile -Message "Remove package: $($_.PackageName)"
@@ -782,7 +771,7 @@ function Restart-NamedService {
     foreach ($Item in $Service) {
         try {
             if ($PSCmdlet.ShouldProcess($Item, "Restart-Service")) {
-                Get-Service -Name $Item -ErrorAction "Ignore" | Restart-Service -Force
+                Get-Service -Name $Item | Restart-Service -Force
                 Write-LogFile -Message "Restart service: $Item"
             }
         }
@@ -800,7 +789,7 @@ function Start-NamedService {
     foreach ($Item in $Service) {
         try {
             if ($PSCmdlet.ShouldProcess($Item, "Start-Service")) {
-                Get-Service -Name $Item -ErrorAction "Ignore" | Start-Service -ErrorAction "Ignore"
+                Get-Service -Name $Item | Start-Service
                 Write-LogFile -Message "Start service: $Item"
             }
         }
@@ -818,7 +807,7 @@ function Stop-NamedService {
     foreach ($Item in $Service) {
         try {
             if ($PSCmdlet.ShouldProcess($Item, "Stop-Service")) {
-                Get-Service -Name $Item -ErrorAction "Ignore" | Stop-Service -Force -ErrorAction "Ignore"
+                Get-Service -Name $Item | Stop-Service -Force
                 Write-LogFile -Message "Stop service: $Item"
             }
         }
@@ -851,6 +840,7 @@ function Install-SystemLanguage {
                 Language        = $Language
                 CopyToSettings  = $true
                 ExcludeFeatures = $false
+                WarningAction   = "SilentlyContinue"
             }
             $InstalledLanguage = Install-Language @params
             $InstalledLanguage | ForEach-Object {
@@ -883,7 +873,7 @@ function Set-SystemLocale {
             Set-WinUILanguageOverride -Language $Language
 
             Write-LogFile -Message "Set-WinUserLanguageList: $($Language.Name)"
-            Set-WinUserLanguageList -LanguageList $Language.Name -Force -WarningAction "SilentlyContinue"
+            Set-WinUserLanguageList -LanguageList $Language.Name -Force
             Write-LogFile -Message "Set-WinUserLanguageList: If the Windows Display Language has changed, it will take effect after the next sign-in." -LogLevel 2
 
             $RegionInfo = New-Object -TypeName "System.Globalization.RegionInfo" -ArgumentList $Language
@@ -891,13 +881,13 @@ function Set-SystemLocale {
             Set-WinHomeLocation -GeoId $RegionInfo.GeoId
 
             # Cmdlet not available on Windows Server 2022 or below
-            if (Get-Command -Name "Set-SystemPreferredUILanguage" -ErrorAction "SilentlyContinue") {
+            if (Get-Command -Name "Set-SystemPreferredUILanguage") {
                 Write-LogFile -Message "Set-SystemPreferredUILanguage: $($Language.Name)"
                 Set-SystemPreferredUILanguage -Language $Language
             }
 
             # Cmdlet not available on Windows Server 2022 or below
-            if (Get-Command -Name "Copy-UserInternationalSettingsToSystem" -ErrorAction "SilentlyContinue") {
+            if (Get-Command -Name "Copy-UserInternationalSettingsToSystem") {
                 Write-LogFile -Message "Copy locale settings to system: $($Language.Name)"
                 Copy-UserInternationalSettingsToSystem -WelcomeScreen $true -NewUser $true
             }
@@ -956,7 +946,6 @@ function Copy-RegExe {
                 Path        = "$Env:SystemRoot\System32\reg.exe"
                 Destination = $OutputPath
                 Force       = $true
-                ErrorAction = "Stop"
             }
             Copy-Item @params
             Write-LogFile -Message "Copied '$Env:SystemRoot\System32\reg.exe' to '$OutputPath'"
@@ -969,29 +958,4 @@ function Copy-RegExe {
     }
 }
 
-Export-ModuleMember -Function `
-    "Copy-File",
-    "Copy-RegExe",
-    "Get-CurrentUserSid",
-    "Get-Model",
-    "Get-OSName",
-    "Get-Platform",
-    "Get-SettingsContent",
-    "Install-SystemLanguage",
-    "New-Directory",
-    "Remove-Capability",
-    "Remove-Feature",
-    "Remove-Package",
-    "Remove-Path",
-    "Remove-RegistryPath",
-    "Restart-NamedService",
-    "Set-DefaultUserProfile",
-    "Set-Registry",
-    "Set-RegistryOwner",
-    "Set-SystemLocale",
-    "Set-TimeZoneUsingName",
-    "Start-NamedService",
-    "Stop-NamedService",
-    "Test-IsOobeComplete",
-    "Write-LogFile",
-    "Write-Msg"
+Export-ModuleMember -Function *
