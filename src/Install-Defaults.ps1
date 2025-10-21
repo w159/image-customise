@@ -220,13 +220,13 @@ if ($Platform -eq "Client") {
     if (Test-IsOobeComplete) {
         # If OOBE is complete, we should play it safe and not attempt to remove AppX apps
         # Explicitly call Remove-AppxApps.ps1 instead, e.g. for gold images
-        Write-LogFile -Message "OOBE is complete. To remove AppX apps, explicitly call Remove-AppxApps.ps1"
+        Write-LogFile -Message "OOBE is complete. To remove AppX apps, explicitly call Remove-AppxApps.ps1" -LogLevel 2
     }
     else {
         # Run the script to remove AppX/UWP apps; Get the script location
         $Script = Get-ChildItem -Path $WorkingPath -Include "Remove-AppxApps.ps1" -Recurse -ErrorAction "Continue"
         if ($null -eq $Script) {
-            Write-LogFile -Message "Script not found: $WorkingPath\Remove-AppxApps.ps1" -LogLevel 2
+            Write-LogFile -Message "Script not found: $WorkingPath\Remove-AppxApps.ps1" -LogLevel 3
         }
         else {
             Write-LogFile -Message "Run script: $WorkingPath\Remove-AppxApps.ps1"

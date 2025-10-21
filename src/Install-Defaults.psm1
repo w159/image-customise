@@ -5,33 +5,6 @@ using namespace System.Management.Automation
 [CmdletBinding(SupportsShouldProcess = $true)]
 param ()
 
-function Write-Msg {
-    [CmdletBinding()]
-    param(
-        [System.String] $Message
-    )
-    process {
-        $Msg = [HostInformationMessage]@{
-            Message         = "[$(Get-Date -Format 'HH:mm:ss')]"
-            ForegroundColor = "Black"
-            BackgroundColor = "DarkCyan"
-            NoNewline       = $true
-        }
-        $params = @{
-            MessageData       = $Msg
-            InformationAction = "Continue"
-            Tags              = "Microsoft365"
-        }
-        Write-Information @params
-        $params = @{
-            MessageData       = " $Message"
-            InformationAction = "Continue"
-            Tags              = "Microsoft365"
-        }
-        Write-Information @params
-    }
-}
-
 function Get-Symbol {
     [CmdletBinding()]
     param (
@@ -63,24 +36,24 @@ function Write-Message {
         [System.Int16] $LogLevel = 1
     )
     
-    # Get the time stamp
+    # Get the time stamp and symbol
     $Date = "[$(Get-Date -Format 'HH:mm:ss')]"
-
+    
     switch ($LogLevel) {
         1 {
             $ForegroundColor = "Black"
             $BackgroundColor = "DarkGreen"
-            $Message = "$Date [$(Get-Symbol -Symbol "Tick")] $Message"
+            $Symbol = " [$(Get-Symbol -Symbol "Tick")] "
         }
         2 {
             $ForegroundColor = "Black"
             $BackgroundColor = "DarkYellow"
-            $Message = "$Date [!] $Message"
+            $Symbol = " [!] "
         }
         3 {
             $ForegroundColor = "White"
             $BackgroundColor = "DarkRed"
-            $Message = "$Date [$(Get-Symbol -Symbol "Cross")] $Message"
+            $Symbol = " [$(Get-Symbol -Symbol "Cross")] "
         }
     }
 
@@ -91,21 +64,80 @@ function Write-Message {
     catch {
         # Catch issues in headless environments (e.g. CI pipelines)
         # "The handle is invalid"
-        $Width = 0
+        $Width = 120  # Default width for headless environments
     }
 
-    $Msg = [HostInformationMessage]@{
-        Message         = "$($Message.PadRight($Width))"
-        ForegroundColor = $ForegroundColor
-        BackgroundColor = $BackgroundColor
-        NoNewline       = $false
+    # Calculate the prefix length (timestamp + symbol)
+    $Prefix = "$Date$Symbol"
+    $PrefixLength = $Prefix.Length
+    
+    # Calculate available space for the message
+    $AvailableWidth = $Width - $PrefixLength
+    
+    # Check if message needs to be split
+    if ($Message.Length -gt $AvailableWidth -and $AvailableWidth -gt 0) {
+        # Split the message into chunks
+        $FirstLine = $Message.Substring(0, $AvailableWidth)
+        $Remaining = $Message.Substring($AvailableWidth)
+        
+        # Write the first line with prefix
+        $Msg = [HostInformationMessage]@{
+            Message         = "$Prefix$($FirstLine.PadRight($AvailableWidth))"
+            ForegroundColor = $ForegroundColor
+            BackgroundColor = $BackgroundColor
+            NoNewline       = $false
+        }
+        $params = @{
+            MessageData       = $Msg
+            InformationAction = "Continue"
+            Tags              = "Evergreen"
+        }
+        Write-Information @params
+        
+        # Write continuation lines with indentation matching the prefix
+        $Indent = " " * $PrefixLength
+        $ContinuationWidth = $Width - $PrefixLength
+        
+        while ($Remaining.Length -gt 0) {
+            if ($Remaining.Length -gt $ContinuationWidth) {
+                $CurrentLine = $Remaining.Substring(0, $ContinuationWidth)
+                $Remaining = $Remaining.Substring($ContinuationWidth)
+            }
+            else {
+                $CurrentLine = $Remaining
+                $Remaining = ""
+            }
+            
+            $Msg = [HostInformationMessage]@{
+                Message         = "$Indent$($CurrentLine.PadRight($ContinuationWidth))"
+                ForegroundColor = $ForegroundColor
+                BackgroundColor = $BackgroundColor
+                NoNewline       = $false
+            }
+            $params = @{
+                MessageData       = $Msg
+                InformationAction = "Continue"
+                Tags              = "Evergreen"
+            }
+            Write-Information @params
+        }
     }
-    $params = @{
-        MessageData       = $Msg
-        InformationAction = "Continue"
-        Tags              = "Evergreen"
+    else {
+        # Message fits on one line
+        $FullMessage = "$Prefix$Message"
+        $Msg = [HostInformationMessage]@{
+            Message         = "$($FullMessage.PadRight($Width))"
+            ForegroundColor = $ForegroundColor
+            BackgroundColor = $BackgroundColor
+            NoNewline       = $false
+        }
+        $params = @{
+            MessageData       = $Msg
+            InformationAction = "Continue"
+            Tags              = "Evergreen"
+        }
+        Write-Information @params
     }
-    Write-Information @params
 }
 
 function Write-LogFile {
@@ -821,6 +853,7 @@ function Install-SystemLanguage {
                 ExcludeFeatures = $false
             }
             Install-Language @params | Out-Null
+            Write-LogFile -Message "Language pack install complete"
         }
     }
     catch {
@@ -847,7 +880,8 @@ function Set-SystemLocale {
             Set-WinUILanguageOverride -Language $Language
 
             Write-LogFile -Message "Set-WinUserLanguageList: $($Language.Name)"
-            Set-WinUserLanguageList -LanguageList $Language.Name -Force
+            Set-WinUserLanguageList -LanguageList $Language.Name -Force -WarningAction "SilentlyContinue"
+            Write-LogFile -Message "Set-WinUserLanguageList: If the Windows Display Language has changed, it will take effect after the next sign-in." -LogLevel 2
 
             $RegionInfo = New-Object -TypeName "System.Globalization.RegionInfo" -ArgumentList $Language
             Write-LogFile -Message "Set-WinHomeLocation: $($RegionInfo.GeoId)"
