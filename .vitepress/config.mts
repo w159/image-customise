@@ -42,7 +42,8 @@ export default withMermaid(defineConfig({
         items: [
           { text: 'About', link: 'about.md' },
           { text: 'Results', link: 'results.md' },
-          { text: 'Known issues', link: 'issues.md' }
+          { text: 'Known issues', link: 'issues.md' },
+          { text: 'FAQs', link: 'faqs.md' }
         ]
       },
       {

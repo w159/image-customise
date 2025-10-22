@@ -11,7 +11,7 @@ hero:
     alt: 'Windows Enterprise Defaults logo'
   actions:
     - theme: brand
-      text: What is Defaults?
+      text: What is it?
       link: /about
     - theme: alt
       text: Results
