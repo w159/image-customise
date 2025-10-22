@@ -42,13 +42,13 @@ param (
         # Common desktop apps
         "Microsoft.MicrosoftStickyNotes_8wekyb3d8bbwe", # Enable basic notes functionality. Supports Microsoft 365 accounts
         "Microsoft.Paint_8wekyb3d8bbwe", # Provides basic image editing functionality
-        "Microsoft.PowerAutomateDesktop_8wekyb3d8bbwe", # Desktop automation tool
+        #"Microsoft.PowerAutomateDesktop_8wekyb3d8bbwe", # Desktop automation tool
         "Microsoft.ScreenSketch_8wekyb3d8bbwe", # Capture and annotate screenshots
         "Microsoft.Windows.Photos_8wekyb3d8bbwe", # Basic image viewing. Supports Microsoft 365 accounts
         "Microsoft.WindowsAlarms_8wekyb3d8bbwe", # Clock app with timers, alarms, and world clock. Supports Microsoft 365 accounts
         "Microsoft.WindowsCalculator_8wekyb3d8bbwe", # Calculator app
         "Microsoft.WindowsNotepad_8wekyb3d8bbwe", # Notepad app
-        "Microsoft.WindowsSoundRecorder_8wekyb3d8bbwe", # Voice recording app
+        #"Microsoft.WindowsSoundRecorder_8wekyb3d8bbwe", # Voice recording app
         "Microsoft.WindowsTerminal_8wekyb3d8bbwe", # Essential terminal app
         "Microsoft.ZuneMusic_8wekyb3d8bbwe", # Windows Media Player, video and music player
 
@@ -104,10 +104,10 @@ param (
         "Microsoft.BingNews_8wekyb3d8bbwe",
         "Microsoft.BingSearch_8wekyb3d8bbwe",
         "Microsoft.BingWeather_8wekyb3d8bbwe",
-        # "Microsoft.Copilot_8wekyb3d8bbwe",
+        "Microsoft.Copilot_8wekyb3d8bbwe",
         "Microsoft.GetHelp_8wekyb3d8bbwe",
-        # "Microsoft.OutlookForWindows_8wekyb3d8bbwe",
-        # "Microsoft.Todos_8wekyb3d8bbwe",
+        "Microsoft.OutlookForWindows_8wekyb3d8bbwe",
+        "Microsoft.Todos_8wekyb3d8bbwe",
         "Microsoft.Windows.DevHome_8wekyb3d8bbwe",
         "Microsoft.WindowsCamera_8wekyb3d8bbwe",
         "microsoft.windowscommunicationsapps_8wekyb3d8bbwe",
