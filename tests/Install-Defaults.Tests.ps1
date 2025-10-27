@@ -144,26 +144,26 @@ Describe 'Install-Defaults.ps1 Language Support' -Skip:(-not $IsAdmin) {
 
 Describe 'Install-Defaults.ps1 Configuration Processing' {
     BeforeAll {
-        $ConfigPath = Join-Path -Path $Path -ChildPath "configs"
+        $script:ConfigPath = Join-Path -Path $Path -ChildPath "configs"
     }
 
     It 'Should find configuration files' {
-        if (Test-Path $ConfigPath) {
-            $Configs = Get-ChildItem -Path $ConfigPath -Include "*.json" -Recurse
+        if (Test-Path $script:ConfigPath) {
+            $Configs = Get-ChildItem -Path $script:ConfigPath -Include "*.json" -Recurse
             $Configs | Should -Not -BeNullOrEmpty
         }
     }
 
-    It 'Should process All configs' -Skip:(-not (Test-Path $ConfigPath)) {
-        $AllConfigs = Get-ChildItem -Path $ConfigPath -Include "*.All.json" -Recurse
+    It 'Should process All configs' -Skip:(-not (Test-Path $script:ConfigPath)) {
+        $AllConfigs = Get-ChildItem -Path $script:ConfigPath -Include "*.All.json" -Recurse
         if ($AllConfigs) {
             $AllConfigs.Count | Should -BeGreaterThan 0
         }
     }
 
-    It 'Should process platform-specific configs' -Skip:(-not (Test-Path $ConfigPath)) {
+    It 'Should process platform-specific configs' -Skip:(-not (Test-Path $script:ConfigPath)) {
         $Platform = if ($OSInfo.IsServer) { 'Server' } else { 'Client' }
-        $PlatformConfigs = Get-ChildItem -Path $ConfigPath -Include "*.$Platform.json" -Recurse
+        $PlatformConfigs = Get-ChildItem -Path $script:ConfigPath -Include "*.$Platform.json" -Recurse
         if ($PlatformConfigs) {
             $PlatformConfigs.Count | Should -BeGreaterThan 0
         }
