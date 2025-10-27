@@ -13,6 +13,12 @@ on:
       - '!src/VERSION.txt'
   workflow_dispatch:
 
+permissions:
+  contents: write              # Required for committing version changes and pushing to repository
+  security-events: write       # Required for uploading SARIF results to GitHub Security
+  checks: write                # Required for publishing test results
+  pull-requests: write         # Required for commenting on PRs with test results (if applicable)
+
 jobs:
   validate:
     name: "Validate project code"
