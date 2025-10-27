@@ -526,7 +526,7 @@ function Set-DefaultUserProfile {
                 }
                 finally {
                     if ($null -ne $Result) {
-                        if ("Handle" -in ($ItemResult | Get-Member | Select-Object -ExpandProperty "Name")) { $ItemResult.Handle.Close() }
+                        if ("Handle" -in ($ItemResult | Get-Member -ErrorAction "SilentlyContinue" | Select-Object -ExpandProperty "Name")) { $ItemResult.Handle.Close() }
                     }
                 }
             }
@@ -873,7 +873,7 @@ function Set-SystemLocale {
             Set-WinUILanguageOverride -Language $Language
 
             Write-LogFile -Message "Set-WinUserLanguageList: $($Language.Name)"
-            Set-WinUserLanguageList -LanguageList $Language.Name -Force
+            Set-WinUserLanguageList -LanguageList $Language.Name -Force -WarningAction "SilentlyContinue"
             Write-LogFile -Message "Set-WinUserLanguageList: If the Windows Display Language has changed, it will take effect after the next sign-in." -LogLevel 2
 
             $RegionInfo = New-Object -TypeName "System.Globalization.RegionInfo" -ArgumentList $Language
@@ -881,13 +881,13 @@ function Set-SystemLocale {
             Set-WinHomeLocation -GeoId $RegionInfo.GeoId
 
             # Cmdlet not available on Windows Server 2022 or below
-            if (Get-Command -Name "Set-SystemPreferredUILanguage") {
+            if (Get-Command -Name "Set-SystemPreferredUILanguage" -ErrorAction "SilentlyContinue") {
                 Write-LogFile -Message "Set-SystemPreferredUILanguage: $($Language.Name)"
                 Set-SystemPreferredUILanguage -Language $Language
             }
 
             # Cmdlet not available on Windows Server 2022 or below
-            if (Get-Command -Name "Copy-UserInternationalSettingsToSystem") {
+            if (Get-Command -Name "Copy-UserInternationalSettingsToSystem" -ErrorAction "SilentlyContinue") {
                 Write-LogFile -Message "Copy locale settings to system: $($Language.Name)"
                 Copy-UserInternationalSettingsToSystem -WelcomeScreen $true -NewUser $true
             }
