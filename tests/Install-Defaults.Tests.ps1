@@ -186,6 +186,12 @@ Describe 'Install-Defaults.ps1 Feature Update Support' -Skip:(-not $IsAdmin) {
         { & $ScriptPath.FullName @params } | Should -Not -Throw
         Pop-Location
     }
+
+    Context "Target directory exists" {
+        It "FeatureUpdates should exist" {
+            Test-Path -Path "$FeatureUpdatePath" | Should -BeTrue
+        }
+    }
 }
 
 Describe 'Install-Defaults.ps1 Logging' -Skip:(-not $IsAdmin) {
@@ -229,17 +235,4 @@ Describe 'Install-Defaults.ps1 Uninstall Registry Key' -Skip:(-not $IsAdmin) {
 AfterAll {
     Remove-Variable -Name 'OSInfo' -ErrorAction SilentlyContinue
     Remove-Variable -Name 'IsAdmin' -ErrorAction SilentlyContinue
-}
-
-    Context "Target directory exists" {
-        It "FeatureUpdates should exist" {
-            Test-Path -Path "$FeatureUpdatePath" | Should -BeTrue
-        }
-    }
-
-    Context "Each script should exist" -ForEach $Files {
-        It "$_ should exist" {
-            Test-Path -Path $_ | Should -BeTrue
-        }
-    }
 }
