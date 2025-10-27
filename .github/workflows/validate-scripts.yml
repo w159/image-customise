@@ -73,10 +73,10 @@ jobs:
 
       # Publish test results
       - name: Publish test results
-        uses: EnricoMi/publish-unit-test-result-action/composite@v2
+        uses: EnricoMi/publish-unit-test-result-action/windows@v2
         if: always()
         with:
-          nunit_files: "${{ github.workspace }}\\tests\\TestResults.xml"
+          files: "${{ github.workspace }}\\tests\\TestResults.xml"
 
       - name: Upload to Codecov
         id: codecov
