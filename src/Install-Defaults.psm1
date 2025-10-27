@@ -958,4 +958,231 @@ function Copy-RegExe {
     }
 }
 
+function Set-Shortcut {
+    <#
+    .SYNOPSIS
+        Edits the Target property (command line) of a Windows shortcut (.lnk) file.
+
+    .DESCRIPTION
+        This function modifies the Target property of a Windows shortcut file. It can either replace
+        the entire command line or append additional arguments to the existing target.
+
+    .PARAMETER Path
+        The full path to the shortcut (.lnk) file to modify.
+
+    .PARAMETER Target
+        The new target path or arguments to set or append.
+
+    .PARAMETER Append
+        When specified, appends the Target value to the existing command line instead of replacing it.
+        Useful for adding arguments to an existing shortcut.
+
+    .PARAMETER Arguments
+        Optional. Sets or appends arguments separately from the target executable path.
+        This is useful when you want to modify arguments without changing the target executable.
+
+    .PARAMETER WorkingDirectory
+        Optional. Sets the working directory (Start In) for the shortcut.
+
+    .PARAMETER Description
+        Optional. Sets the description/comment for the shortcut.
+
+    .PARAMETER IconLocation
+        Optional. Sets the icon location for the shortcut (format: "path,index").
+
+    .PARAMETER WindowStyle
+        Optional. Sets the window style. Valid values: Normal, Maximized, Minimized.
+
+    .EXAMPLE
+        Set-Shortcut -Path "C:\Users\Public\Desktop\MyApp.lnk" -Target "C:\Program Files\MyApp\app.exe"
+        Replaces the entire target path in the shortcut.
+
+    .EXAMPLE
+        Set-Shortcut -Path "C:\Users\Public\Desktop\MyApp.lnk" -Arguments "--silent --config=prod"
+        Replaces the arguments while keeping the same target executable.
+
+    .EXAMPLE
+        Set-Shortcut -Path "C:\Users\Public\Desktop\MyApp.lnk" -Arguments " --debug" -Append
+        Appends " --debug" to the existing arguments in the shortcut.
+
+    .EXAMPLE
+        Set-Shortcut -Path "C:\Users\Public\Desktop\MyApp.lnk" -Target "C:\NewPath\app.exe" -Arguments "/silent" -WorkingDirectory "C:\NewPath"
+        Sets the target, arguments, and working directory all at once.
+
+    .NOTES
+        Requires Windows with Windows Script Host (WSH) COM objects available.
+        The function uses the WScript.Shell COM object to manipulate shortcuts.
+    #>
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param (
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [ValidateScript({ 
+            if (-not (Test-Path -Path $_ -PathType Leaf)) {
+                throw "Shortcut file does not exist: $_"
+            }
+            if ($_ -notmatch '\.lnk$') {
+                throw "File must be a .lnk shortcut file: $_"
+            }
+            return $true
+        })]
+        [System.String] $Path,
+
+        [Parameter(Mandatory = $false)]
+        [System.String] $Target,
+
+        [Parameter(Mandatory = $false)]
+        [System.String] $Arguments,
+
+        [Parameter(Mandatory = $false)]
+        [System.Management.Automation.SwitchParameter] $Append,
+
+        [Parameter(Mandatory = $false)]
+        [System.String] $WorkingDirectory,
+
+        [Parameter(Mandatory = $false)]
+        [System.String] $Description,
+
+        [Parameter(Mandatory = $false)]
+        [System.String] $IconLocation,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet('Normal', 'Maximized', 'Minimized')]
+        [System.String] $WindowStyle
+    )
+
+    begin {
+        # Create WScript.Shell COM object
+        try {
+            $WshShell = New-Object -ComObject WScript.Shell -ErrorAction Stop
+        }
+        catch {
+            throw "Failed to create WScript.Shell COM object: $($_.Exception.Message)"
+        }
+
+        # Window style mapping
+        $WindowStyleMap = @{
+            'Normal'    = 1
+            'Maximized' = 3
+            'Minimized' = 7
+        }
+    }
+
+    process {
+        try {
+            # Resolve to full path
+            $ShortcutPath = Resolve-Path -Path $Path -ErrorAction Stop | Select-Object -ExpandProperty Path
+            
+            # Load the shortcut
+            $Shortcut = $WshShell.CreateShortcut($ShortcutPath)
+            
+            # Display current values
+            Write-LogFile -Message "Current Target: $($Shortcut.TargetPath)"
+            Write-LogFile -Message "Current Arguments: $($Shortcut.Arguments)"
+            Write-LogFile -Message "Current WorkingDirectory: $($Shortcut.WorkingDirectory)"
+            
+            # Modify Target if specified
+            if ($PSBoundParameters.ContainsKey('Target')) {
+                if ($Append) {
+                    $NewTarget = "$($Shortcut.TargetPath)$Target"
+                    if ($PSCmdlet.ShouldProcess($ShortcutPath, "Append '$Target' to target")) {
+                        $Shortcut.TargetPath = $NewTarget
+                        Write-LogFile -Message "New Target: $NewTarget"
+                    }
+                }
+                else {
+                    if ($PSCmdlet.ShouldProcess($ShortcutPath, "Set target to '$Target'")) {
+                        $Shortcut.TargetPath = $Target
+                        Write-LogFile -Message "New Target: $Target"
+                    }
+                }
+            }
+            
+            # Modify Arguments if specified
+            if ($PSBoundParameters.ContainsKey('Arguments')) {
+                if ($Append) {
+                    $NewArguments = "$($Shortcut.Arguments)$Arguments"
+                    if ($PSCmdlet.ShouldProcess($ShortcutPath, "Append '$Arguments' to arguments")) {
+                        $Shortcut.Arguments = $NewArguments
+                        Write-LogFile -Message "New Arguments: $NewArguments"
+                    }
+                }
+                else {
+                    if ($PSCmdlet.ShouldProcess($ShortcutPath, "Set arguments to '$Arguments'")) {
+                        $Shortcut.Arguments = $Arguments
+                        Write-LogFile -Message "New Arguments: $Arguments"
+                    }
+                }
+            }
+            
+            # Modify WorkingDirectory if specified
+            if ($PSBoundParameters.ContainsKey('WorkingDirectory')) {
+                if ($PSCmdlet.ShouldProcess($ShortcutPath, "Set working directory to '$WorkingDirectory'")) {
+                    $Shortcut.WorkingDirectory = $WorkingDirectory
+                    Write-LogFile -Message "New WorkingDirectory: $WorkingDirectory"
+                }
+            }
+            
+            # Modify Description if specified
+            if ($PSBoundParameters.ContainsKey('Description')) {
+                if ($PSCmdlet.ShouldProcess($ShortcutPath, "Set description to '$Description'")) {
+                    $Shortcut.Description = $Description
+                    Write-LogFile -Message "New Description: $Description"
+                }
+            }
+            
+            # Modify IconLocation if specified
+            if ($PSBoundParameters.ContainsKey('IconLocation')) {
+                if ($PSCmdlet.ShouldProcess($ShortcutPath, "Set icon location to '$IconLocation'")) {
+                    $Shortcut.IconLocation = $IconLocation
+                    Write-LogFile -Message "New IconLocation: $IconLocation"
+                }
+            }
+            
+            # Modify WindowStyle if specified
+            if ($PSBoundParameters.ContainsKey('WindowStyle')) {
+                $StyleValue = $WindowStyleMap[$WindowStyle]
+                if ($PSCmdlet.ShouldProcess($ShortcutPath, "Set window style to '$WindowStyle' ($StyleValue)")) {
+                    $Shortcut.WindowStyle = $StyleValue
+                    Write-LogFile -Message "New WindowStyle: $WindowStyle ($StyleValue)"
+                }
+            }
+            
+            # Save the shortcut
+            if ($PSCmdlet.ShouldProcess($ShortcutPath, "Save shortcut changes")) {
+                $Shortcut.Save()
+                Write-LogFile -Message "Successfully updated shortcut: $ShortcutPath"
+            }
+            
+            # Return the updated shortcut object for pipeline use
+            # return [PSCustomObject]@{
+            #     Path             = $ShortcutPath
+            #     TargetPath       = $Shortcut.TargetPath
+            #     Arguments        = $Shortcut.Arguments
+            #     WorkingDirectory = $Shortcut.WorkingDirectory
+            #     Description      = $Shortcut.Description
+            #     IconLocation     = $Shortcut.IconLocation
+            #     WindowStyle      = $Shortcut.WindowStyle
+            # }
+        }
+        catch {
+            Write-LogFile -Message "Failed to modify shortcut '$Path': $($_.Exception.Message)" -Level 3
+        }
+        finally {
+            # Release COM object
+            if ($null -ne $Shortcut) {
+                [System.Runtime.InteropServices.Marshal]::ReleaseComObject($Shortcut) | Out-Null
+            }
+        }
+    }
+
+    end {
+        # Release COM object
+        if ($null -ne $WshShell) {
+            [System.Runtime.InteropServices.Marshal]::ReleaseComObject($WshShell) | Out-Null
+        }
+        [System.GC]::Collect()
+        [System.GC]::WaitForPendingFinalizers()
+    }
+}
+
 Export-ModuleMember -Function *

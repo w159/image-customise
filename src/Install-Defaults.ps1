@@ -203,6 +203,13 @@ foreach ($Config in ($AllConfigs + $PlatformConfigs + $BuildConfigs + $ModelConf
                 "Client" {
                     Copy-File -Path $Settings.StartMenu.$OSName -Parent $WorkingPath @prefs
                 }
+                default {
+                    Write-LogFile -Message "Skipped Start menu settings: $($Config.FullName)"
+                }
+            }
+
+            foreach ($Shortcut in $Settings.Shortcuts) {
+                Set-Shortcut -Path $Shortcut.Path -Arguments $Shortcut.Arguments @prefs
             }
 
             Copy-File -Path $Settings.Files.Copy -Parent $WorkingPath @prefs
