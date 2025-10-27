@@ -250,7 +250,7 @@ if ($Platform -eq "Client") {
 #region Set system language, locale and regional settings
 if ($PSBoundParameters.ContainsKey('Language')) {
     if ($OSVersion -ge [System.Version]"10.0.22000") {
-        
+
         if ($InstallLanguagePack.IsPresent) {
             # Set language support by installing the specified language pack
             Install-SystemLanguage -Language $Language

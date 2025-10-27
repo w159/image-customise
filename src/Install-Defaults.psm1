@@ -41,10 +41,10 @@ function Write-Message {
         [ValidateSet(1, 2, 3)]
         [System.Int16] $LogLevel = 1
     )
-    
+
     # Get the time stamp and symbol
     $Date = "[$(Get-Date -Format 'HH:mm:ss')]"
-    
+
     switch ($LogLevel) {
         1 {
             $ForegroundColor = "Black"
@@ -76,16 +76,16 @@ function Write-Message {
     # Calculate the prefix length (timestamp + symbol)
     $Prefix = "$Date$Symbol"
     $PrefixLength = $Prefix.Length
-    
+
     # Calculate available space for the message
     $AvailableWidth = $Width - $PrefixLength
-    
+
     # Check if message needs to be split
     if ($Message.Length -gt $AvailableWidth -and $AvailableWidth -gt 0) {
         # Split the message into chunks
         $FirstLine = $Message.Substring(0, $AvailableWidth)
         $Remaining = $Message.Substring($AvailableWidth)
-        
+
         # Write the first line with prefix
         $Msg = [HostInformationMessage]@{
             Message         = "$Prefix$($FirstLine.PadRight($AvailableWidth))"
@@ -99,11 +99,11 @@ function Write-Message {
             Tags              = "Evergreen"
         }
         Write-Information @params
-        
+
         # Write continuation lines with indentation matching the prefix
         $Indent = " " * $PrefixLength
         $ContinuationWidth = $Width - $PrefixLength
-        
+
         while ($Remaining.Length -gt 0) {
             if ($Remaining.Length -gt $ContinuationWidth) {
                 $CurrentLine = $Remaining.Substring(0, $ContinuationWidth)
@@ -113,7 +113,7 @@ function Write-Message {
                 $CurrentLine = $Remaining
                 $Remaining = ""
             }
-            
+
             $Msg = [HostInformationMessage]@{
                 Message         = "$Indent$($CurrentLine.PadRight($ContinuationWidth))"
                 ForegroundColor = $ForegroundColor
