@@ -103,6 +103,27 @@
                 "value": 0,
                 "type": "DWord",
                 "note": "Disables suggested content in the Settings app"
+            },
+            {
+                "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+                "name": "RotatingLockScreenEnabled",
+                "value": 0,
+                "type": "DWord",
+                "note": "Disables Windows Spotlight on the Lock Screen"
+            },
+            {
+                "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+                "name": "SubscribedContent-338387Enabled",
+                "value": 0,
+                "type": "DWord",
+                "note": "Disables Windows Spotlight subscribed content on the Lock Screen"
+            },
+            {
+                "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager",
+                "name": "SubscribedContent-338387Enabled",
+                "value": 0,
+                "type": "DWord",
+                "note": "Disables Windows Spotlight subscribed content on the Lock Screen"
             }
         ],
         "SetOthers": [
