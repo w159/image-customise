@@ -97,7 +97,7 @@
     "Shortcuts": [
         {
             "Path": "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Microsoft Edge.lnk",
-            "Arguments": "--no-first-run"
+            "Arguments": "--no-first-run --disable-first-run-ui"
         }
     ]
 }
