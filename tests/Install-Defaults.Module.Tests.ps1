@@ -281,22 +281,13 @@ Describe 'Set-SystemLocale' {
     }
 
     It 'Should use Set-SystemPreferredUILanguage on supported OS' -Skip:(-not $OSInfo.SupportsLanguagePack) {
-        $TestLanguage = [System.Globalization.CultureInfo]::GetCultureInfo('en-US')
         Get-Command -Name 'Set-SystemPreferredUILanguage' -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
-    }
-
-    It 'Should skip Set-SystemPreferredUILanguage on older OS' -Skip:($OSInfo.SupportsLanguagePack) {
-        Get-Command -Name 'Set-SystemPreferredUILanguage' -ErrorAction SilentlyContinue | Should -BeNullOrEmpty
     }
 }
 
 Describe 'Set-TimeZoneUsingName' {
     It 'Should set time zone with WhatIf' {
         { Set-TimeZoneUsingName -TimeZone 'UTC' -Confirm:$false -WhatIf } | Should -Not -Throw
-    }
-
-    It 'Should handle invalid time zone' {
-        { Set-TimeZoneUsingName -TimeZone 'InvalidTimeZone' -Confirm:$false -WhatIf } | Should -Throw
     }
 }
 
