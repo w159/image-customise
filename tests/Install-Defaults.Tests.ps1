@@ -113,6 +113,17 @@ Describe 'Install-Defaults.ps1 Script Execution' -Skip:(-not $IsAdmin) {
 }
 
 Describe 'Install-Defaults.ps1 Language Support' -Skip:(-not $IsAdmin) {
+    It 'Should require Language parameter when InstallLanguagePack is specified' {
+        Push-Location -Path $([System.IO.Path]::Combine($Path, "src"))
+        $params = @{
+            Path                = $([System.IO.Path]::Combine($Path, "src"))
+            InstallLanguagePack = $true
+            WhatIf              = $true
+        }
+        { & $ScriptPath.FullName @params } | Should -Throw -ExpectedMessage "The -Language parameter is required when -InstallLanguagePack is specified."
+        Pop-Location
+    }
+
     It 'Should install language pack only on supported OS' {
         if ($OSInfo.SupportsLanguagePack) {
             Push-Location -Path $([System.IO.Path]::Combine($Path, "src"))

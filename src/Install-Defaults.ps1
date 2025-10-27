@@ -45,6 +45,12 @@ param (
     [System.Globalization.CultureInfo] $Language, # Set the specified locale / language
 
     [Parameter(Mandatory = $false)]
+    [ValidateScript({
+        if ($_ -and -not $PSBoundParameters.ContainsKey('Language')) {
+            throw "The -Language parameter is required when -InstallLanguagePack is specified."
+        }
+        return $true
+    })]
     [System.Management.Automation.SwitchParameter] $InstallLanguagePack, # Install the language pack for the specified language
 
     [Parameter(Mandatory = $false)]
