@@ -36,4 +36,4 @@ if (!([System.Environment]::Is64BitProcess)) {
 #endregion
 
 Set-Location -Path $PSScriptRoot
-& "$PSScriptRoot\Install-Defaults.ps1" -Language "es-ES" -TimeZone "Romance Standard Time"
+& "$PSScriptRoot\Install-Defaults.ps1" -Language "es-ES" -InstallLanguagePack -TimeZone "Romance Standard Time"

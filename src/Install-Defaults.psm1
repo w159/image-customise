@@ -5,28 +5,142 @@ using namespace System.Management.Automation
 [CmdletBinding(SupportsShouldProcess = $true)]
 param ()
 
-function Write-Msg {
+$ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
+$InformationPreference = [System.Management.Automation.ActionPreference]::Continue
+$ProgressPreference = [System.Management.Automation.ActionPreference]::SilentlyContinue
+$WarningPreference = [System.Management.Automation.ActionPreference]::SilentlyContinue
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+
+function Get-Symbol {
     [CmdletBinding()]
-    param(
-        [System.String] $Message
+    param (
+        [Parameter()]
+        [ValidateSet("Tick", "Cross")]
+        [System.String] $Symbol = "Tick"
     )
-    process {
+
+    switch ($Symbol) {
+        "Tick" {
+            return [System.Text.Encoding]::UTF32.GetString((19, 39, 0, 0))
+        }
+        "Cross" {
+            return [System.Text.Encoding]::UTF32.GetString((23, 39, 0, 0))
+        }
+        default {
+            return $null
+        }
+    }
+}
+
+function Write-Message {
+    [CmdletBinding(SupportsShouldProcess = $false)]
+    param (
+        [Parameter(Mandatory = $false)]
+        [System.String] $Message,
+
+        [ValidateSet(1, 2, 3)]
+        [System.Int16] $LogLevel = 1
+    )
+    
+    # Get the time stamp and symbol
+    $Date = "[$(Get-Date -Format 'HH:mm:ss')]"
+    
+    switch ($LogLevel) {
+        1 {
+            $ForegroundColor = "Black"
+            $BackgroundColor = "DarkGreen"
+            $Symbol = " [$(Get-Symbol -Symbol "Tick")] "
+        }
+        2 {
+            $ForegroundColor = "Black"
+            $BackgroundColor = "DarkYellow"
+            $Symbol = " [!] "
+        }
+        3 {
+            $ForegroundColor = "White"
+            $BackgroundColor = "DarkRed"
+            $Symbol = " [$(Get-Symbol -Symbol "Cross")] "
+        }
+    }
+
+    try {
+        # Ensure the message is padded to the console width
+        $Width = [System.Console]::WindowWidth
+    }
+    catch {
+        # Catch issues in headless environments (e.g. CI pipelines)
+        # "The handle is invalid"
+        $Width = 120  # Default width for headless environments
+    }
+
+    # Calculate the prefix length (timestamp + symbol)
+    $Prefix = "$Date$Symbol"
+    $PrefixLength = $Prefix.Length
+    
+    # Calculate available space for the message
+    $AvailableWidth = $Width - $PrefixLength
+    
+    # Check if message needs to be split
+    if ($Message.Length -gt $AvailableWidth -and $AvailableWidth -gt 0) {
+        # Split the message into chunks
+        $FirstLine = $Message.Substring(0, $AvailableWidth)
+        $Remaining = $Message.Substring($AvailableWidth)
+        
+        # Write the first line with prefix
         $Msg = [HostInformationMessage]@{
-            Message         = "[$(Get-Date -Format 'dd.MM.yyyy HH:mm:ss')]"
-            ForegroundColor = "Black"
-            BackgroundColor = "DarkCyan"
-            NoNewline       = $true
+            Message         = "$Prefix$($FirstLine.PadRight($AvailableWidth))"
+            ForegroundColor = $ForegroundColor
+            BackgroundColor = $BackgroundColor
+            NoNewline       = $false
         }
         $params = @{
             MessageData       = $Msg
             InformationAction = "Continue"
-            Tags              = "Microsoft365"
+            Tags              = "Evergreen"
         }
         Write-Information @params
+        
+        # Write continuation lines with indentation matching the prefix
+        $Indent = " " * $PrefixLength
+        $ContinuationWidth = $Width - $PrefixLength
+        
+        while ($Remaining.Length -gt 0) {
+            if ($Remaining.Length -gt $ContinuationWidth) {
+                $CurrentLine = $Remaining.Substring(0, $ContinuationWidth)
+                $Remaining = $Remaining.Substring($ContinuationWidth)
+            }
+            else {
+                $CurrentLine = $Remaining
+                $Remaining = ""
+            }
+            
+            $Msg = [HostInformationMessage]@{
+                Message         = "$Indent$($CurrentLine.PadRight($ContinuationWidth))"
+                ForegroundColor = $ForegroundColor
+                BackgroundColor = $BackgroundColor
+                NoNewline       = $false
+            }
+            $params = @{
+                MessageData       = $Msg
+                InformationAction = "Continue"
+                Tags              = "Evergreen"
+            }
+            Write-Information @params
+        }
+    }
+    else {
+        # Message fits on one line
+        $FullMessage = "$Prefix$Message"
+        $Msg = [HostInformationMessage]@{
+            Message         = "$($FullMessage.PadRight($Width))"
+            ForegroundColor = $ForegroundColor
+            BackgroundColor = $BackgroundColor
+            NoNewline       = $false
+        }
         $params = @{
-            MessageData       = " $Message"
+            MessageData       = $Msg
             InformationAction = "Continue"
-            Tags              = "Microsoft365"
+            Tags              = "Evergreen"
         }
         Write-Information @params
     }
@@ -95,12 +209,12 @@ function Write-LogFile {
 
             # Add content to the log file and output to the console
             Add-Content -Value $Line -Path $LogFile
-            Write-Msg -Message $Msg
+            Write-Message -Message $Msg -LogLevel $LogLevel
 
             # Write-Warning for log level 2 or 3
-            if ($LogLevel -eq 3 -or $LogLevel -eq 2) {
-                Write-Warning -Message "[$TimeGenerated] $Msg"
-            }
+            # if ($LogLevel -eq 3 -or $LogLevel -eq 2) {
+            #     Write-Warning -Message "[$TimeGenerated] $Msg"
+            # }
         }
     }
 }
@@ -182,12 +296,8 @@ function Get-Model {
 function Get-SettingsContent ($Path) {
     # Return a JSON object from the text/JSON file passed
     try {
-        $params = @{
-            Path        = $Path
-            ErrorAction = "Continue"
-        }
         Write-LogFile -Message "Importing: $Path"
-        $Settings = Get-Content @params | ConvertFrom-Json -ErrorAction "Stop"
+        $Settings = Get-Content -Path $Path | ConvertFrom-Json
     }
     catch {
         # If we have an error we won't get usable data
@@ -283,10 +393,9 @@ function Set-Registry {
             try {
                 if ($PSCmdlet.ShouldProcess($RegPath, "New-Item")) {
                     $params = @{
-                        Path        = $Item.path
-                        Type        = "RegistryKey"
-                        Force       = $true
-                        ErrorAction = "SilentlyContinue"
+                        Path  = $Item.path
+                        Type  = "RegistryKey"
+                        Force = $true
                     }
                     $ItemResult = New-Item @params
                     Write-LogFile -Message "New registry path: $($Item.path)"
@@ -323,18 +432,17 @@ function Set-Registry {
                             /reg:64 `
                             /z
                         Write-LogFile -Message "Set protected registry property: $($Item.path); $($Item.name), $($Item.value)"
-                        Remove-Item -Path $RegExe -Force -ErrorAction "SilentlyContinue"
+                        Remove-Item -Path $RegExe -Force
                     }
                 }
                 else {
                     # Use Set-ItemProperty to set the registry value
                     $params = @{
-                        Path        = $Item.path
-                        Name        = $Item.name
-                        Value       = $Value
-                        Type        = $Item.type
-                        Force       = $true
-                        ErrorAction = "Continue"
+                        Path  = $Item.path
+                        Name  = $Item.name
+                        Value = $Value
+                        Type  = $Item.type
+                        Force = $true
                     }
                     Set-ItemProperty @params | Out-Null
                     Write-LogFile -Message "Set registry property: $($Item.path); $($Item.name), $($Item.value)"
@@ -356,9 +464,8 @@ function Remove-RegistryPath {
         try {
             if ($PSCmdlet.ShouldProcess($Item.path, "Remove-Item")) {
                 $params = @{
-                    Path        = $Item.path
-                    Force       = $true
-                    ErrorAction = "Continue"
+                    Path  = $Item.path
+                    Force = $true
                 }
                 Remove-Item @params | Out-Null
                 Write-LogFile -Message "Remove registry path: $($Item.path)"
@@ -389,7 +496,6 @@ function Set-DefaultUserProfile {
                     Wait         = $true
                     PassThru     = $true
                     WindowStyle  = "Hidden"
-                    ErrorAction  = "Continue"
                 }
                 $Result = Start-Process @params
                 Write-LogFile -Message "Load default user: $RegPath"
@@ -407,10 +513,9 @@ function Set-DefaultUserProfile {
                 try {
                     if ($PSCmdlet.ShouldProcess($RegPath, "New-Item")) {
                         $params = @{
-                            Path        = $RegPath
-                            Type        = "RegistryKey"
-                            Force       = $true
-                            ErrorAction = "Continue"
+                            Path  = $RegPath
+                            Type  = "RegistryKey"
+                            Force = $true
                         }
                         $ItemResult = New-Item @params
                         Write-LogFile -Message "New registry path: $($Item.path)"
@@ -449,18 +554,17 @@ function Set-DefaultUserProfile {
                                 /reg:64 `
                                 /z
                             Write-LogFile -Message "Set protected registry property: $($Item.path); $($Item.name), $($Item.value)"
-                            Remove-Item -Path $RegExe -Force -ErrorAction "SilentlyContinue"
+                            Remove-Item -Path $RegExe -Force
                         }
                     }
                     else {
                         # Use Set-ItemProperty to set the registry value
                         $params = @{
-                            Path        = $RegPath
-                            Name        = $Item.name
-                            Value       = $Value
-                            Type        = $Item.type
-                            Force       = $true
-                            ErrorAction = "Continue"
+                            Path  = $RegPath
+                            Name  = $Item.name
+                            Value = $Value
+                            Type  = $Item.type
+                            Force = $true
                         }
                         Set-ItemProperty @params | Out-Null
                         Write-LogFile -Message "Set registry property: $($Item.path); $($Item.name), $($Item.value)"
@@ -485,7 +589,6 @@ function Set-DefaultUserProfile {
                     ArgumentList = "unload $($DefaultUserPath -replace ':', '')"
                     Wait         = $true
                     WindowStyle  = "Hidden"
-                    ErrorAction  = "Continue"
                 }
                 $Result = Start-Process @params
                 Write-LogFile -Message "Unload default user: $DefaultUserPath"
@@ -505,7 +608,7 @@ function Copy-File {
         $Source = $(Join-Path -Path $Parent -ChildPath $Item.Source)
         Write-LogFile -Message "Source: $Source"
         Write-LogFile -Message "Destination: $($Item.Destination)"
-        if (Test-Path -Path $Source -ErrorAction "Continue") {
+        if (Test-Path -Path $Source) {
             New-Directory -Path $(Split-Path -Path $Item.Destination -Parent)
             try {
                 if ($PSCmdlet.ShouldProcess("$Source to $($Item.Destination)", "Copy-Item")) {
@@ -514,7 +617,6 @@ function Copy-File {
                         Destination = $Item.Destination
                         Confirm     = $false
                         Force       = $true
-                        ErrorAction = "Continue"
                     }
                     Copy-Item @params
                     Write-LogFile -Message "Copy file: $Source to $($Item.Destination)"
@@ -533,16 +635,15 @@ function New-Directory {
     # Create a new directory
     [CmdletBinding(SupportsShouldProcess = $true)]
     param ($Path)
-    if (Test-Path -Path $Path -ErrorAction "Continue") {
+    if (Test-Path -Path $Path) {
         Write-LogFile -Message "Path exists: $Path"
     }
     else {
         try {
             if ($PSCmdlet.ShouldProcess($Path, "New-Item")) {
                 $params = @{
-                    Path        = $Path
-                    ItemType    = "Directory"
-                    ErrorAction = "Continue"
+                    Path     = $Path
+                    ItemType = "Directory"
                 }
                 New-Item @params | Out-Null
                 Write-LogFile -Message "New path: $Path"
@@ -559,15 +660,14 @@ function Remove-Path {
     [CmdletBinding(SupportsShouldProcess = $true)]
     param ($Path)
     foreach ($Item in $Path) {
-        if (Test-Path -Path $Item -ErrorAction "Continue") {
+        if (Test-Path -Path $Item) {
             try {
                 if ($PSCmdlet.ShouldProcess($Item, "Remove-Item")) {
                     $params = @{
-                        Path        = $Item
-                        Recurse     = $true
-                        Confirm     = $false
-                        Force       = $true
-                        ErrorAction = "Continue"
+                        Path    = $Item
+                        Recurse = $true
+                        Confirm = $false
+                        Force   = $true
                     }
                     Remove-Item @params
                     Write-LogFile -Message "Remove path: $Item"
@@ -586,7 +686,7 @@ function Remove-Feature {
     param ($Feature)
 
     if ($Feature.Count -ge 1) {
-        $Feature | ForEach-Object { Get-WindowsOptionalFeature -Online -FeatureName $_ -ErrorAction "Continue" } | `
+        $Feature | ForEach-Object { Get-WindowsOptionalFeature -Online -FeatureName $_ } | `
             ForEach-Object {
             try {
                 if ($PSCmdlet.ShouldProcess($_.FeatureName, "Disable-WindowsOptionalFeature")) {
@@ -594,7 +694,6 @@ function Remove-Feature {
                         FeatureName = $_.FeatureName
                         Online      = $true
                         NoRestart   = $true
-                        ErrorAction = "Continue"
                     }
                     Disable-WindowsOptionalFeature @params | Out-Null
                     Write-LogFile -Message "Remove feature: $($_.FeatureName)"
@@ -617,9 +716,8 @@ function Remove-Capability {
             try {
                 if ($PSCmdlet.ShouldProcess($Item, "Remove-WindowsCapability")) {
                     $params = @{
-                        Name        = $Item
-                        Online      = $true
-                        ErrorAction = "Continue"
+                        Name   = $Item
+                        Online = $true
                     }
                     Remove-WindowsCapability @params | Out-Null
                     Write-LogFile -Message "Remove capability: $($Item)"
@@ -639,14 +737,13 @@ function Remove-Package {
 
     if ($Package.Count -ge 1) {
         foreach ($Item in $Package) {
-            Get-WindowsPackage -Online -ErrorAction "Continue" | Where-Object { $_.PackageName -match $Item } | `
+            Get-WindowsPackage -Online | Where-Object { $_.PackageName -match $Item } | `
                 ForEach-Object {
                 try {
                     if ($PSCmdlet.ShouldProcess($_.PackageName, "Remove-WindowsPackage")) {
                         $params = @{
                             PackageName = $_.PackageName
                             Online      = $true
-                            ErrorAction = "Continue"
                         }
                         Remove-WindowsPackage @params | Out-Null
                         Write-LogFile -Message "Remove package: $($_.PackageName)"
@@ -674,7 +771,7 @@ function Restart-NamedService {
     foreach ($Item in $Service) {
         try {
             if ($PSCmdlet.ShouldProcess($Item, "Restart-Service")) {
-                Get-Service -Name $Item -ErrorAction "Ignore" | Restart-Service -Force
+                Get-Service -Name $Item | Restart-Service -Force
                 Write-LogFile -Message "Restart service: $Item"
             }
         }
@@ -692,7 +789,7 @@ function Start-NamedService {
     foreach ($Item in $Service) {
         try {
             if ($PSCmdlet.ShouldProcess($Item, "Start-Service")) {
-                Get-Service -Name $Item -ErrorAction "Ignore" | Start-Service -ErrorAction "Ignore"
+                Get-Service -Name $Item | Start-Service
                 Write-LogFile -Message "Start service: $Item"
             }
         }
@@ -710,7 +807,7 @@ function Stop-NamedService {
     foreach ($Item in $Service) {
         try {
             if ($PSCmdlet.ShouldProcess($Item, "Stop-Service")) {
-                Get-Service -Name $Item -ErrorAction "Ignore" | Stop-Service -Force -ErrorAction "Ignore"
+                Get-Service -Name $Item | Stop-Service -Force
                 Write-LogFile -Message "Stop service: $Item"
             }
         }
@@ -738,13 +835,18 @@ function Install-SystemLanguage {
 
     try {
         if ($PSCmdlet.ShouldProcess($Language, "Install-Language")) {
-            Write-LogFile -Message "Language pack install: $Language"
+            Write-LogFile -Message "Language pack install (this may take some time): $Language"
             $params = @{
                 Language        = $Language
                 CopyToSettings  = $true
                 ExcludeFeatures = $false
+                WarningAction   = "SilentlyContinue"
             }
-            Install-Language @params | Out-Null
+            $InstalledLanguage = Install-Language @params
+            $InstalledLanguage | ForEach-Object {
+                Write-LogFile -Message "Installed LanguageId: $($_.LanguageId); Installed LanguagePacks: $($_.LanguagePacks.ToString())"
+            }
+            Write-LogFile -Message "Language pack install complete"
         }
     }
     catch {
@@ -771,7 +873,8 @@ function Set-SystemLocale {
             Set-WinUILanguageOverride -Language $Language
 
             Write-LogFile -Message "Set-WinUserLanguageList: $($Language.Name)"
-            Set-WinUserLanguageList -LanguageList $Language.Name -Force
+            Set-WinUserLanguageList -LanguageList $Language.Name -Force -WarningAction "SilentlyContinue"
+            Write-LogFile -Message "Set-WinUserLanguageList: If the Windows Display Language has changed, it will take effect after the next sign-in." -LogLevel 2
 
             $RegionInfo = New-Object -TypeName "System.Globalization.RegionInfo" -ArgumentList $Language
             Write-LogFile -Message "Set-WinHomeLocation: $($RegionInfo.GeoId)"
@@ -843,7 +946,6 @@ function Copy-RegExe {
                 Path        = "$Env:SystemRoot\System32\reg.exe"
                 Destination = $OutputPath
                 Force       = $true
-                ErrorAction = "Stop"
             }
             Copy-Item @params
             Write-LogFile -Message "Copied '$Env:SystemRoot\System32\reg.exe' to '$OutputPath'"
@@ -855,3 +957,5 @@ function Copy-RegExe {
         }
     }
 }
+
+Export-ModuleMember -Function *

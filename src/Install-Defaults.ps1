@@ -42,7 +42,10 @@
 param (
     [Parameter(Mandatory = $false)]
     [ValidateNotNullOrEmpty()]
-    [System.Globalization.CultureInfo] $Language,
+    [System.Globalization.CultureInfo] $Language, # Set the specified locale / language
+
+    [Parameter(Mandatory = $false)]
+    [System.Management.Automation.SwitchParameter] $InstallLanguagePack, # Install the language pack for the specified language
 
     [Parameter(Mandatory = $false)]
     [ValidateNotNullOrEmpty()]
@@ -101,6 +104,13 @@ if (!([System.Environment]::Is64BitProcess)) {
     }
 }
 #endregion
+
+# Configure the environment
+$ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
+$InformationPreference = [System.Management.Automation.ActionPreference]::Continue
+$ProgressPreference = [System.Management.Automation.ActionPreference]::SilentlyContinue
+$WarningPreference = [System.Management.Automation.ActionPreference]::SilentlyContinue
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
 
 # Get start time of the script
 $StartTime = Get-Date
@@ -217,13 +227,13 @@ if ($Platform -eq "Client") {
     if (Test-IsOobeComplete) {
         # If OOBE is complete, we should play it safe and not attempt to remove AppX apps
         # Explicitly call Remove-AppxApps.ps1 instead, e.g. for gold images
-        Write-LogFile -Message "OOBE is complete. To remove AppX apps, explicitly call Remove-AppxApps.ps1"
+        Write-LogFile -Message "OOBE is complete. To remove AppX apps, explicitly call Remove-AppxApps.ps1" -LogLevel 2
     }
     else {
         # Run the script to remove AppX/UWP apps; Get the script location
         $Script = Get-ChildItem -Path $WorkingPath -Include "Remove-AppxApps.ps1" -Recurse -ErrorAction "Continue"
         if ($null -eq $Script) {
-            Write-LogFile -Message "Script not found: $WorkingPath\Remove-AppxApps.ps1" -LogLevel 2
+            Write-LogFile -Message "Script not found: $WorkingPath\Remove-AppxApps.ps1" -LogLevel 3
         }
         else {
             Write-LogFile -Message "Run script: $WorkingPath\Remove-AppxApps.ps1"
@@ -237,8 +247,11 @@ if ($Platform -eq "Client") {
 #region Set system language, locale and regional settings
 if ($PSBoundParameters.ContainsKey('Language')) {
     if ($OSVersion -ge [System.Version]"10.0.22000") {
-        # Set language support by installing the specified language pack
-        Install-SystemLanguage -Language $Language
+        
+        if ($InstallLanguagePack.IsPresent) {
+            # Set language support by installing the specified language pack
+            Install-SystemLanguage -Language $Language
+        }
 
         # Set locale settings
         Set-SystemLocale -Language $Language
@@ -294,4 +307,4 @@ if ($PSCmdlet.ShouldProcess("Set uninstall key values")) {
 # Write last entry to the event log and output 0 so that we don't fail image builds
 $EndTime = (Get-Date) - $StartTime
 Write-LogFile -Message "Install-Defaults.ps1 complete. Elapsed time: $EndTime"
-return 0
+exit 0
