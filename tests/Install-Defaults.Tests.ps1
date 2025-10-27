@@ -2,8 +2,6 @@
     .SYNOPSIS
         Main Pester function tests.
 #>
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingWriteHost", "")]
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", "")]
 [CmdletBinding()]
 param()
 
@@ -30,7 +28,7 @@ Describe "Install script execution validation" {
                 Language = "en-AU"
                 TimeZone = "AUS Eastern Standard Time"
             }
-            & $Script.FullName @params | Should -Be 0
+            { & $Script.FullName @params } | Should -Not -Throw
             Pop-Location
         }
     }

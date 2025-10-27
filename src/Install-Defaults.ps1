@@ -105,7 +105,7 @@ if (!([System.Environment]::Is64BitProcess)) {
 }
 #endregion
 
-# Configure the environment
+#region Configure the environment
 $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
 $InformationPreference = [System.Management.Automation.ActionPreference]::Continue
 $ProgressPreference = [System.Management.Automation.ActionPreference]::SilentlyContinue
@@ -124,6 +124,7 @@ $prefs = @{
 # Configure working path
 if ($Path.Length -eq 0) { $WorkingPath = $PWD.Path } else { $WorkingPath = $Path }
 Push-Location -Path $WorkingPath
+#endregion
 
 #region Import functions
 $ModuleFile = $(Join-Path -Path $PSScriptRoot -ChildPath "Install-Defaults.psm1")
@@ -138,7 +139,7 @@ foreach ($Process in $PSProcesses) {
     Write-LogFile -Message "Running process: $($Process.CommandLine)"
 }
 
-# Get system properties
+#region Get system properties
 $Platform = Get-Platform
 
 $Build = ([System.Environment]::OSVersion.Version).Build
@@ -150,6 +151,7 @@ $OSName = Get-OSName
 
 $DisplayVersion = Get-ChildItem -Path $WorkingPath -Include "VERSION.txt" -Recurse | Get-Content -Raw
 Write-LogFile -Message "Script version: $DisplayVersion"
+#endregion
 
 #region Gather configs
 $AllConfigs = @(Get-ChildItem -Path "$WorkingPath\configs" -Include "*.All.json" -Recurse -ErrorAction "Continue")
@@ -157,8 +159,9 @@ $ModelConfigs = @(Get-ChildItem -Path "$WorkingPath\configs" -Include "*.$Model.
 $BuildConfigs = @(Get-ChildItem -Path "$WorkingPath\configs" -Include "*.$Build.json" -Recurse -ErrorAction "Continue")
 $PlatformConfigs = @(Get-ChildItem -Path "$WorkingPath\configs" -Include "*.$Platform.json" -Recurse -ErrorAction "Continue")
 Write-LogFile -Message "Found: $(($AllConfigs + $ModelConfigs + $BuildConfigs + $PlatformConfigs).Count) configs"
+#endregion
 
-# Implement the settings defined in each config file
+#region Implement the settings defined in each config file
 foreach ($Config in ($AllConfigs + $PlatformConfigs + $BuildConfigs + $ModelConfigs)) {
 
     # Read the settings JSON
@@ -276,7 +279,7 @@ else {
 }
 #endregion
 
-# Copy the source files for use with upgrades
+#region Copy the source files for use with upgrades
 if (Test-Path -Path "$FeatureUpdatePath\Install-Defaults.ps1" -PathType "Leaf") {
     Write-LogFile -Message "Skipping copy to $FeatureUpdatePath"
 }
@@ -291,8 +294,9 @@ else {
         Write-LogFile -Message $_.Exception.Message -LogLevel 3
     }
 }
+#endregion
 
-# Set uninstall registry value for detecting as an installed application
+#region Set uninstall registry value for detecting as an installed application
 $Key = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"
 New-Item -Path "$Key\{$Guid}" -Type "RegistryKey" -Force -ErrorAction "Continue" | Out-Null
 if ($PSCmdlet.ShouldProcess("Set uninstall key values")) {
@@ -303,6 +307,7 @@ if ($PSCmdlet.ShouldProcess("Set uninstall key values")) {
     Set-ItemProperty -Path "$Key\{$Guid}" -Name "SystemComponent" -Value 1 -Type "DWord" -Force -ErrorAction "Continue" | Out-Null
     Set-ItemProperty -Path "$Key\{$Guid}" -Name "HelpLink" -Value $HelpLink -Type "String" -Force -ErrorAction "Continue" | Out-Null
 }
+#endregion
 
 # Write last entry to the event log and output 0 so that we don't fail image builds
 $EndTime = (Get-Date) - $StartTime
