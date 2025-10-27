@@ -1016,7 +1016,7 @@ function Set-Shortcut {
     [CmdletBinding(SupportsShouldProcess = $true)]
     param (
         [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
-        [ValidateScript({ 
+        [ValidateScript({
             if (-not (Test-Path -Path $_ -PathType Leaf)) {
                 throw "Shortcut file does not exist: $_"
             }
@@ -1071,15 +1071,15 @@ function Set-Shortcut {
         try {
             # Resolve to full path
             $ShortcutPath = Resolve-Path -Path $Path -ErrorAction Stop | Select-Object -ExpandProperty Path
-            
+
             # Load the shortcut
             $Shortcut = $WshShell.CreateShortcut($ShortcutPath)
-            
+
             # Display current values
             Write-LogFile -Message "Current Target: $($Shortcut.TargetPath)"
             Write-LogFile -Message "Current Arguments: $($Shortcut.Arguments)"
             Write-LogFile -Message "Current WorkingDirectory: $($Shortcut.WorkingDirectory)"
-            
+
             # Modify Target if specified
             if ($PSBoundParameters.ContainsKey('Target')) {
                 if ($Append) {
@@ -1096,7 +1096,7 @@ function Set-Shortcut {
                     }
                 }
             }
-            
+
             # Modify Arguments if specified
             if ($PSBoundParameters.ContainsKey('Arguments')) {
                 if ($Append) {
@@ -1113,7 +1113,7 @@ function Set-Shortcut {
                     }
                 }
             }
-            
+
             # Modify WorkingDirectory if specified
             if ($PSBoundParameters.ContainsKey('WorkingDirectory')) {
                 if ($PSCmdlet.ShouldProcess($ShortcutPath, "Set working directory to '$WorkingDirectory'")) {
@@ -1121,7 +1121,7 @@ function Set-Shortcut {
                     Write-LogFile -Message "New WorkingDirectory: $WorkingDirectory"
                 }
             }
-            
+
             # Modify Description if specified
             if ($PSBoundParameters.ContainsKey('Description')) {
                 if ($PSCmdlet.ShouldProcess($ShortcutPath, "Set description to '$Description'")) {
@@ -1129,7 +1129,7 @@ function Set-Shortcut {
                     Write-LogFile -Message "New Description: $Description"
                 }
             }
-            
+
             # Modify IconLocation if specified
             if ($PSBoundParameters.ContainsKey('IconLocation')) {
                 if ($PSCmdlet.ShouldProcess($ShortcutPath, "Set icon location to '$IconLocation'")) {
@@ -1137,7 +1137,7 @@ function Set-Shortcut {
                     Write-LogFile -Message "New IconLocation: $IconLocation"
                 }
             }
-            
+
             # Modify WindowStyle if specified
             if ($PSBoundParameters.ContainsKey('WindowStyle')) {
                 $StyleValue = $WindowStyleMap[$WindowStyle]
@@ -1146,13 +1146,13 @@ function Set-Shortcut {
                     Write-LogFile -Message "New WindowStyle: $WindowStyle ($StyleValue)"
                 }
             }
-            
+
             # Save the shortcut
             if ($PSCmdlet.ShouldProcess($ShortcutPath, "Save shortcut changes")) {
                 $Shortcut.Save()
                 Write-LogFile -Message "Successfully updated shortcut: $ShortcutPath"
             }
-            
+
             # Return the updated shortcut object for pipeline use
             # return [PSCustomObject]@{
             #     Path             = $ShortcutPath
