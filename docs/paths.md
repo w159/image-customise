@@ -3,13 +3,14 @@ layout: doc
 ---
 # Removed Paths
 
+
 ## Machine.All.json
 
 **Computer level settings for all Windows 10 and above.**
 
-| Minimum build | Maximum build | Type |
-| ------------- | ------------- | ---- |
-| 10.0.14393 | 10.0.99999 | Direct |
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393 | 10.0.99999 |
 
 | Path |
 | ---- |

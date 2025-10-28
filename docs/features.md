@@ -1,7 +1,6 @@
 ---
 layout: doc
 ---
-
 # Removed Capabilities and Features
 
 ## Build.All.json
@@ -22,9 +21,9 @@ layout: doc
 
 **Computer level settings for all Windows 10 and above.**
 
-| Minimum build | Maximum build | Type |
-| ------------- | ------------- | ---- |
-| 10.0.14393 | 10.0.99999 | Direct |
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393 | 10.0.99999 |
 
 | Capability |
 | ---------- |
@@ -36,9 +35,9 @@ layout: doc
 
 **Computer level settings for all Windows 10 and above.**
 
-| Minimum build | Maximum build | Type |
-| ------------- | ------------- | ---- |
-| 10.0.14393 | 10.0.99999 | Direct |
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393 | 10.0.99999 |
 
 | Feature |
 | ------- |
@@ -55,9 +54,9 @@ layout: doc
 
 **Computer level settings for all Windows 10 and above.**
 
-| Minimum build | Maximum build | Type |
-| ------------- | ------------- | ---- |
-| 10.0.14393 | 10.0.99999 | Direct |
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393 | 10.0.99999 |
 
 | Feature |
 | ------- |

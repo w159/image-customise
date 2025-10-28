@@ -1,4 +1,4 @@
-﻿---
+---
 layout: doc
 ---
 # Registry Settings
@@ -14,6 +14,7 @@ layout: doc
 | path | name | value | note |
 | ---- | ---- | ----- | ---- |
 | HKLM: \Software \Microsoft \Windows \CurrentVersion \Communications | ConfigureChatAutoInstall | 0 | Prevents the install of the consumer Microsoft Teams client |
+| HKLM: \Software \Microsoft \Windows \CurrentVersion \Explorer \Advanced | ShowCopilotButton | 0 | Removes the Copilot button from the taskbar |
 
 ## Machine.All.json
 
@@ -46,6 +47,7 @@ layout: doc
 | HKLM: \Software \Microsoft \Windows \CurrentVersion \Explorer | DisableEdgeDesktopShortcutCreation | 1 | Prevents the Microsoft Edge short added to the public desktop |
 | HKLM: \Software \Policies \Microsoft \Windows \CloudContent | DisableWindowsConsumerFeatures | 1 | Disables the Microsoft Windows consumer features |
 | HKLM: \Software \Policies \Microsoft \Windows \CloudContent | DisableCloudOptimizedContent | 1 | Disables the customisation of the taskbar with additional shortcuts (e.g. new Outlook) |
+
 
 **Computer level settings for Windows client editions.**
 
@@ -107,6 +109,17 @@ layout: doc
 | HKCU: \Software \Microsoft \Windows \CurrentVersion \Start | PlacesInitializedVersion | 2 | Required to support the setting selected for VisiblePlaces. |
 | HKCU: \Software \Microsoft \Windows \CurrentVersion \Explorer \Advanced | ShowNotificationIcon | 1 | Enables 'Notifications / Show notification bell icon' |
 | HKCU: \Software \Microsoft \Windows \CurrentVersion \Explorer \AutoInstalledPWAs | CopilotPWAPreinstallCompleted | 1 | Tells Windows that the Copilot PWA has been installed |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \Privacy | TailoredExperiencesWithDiagnosticDataEnabled | 0 | Disables 'Settings / Privacy & Security / Recommendations & offers / Personalised offers' |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \CPSS \Store \AdvertisingInfo | Value | 0 | Disables 'Settings / Privacy & Security / Recommendations & offers / Advertising ID' |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \AdvertisingInfo | Enabled | 0 | Disables 'Settings / Privacy & Security / Recommendations & offers / Advertising ID' |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \ContentDeliveryManager | SubscribedContent-338393Enabled | 0 | Disables suggested content in the Settings app |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \ContentDeliveryManager | SubscribedContent-353694Enabled | 0 | Disables suggested content in the Settings app |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \ContentDeliveryManager | SubscribedContent-353696Enabled | 0 | Disables suggested content in the Settings app |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \ContentDeliveryManager | SubscribedContent-338388Enabled | 0 | Disables suggested content in the Settings app |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \ContentDeliveryManager | SubscribedContent-338389Enabled | 0 | Disables suggested content in the Settings app |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \ContentDeliveryManager | RotatingLockScreenEnabled | 0 | Disables Windows Spotlight on the Lock Screen |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \ContentDeliveryManager | SubscribedContent-338387Enabled | 0 | Disables Windows Spotlight subscribed content on the Lock Screen |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \ContentDeliveryManager | SubscribedContent-338387Enabled | 0 | Disables Windows Spotlight subscribed content on the Lock Screen |
 
 ## User-Windows2025.Server.json
 
@@ -141,8 +154,8 @@ layout: doc
 | HKCU: \Software \Microsoft \Windows \CurrentVersion \Explorer \Advanced | LaunchTo | 1 | Configures File Explorer to start on This PC |
 | HKCU: \Software \Microsoft \Windows \CurrentVersion \Explorer \Advanced | HideFileExt | 0 | Enables the display of file extensions in File Explorer |
 | HKCU: \Software \Microsoft \Windows \CurrentVersion \Explorer \Advanced | SeparateProcess | 1 | Runs File Explorer windows in different processes so that one window crash won't affect all windows |
-| HKCU: \Software \Microsoft \Windows \CurrentVersion \Explorer \Advanced | TaskbarGlomLevel | 1 | Configures Taskbar buttons on the primary monitor to combine when the Taskbar is full |
-| HKCU: \Software \Microsoft \Windows \CurrentVersion \Explorer \Advanced | MMTaskbarGlomLevel | 1 | Configures Taskbar buttons on secondary monitors to combine when the Taskbar is full |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \Explorer \Advanced | TaskbarGlomLevel | 0 | Configures Taskbar buttons on the primary monitor to combine when the Taskbar is full |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \Explorer \Advanced | MMTaskbarGlomLevel | 0 | Configures Taskbar buttons on secondary monitors to combine when the Taskbar is full |
 | HKCU: \Software \Microsoft \Windows \CurrentVersion \Explorer \Advanced | Start_IrisRecommendations | 0 | Remove 'Recommendations for tips, shortcuts, new apps, and more' in the Start menu |
 | HKCU: \Software \Microsoft \Windows \CurrentVersion \Explorer \Advanced \People | PeopleBand | 0 | Removes the People icon from the Taskbar on Windows 10 |
 | HKCU: \Software \Microsoft \Windows \CurrentVersion \UserProfileEngagement | ScoobeSystemSettingEnabled | 0 | Disable 'Suggest ways to get the most out of Windows and finish setting up this device' Screen in Settings / System / Notifications |
@@ -167,8 +180,8 @@ layout: doc
 | ---- | ---- | ----- | ---- |
 | HKCU: \Software \Microsoft \Windows \CurrentVersion \Explorer \Wallpapers | BackgroundType | 0 | Sets the desktop background type to a picture |
 | HKCU: \Software \Microsoft \Windows \CurrentVersion \DesktopSpotlight \Settings | EnabledState | 0 | Disables Windows spotlight |
-| HKCU: \Console \%%Startup | DelegationConsole | 2EACA947-7F5F-4CFA-BA87-8F7FBEEFBE69 | Sets Windows Terminal as the default terminal |
-| HKCU: \Console \%%Startup | DelegationTerminal | E12CFF52-A866-4C77-9A90-F570A7AA2C6B | Sets Windows Terminal as the default terminal |
+| HKCU: \Console \%%Startup | DelegationConsole | {2EACA947-7F5F-4CFA-BA87-8F7FBEEFBE69} | Sets Windows Terminal as the default terminal |
+| HKCU: \Console \%%Startup | DelegationTerminal | {E12CFF52-A866-4C77-9A90-F570A7AA2C6B} | Sets Windows Terminal as the default terminal |
 
 ## User.Server.json
 
@@ -207,11 +220,6 @@ layout: doc
 | HKCU: \Software \Microsoft \Windows \DWM | AlwaysHibernateThumbnails | 0 | Disables Taskbar preview thumbnail cache |
 | HKCU: \Control Panel \Desktop | DragFullWindows | 1 | Disables the display of the window contents when dragging |
 | HKCU: \Control Panel \Desktop \WindowMetrics | MinAnimate | 0 | Disables animations for minimise and maximise actions for windows |
-| HKCU: \Software \Microsoft \Windows \CurrentVersion \ContentDeliveryManager | SubscribedContent-338393Enabled | 0 | Disables suggested content in the Settings app |
-| HKCU: \Software \Microsoft \Windows \CurrentVersion \ContentDeliveryManager | SubscribedContent-353694Enabled | 0 | Disables suggested content in the Settings app |
-| HKCU: \Software \Microsoft \Windows \CurrentVersion \ContentDeliveryManager | SubscribedContent-353696Enabled | 0 | Disables suggested content in the Settings app |
-| HKCU: \Software \Microsoft \Windows \CurrentVersion \ContentDeliveryManager | SubscribedContent-338388Enabled | 0 | Disables suggested content in the Settings app |
-| HKCU: \Software \Microsoft \Windows \CurrentVersion \ContentDeliveryManager | SubscribedContent-338389Enabled | 0 | Disables suggested content in the Settings app |
 | HKCU: \Software \Microsoft \Windows \CurrentVersion \ContentDeliveryManager | SubscribedContent-310093Enabled | 0 | Disables 'Show me the Windows welcome experience after updates and occasionally when I sign in to highlight what's new and suggested' |
 | HKCU: \Software \Microsoft \Windows \CurrentVersion \BackgroundAccessApplications \Microsoft.Windows.Photos_8wekyb3d8bbwe | Disabled | 1 | Prevents the Photos app from running in the background |
 | HKCU: \Software \Microsoft \Windows \CurrentVersion \BackgroundAccessApplications \Microsoft.Windows.Photos_8wekyb3d8bbwe | DisabledByUser | 1 | Prevents the Photos app from running in the background |

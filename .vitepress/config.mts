@@ -74,11 +74,13 @@ export default withMermaid(defineConfig({
         text: 'Settings',
         collapsed: false,
         items: [
-          { text: 'Registry', link: 'registry.md' },
+          { text: 'Files', link: 'files.md' },
           { text: 'Capabilities and Features', link: 'features.md' },
           { text: 'Paths', link: 'paths.md' },
+          { text: 'Registry', link: 'registry.md' },
           { text: 'Services', link: 'services.md' },
-          { text: 'Files', link: 'files.md' }
+          { text: 'Shortcuts', link: 'shortcuts.md' },
+          { text: 'Start Menu', link: 'startmenu.md' }
         ]
       }
     ],
