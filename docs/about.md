@@ -9,6 +9,10 @@ This solution streamlines modifications to Windows by updating the default profi
 
 Windows Enterprise Defaults is not a "de-bloater", instead it focuses on making thoughtful changes that improve the end-user experience, particularly the first sign-in experience. Though it removes some in-box applications and features, it ensures usability remains intact.
 
+::: info
+Windows Enterprise Defaults is intended to be run at deployment time for a Windows PC or in a gold image. Updating an offline Windows image is not yet supported.
+:::
+
 ## Results
 
 To see the improved end-user experience, check out the [Results](https://stealthpuppy.com/defaults/results/) page.

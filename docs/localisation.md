@@ -6,18 +6,12 @@ layout: doc
 `Install-Defaults.ps1` can configure system-wide language / locale settings, and on Windows 10/11 and Windows Server 2025 install language packs. Here's an example installing the English Australia locale settings and language support:
 
 ```powershell
-.\Install-Defaults.ps1 -Language "en-AU"
+.\Install-Defaults.ps1 -Language "en-AU" -InstallLanguagePack
 ```
 
-Use `Install-Defaults.ps1 -Language "<language code>"` to install a language pack and set local settings for a specified language. This parameter supports the **bcp47** tag of the language to install (e.g., `en-AU`, `en-GB`, `fr-FR`). No locale, regional settings or language packs will be installed unless this parameter is specified.
+Use `Install-Defaults.ps1 -Language "<language code>"` to set local settings for a specified language. This will configure culture, locale, and language settings using the language value specified.
 
-This uses the [Install-Language](https://learn.microsoft.com/en-au/powershell/module/languagepackmanagement/install-language) module to install the appropriate language pack. This module is only available on current version of Windows 10, Windows 11 and Windows Server 2025.
-
-::: info
-Installation of a language pack on Windows 10 requires a reboot.
-:::
-
-Additional locale settings can be configured for any version of Windows 10, Windows 11 and Windows Server 2016+ with the `International` PowerShell module. `Install-Defaults.ps1` will also configure culture, locale, and language settings using the language value specified in `-Language`.
+This parameter supports the **bcp47** tag of the language to install (e.g., `en-AU`, `en-GB`, `fr-FR`). No locale, or regional settings will be applied without specifying the `-Language` parameter.
 
 Below is a summary of the commands used to configure these settings:
 
@@ -33,11 +27,17 @@ Set-WinHomeLocation -GeoId $RegionInfo.GeoId
 Set-SystemPreferredUILanguage -Language $Language
 ```
 
-::: warning
-Run `Remove-AppxApps.ps1` before using `Install-Defaults.ps1` to install language packs, otherwise the language pack may be removed.
+## Language Packs
+
+The `-InstallLanguagePack` parameter is required to install a language pack in addition to modifying the locale. This uses the [Install-Language](https://learn.microsoft.com/en-au/powershell/module/languagepackmanagement/install-language) module to install the appropriate language pack. This module is only available on current version of Windows 10, Windows 11 and Windows Server 2025.
+
+The language pack to support the value specified in `-Language` will be installed.
+
+::: info
+Language packs can take some time to install (typically between 10-15 minutes, depending on the PC / VM specs and your internet connection). Language pack installs have been observed to be quicker on a Windows install with the latest Windows Updates; however, no definitive method to speed up language pack installs has yet been determined.
 :::
 
-# Set a Time Zone
+## Set a Time Zone
 
 For Windows 10 and Windows 11, the solution will enable location settings for physical PCs that will automatically se the time zone in most scenarios. However, `Install-Defaults.ps1` can directly set a time zone when specified on the `-TimeZone` parameter. Use `Install-Defaults.ps1 -TimeZone "Time zone name"` to set the required time zone.
 
