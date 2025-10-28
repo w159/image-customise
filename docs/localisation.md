@@ -3,6 +3,8 @@ layout: doc
 ---
 # Localising Windows
 
+## Enable Localisation
+
 `Install-Defaults.ps1` can configure system-wide language / locale settings, and on Windows 10/11 and Windows Server 2025 install language packs. Here's an example installing the English Australia locale settings and language support:
 
 ```powershell
@@ -27,7 +29,7 @@ Set-WinHomeLocation -GeoId $RegionInfo.GeoId
 Set-SystemPreferredUILanguage -Language $Language
 ```
 
-## Language Packs
+## Install Language Packs
 
 The `-InstallLanguagePack` parameter is required to install a language pack in addition to modifying the locale. This uses the [Install-Language](https://learn.microsoft.com/en-au/powershell/module/languagepackmanagement/install-language) module to install the appropriate language pack. This module is only available on current version of Windows 10, Windows 11 and Windows Server 2025.
 
