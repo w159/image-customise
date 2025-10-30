@@ -7,13 +7,19 @@ layout: doc
 
 **A:** Yes. Windows Enterprise Defaults helps customise a Windows image and Windows desktops, so it supports any physical or virtual desktop environment.
 
+---
+
 **Q: Is the the Windows Enterprise Defaults an optimisation tool?**
 
 **A:** Yes; however, for virtual desktop environments, it is recommended to also use dedicated optimisation tools such as the Microsoft Virtual Desktop Optimisation Tool, Citrix Optimizer, or the Windows OS Optimization Tool for Horizon.
 
+---
+
 **Q: How do I customise the list of AppX / Store apps to remove?**
 
 **A:** Edit `Remove-AppxApps.ps1` and customise the list of apps in the `SafePackageList` or the `TargetedPackageList` parameters, depending on whether you're running the script in default mode or targeted mode.
+
+---
 
 **Q: If I remove AppX / Store apps with Defaults, how do I reinstall them?**
 
