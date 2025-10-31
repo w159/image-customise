@@ -120,6 +120,36 @@ switch ($Env:PROCESSOR_ARCHITECTURE) {
     default { throw "Unsupported architecture." }
 }
 
+# Install Edge WebView2 Runtime
+$WebView2 = @{
+    x64   = "https://go.microsoft.com/fwlink/?linkid=2124701"
+    arm64 = "https://go.microsoft.com/fwlink/?linkid=2099616"
+}
+switch ($Env:PROCESSOR_ARCHITECTURE) {
+    "AMD64" {
+        $WebView2.x64 | ForEach-Object {
+            $OutFile = Join-Path -Path $Path -ChildPath "MicrosoftEdgeWebView2RuntimeInstallerX64.exe"
+            Write-Information -MessageData "$($PSStyle.Foreground.Cyan)Download: $_"
+            Invoke-WebRequest -Uri (Resolve-Url -Url $_) -OutFile $OutFile -UseBasicParsing
+        }
+    }
+    "ARM64" {
+        $WebView2.arm64 | ForEach-Object {
+            $OutFile = Join-Path -Path $Path -ChildPath "MicrosoftEdgeWebView2RuntimeInstallerARM64.exe"
+            Write-Information -MessageData "$($PSStyle.Foreground.Cyan)Download: $_"
+            Invoke-WebRequest -Uri (Resolve-Url -Url $_) -OutFile $OutFile -UseBasicParsing
+        }
+    }
+}
+Write-Information -MessageData "$($PSStyle.Foreground.Green)Installing: $OutFile"
+$params = @{
+    FilePath     = $OutFile
+    ArgumentList = "/install /silent"
+    Wait         = $true
+    NoNewWindow  = $true
+}
+Start-Process @params
+
 # Install the Microsoft Windows App SDK
 # https://learn.microsoft.com/en-us/windows/apps/windows-app-sdk/downloads
 $AppSdk = @{
