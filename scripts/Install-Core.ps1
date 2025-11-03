@@ -253,3 +253,7 @@ Write-Information -MessageData "$($PSStyle.Foreground.Cyan)Install NuGet, PowerS
 # Register-PackageSource -Name "NuGet" -Location "https://api.nuget.org/v3/index.json" -ProviderName "NuGet" -Trusted -Confirm:$false
 Install-PackageProvider -Name "PowerShellGet" -MinimumVersion "2.2.5" -Force
 Set-PSRepository -Name "PSGallery" -InstallationPolicy "Trusted"
+
+# Install modules
+Write-Information -MessageData "$($PSStyle.Foreground.Cyan)Install modules: Evergreen, PSWindowsUpdate, PSReadLine"
+Install-Module -Name "Evergreen", "PSWindowsUpdate", "PSReadLine" -AllowClobber -Force -Scope AllUsers
