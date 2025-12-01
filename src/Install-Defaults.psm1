@@ -730,6 +730,56 @@ function Remove-Capability {
     }
 }
 
+function Add-Capability {
+    # Add a Windows capability
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param ($Capability)
+
+    if ($Capability.Count -ge 1) {
+        foreach ($Item in $Capability) {
+            try {
+                if ($PSCmdlet.ShouldProcess($Item, "Add-WindowsCapability")) {
+                    $params = @{
+                        Name   = $Item
+                        Online = $true
+                    }
+                    Add-WindowsCapability @params | Out-Null
+                    Write-LogFile -Message "Add capability: $($Item)"
+                }
+            }
+            catch {
+                Write-LogFile -Message $_.Exception.Message -LogLevel 3
+            }
+        }
+    }
+}
+
+function Add-Feature {
+    # Add a Windows feature
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param ($Feature)
+
+    if ($Feature.Count -ge 1) {
+        $Feature | ForEach-Object { Get-WindowsOptionalFeature -Online -FeatureName $_ } | `
+            ForEach-Object {
+            try {
+                if ($PSCmdlet.ShouldProcess($_.FeatureName, "Enable-WindowsOptionalFeature")) {
+                    $params = @{
+                        FeatureName = $_.FeatureName
+                        Online      = $true
+                        NoRestart   = $true
+                    }
+                    Enable-WindowsOptionalFeature @params | Out-Null
+                    Write-LogFile -Message "Add feature: $($_.FeatureName)"
+                }
+            }
+            catch {
+                Write-LogFile -Message $_.Exception.Message -LogLevel 3
+            }
+        }
+    }
+}
+
 function Remove-Package {
     # Remove AppX packages
     [CmdletBinding(SupportsShouldProcess = $true)]
@@ -1185,4 +1235,31 @@ function Set-Shortcut {
     }
 }
 
-Export-ModuleMember -Function *
+Export-ModuleMember -Function 'Get-Symbol',
+    'Get-Platform',
+    'Get-Model',
+    'Get-OSName',
+    'Get-SettingsContent',
+    'Write-LogFile',
+    'Set-RegistryKeyOwner',
+    'Set-Registry',
+    'Remove-RegistryPath',
+    'Set-DefaultUserProfile',
+    'Copy-File',
+    'New-Directory',
+    'Remove-Path',
+    'Add-Capability',
+    'Add-Feature',
+    'Remove-Feature',
+    'Remove-Capability',
+    'Remove-Package',
+    'Get-CurrentUserSid',
+    'Restart-NamedService',
+    'Start-NamedService',
+    'Stop-NamedService',
+    'Install-SystemLanguage',
+    'Set-SystemLocale',
+    'Set-TimeZoneUsingName',
+    'Test-IsOobeComplete',
+    'Copy-RegExe',
+    'Set-Shortcut'
