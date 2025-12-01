@@ -120,6 +120,27 @@ switch ($Env:PROCESSOR_ARCHITECTURE) {
     default { throw "Unsupported architecture." }
 }
 
+# Install the Microsoft .NET 8.0
+$VersionUrl = "https://dotnetcli.blob.core.windows.net/dotnet/Runtime/8.0/latest.version"
+$Version = Invoke-RestMethod -Uri $VersionUrl -UseBasicParsing
+$DotNet = @{
+    x64 = "https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/$Version/windowsdesktop-runtime-$Version-win-x64.exe"
+    x86 = "https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/$Version/windowsdesktop-runtime-$Version-win-x86.exe"
+}
+$DotNet.x64, $DotNet.x86 | ForEach-Object {
+    $OutFile = Join-Path -Path $Path -ChildPath (Split-Path -Path $_ -Leaf)
+    Write-Information -MessageData "$($PSStyle.Foreground.Cyan)Download: $_"
+    Invoke-WebRequest -Uri $_ -OutFile $OutFile -UseBasicParsing
+    Write-Information -MessageData "$($PSStyle.Foreground.Green)Installing: $OutFile"
+    $params = @{
+        FilePath     = $OutFile
+        ArgumentList = "/install /quiet /norestart"
+        Wait         = $true
+        NoNewWindow  = $true
+    }
+    Start-Process @params
+}
+
 # Install the Microsoft Windows App SDK
 # https://learn.microsoft.com/en-us/windows/apps/windows-app-sdk/downloads
 $AppSdk = @{
