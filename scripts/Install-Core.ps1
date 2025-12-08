@@ -41,9 +41,9 @@ New-Item -Path $Path -ItemType "Directory" -Force | Out-Null
 
 # Install VcRedists
 $VcList = @{
-    x64   = "https://aka.ms/vs/17/release/VC_redist.x64.exe"
-    x86   = "https://aka.ms/vs/17/release/VC_redist.x86.exe"
-    arm64 = "https://aka.ms/vs/17/release/VC_redist.arm64.exe"
+    x64   = "https://aka.ms/vc14/vc_redist.x64.exe"
+    x86   = "https://aka.ms/vc14/vc_redist.x86.exe"
+    arm64 = "https://aka.ms/vc14/vc_redist.arm64.exe"
 }
 switch ($Env:PROCESSOR_ARCHITECTURE) {
     "AMD64" {
