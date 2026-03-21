@@ -39,20 +39,4 @@ Each JSON file includes a `MinimumBuild` property that can be used to ensure spe
 
 Here's an visualisation of how the `Install-Defaults.ps1` works:
 
-```mermaid
-graph TD
-    A[Invoke Install-Defaults.ps1] -->B(Get OS platform)
-    B --> C(Get OS version)
-    C --> D(Get hardware model)
-    D --> E(Gather .json configs)
-    E -->|All| F[Install configs for all platforms]
-    E -->|Platform| G[Install configs for target OS] -->J
-    E -->|Build| H[Install configs for OS version] -->J
-    E -->|Model| I[Install configs for hardware model] -->J
-    F --> J{Client OS?}
-    J -->|Yes| K[Remove AppX apps]
-    J --> L[Copy project files to feature update path]
-    L --> M[Write uninstall info to registry]
-    K --> N{Language specified?}
-    N -->|Yes|O[Install & set default language]
-```
+![Script Process Visualisation](/img/install-defaults-process.svg)

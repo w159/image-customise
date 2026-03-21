@@ -1,8 +1,7 @@
 import { defineConfig } from 'vitepress'
-import { withMermaid } from "vitepress-plugin-mermaid";
 
 // https://vitepress.dev/reference/site-config
-export default withMermaid(defineConfig({
+export default defineConfig({
   srcDir: './docs',
   title: "Windows Enterprise Defaults",
   description: "Make Windows enterprise-ready.",
@@ -100,4 +99,4 @@ export default withMermaid(defineConfig({
       pattern: 'https://github.com/aaronparker/defaults/edit/main/:path'
     }
   }
-}))
+})
