@@ -84,14 +84,14 @@ jobs:
         with:
           files: "${{ github.workspace }}\\tests\\TestResults.xml"
 
-      - name: Upload to Codecov
-        id: codecov
-        if: always()
-        uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./CodeCoverage.xml
-          verbose: true
+      # - name: Upload to Codecov
+      #   id: codecov
+      #   if: always()
+      #   uses: codecov/codecov-action@v5
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     files: ./CodeCoverage.xml
+      #     verbose: true
 
       - name: Get version
         id: get-version
