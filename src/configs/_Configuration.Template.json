@@ -1,0 +1,49 @@
+{
+    "Description": "Configuration settings template file.",
+    "MinimumBuild": "10.0.14393",
+    "MaximumBuild": "10.0.99999",
+    "Targets": {
+        "Platforms": [
+            "client",
+            "multisession",
+            "rds-server",
+            "server"
+        ],
+        "Models": [
+            "physical",
+            "virtual"
+        ]
+    },
+    "MachineRegistry": {
+        "ChangeOwner": [],
+        "Set": [],
+        "Remove": []
+    },
+    "UserRegistry": {
+        "Set": []
+    },
+    "Paths": {
+        "Remove": []
+    },
+    "Features": {
+        "Disable": []
+    },
+    "Capabilities": {
+        "Remove": [],
+        "Others": []
+    },
+    "Packages": {
+        "Remove": []
+    },
+    "Shortcuts": {
+        "Edit": []
+    },
+    "Services": {
+        "Restart": [],
+        "Stop": [],
+        "Start": []
+    },
+    "Files": {
+        "Copy": []
+    }
+}
