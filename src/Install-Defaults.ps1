@@ -46,11 +46,11 @@ param (
 
     [Parameter(Mandatory = $false)]
     [ValidateScript({
-        if ($_ -and -not $PSBoundParameters.ContainsKey('Language')) {
-            throw "The -Language parameter is required when -InstallLanguagePack is specified."
-        }
-        return $true
-    })]
+            if ($_ -and -not $PSBoundParameters.ContainsKey('Language')) {
+                throw "The -Language parameter is required when -InstallLanguagePack is specified."
+            }
+            return $true
+        })]
     [System.Management.Automation.SwitchParameter] $InstallLanguagePack, # Install the language pack for the specified language
 
     [Parameter(Mandatory = $false)]
@@ -112,20 +112,15 @@ if (!([System.Environment]::Is64BitProcess)) {
 #endregion
 
 #region Configure the environment
+Set-StrictMode -Version 5.0
 $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
-$InformationPreference = [System.Management.Automation.ActionPreference]::Continue
+$InformationPreference = [System.Management.Automation.ActionPreference]::continue
 $ProgressPreference = [System.Management.Automation.ActionPreference]::SilentlyContinue
 $WarningPreference = [System.Management.Automation.ActionPreference]::SilentlyContinue
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
 
 # Get start time of the script
 $StartTime = Get-Date
-
-# Splat WhatIf and Verbose preferences to pass to functions
-$prefs = @{
-    WhatIf  = $WhatIfPreference
-    Verbose = $VerbosePreference
-}
 
 # Configure working path
 if ($Path.Length -eq 0) { $WorkingPath = $PWD.Path } else { $WorkingPath = $Path }
@@ -160,81 +155,48 @@ Write-LogFile -Message "Script version: $DisplayVersion"
 #endregion
 
 #region Gather configs
-$AllConfigs = @(Get-ChildItem -Path "$WorkingPath\configs" -Include "*.All.json" -Recurse -ErrorAction "Continue")
-$ModelConfigs = @(Get-ChildItem -Path "$WorkingPath\configs" -Include "*.$Model.json" -Recurse -ErrorAction "Continue")
-$BuildConfigs = @(Get-ChildItem -Path "$WorkingPath\configs" -Include "*.$Build.json" -Recurse -ErrorAction "Continue")
-$PlatformConfigs = @(Get-ChildItem -Path "$WorkingPath\configs" -Include "*.$Platform.json" -Recurse -ErrorAction "Continue")
-Write-LogFile -Message "Found: $(($AllConfigs + $ModelConfigs + $BuildConfigs + $PlatformConfigs).Count) configs"
+$ConfigurationFiles = @(Get-ChildItem -Path "$WorkingPath\configs" -Include "*.json" -Recurse)
+Write-LogFile -Message "Found: $($ConfigurationFiles.Count) configuration files"
+
+# Read the configuration files and filter based on the platform, model, and build of the local system
+$Configurations = $ConfigurationFiles | `
+    ForEach-Object { Get-Content -Path $_.FullName -Raw | ConvertFrom-Json } | `
+    Where-Object { $Platform -in $_.Targets.Platforms -and $Model -in $_.Targets.Models } | `
+    Where-Object { [System.Version]$OSVersion -ge [System.Version]$_.MinimumBuild } | `
+    Where-Object { [System.Version]$OSVersion -le [System.Version]$_.MaximumBuild }
+Write-LogFile -Message "Found: $($Configurations.Count) applicable configuration sets to apply"
 #endregion
 
 #region Implement the settings defined in each config file
-foreach ($Config in ($AllConfigs + $PlatformConfigs + $BuildConfigs + $ModelConfigs)) {
+foreach ($ConfigSet in $Configurations) {
 
-    # Read the settings JSON
-    Write-LogFile -Message "Running config: $($Config.FullName)"
-    $Settings = Get-SettingsContent -Path $Config.FullName @prefs
-
-    # Implement the settings only if the local build is greater or equal that what's specified in the JSON
-    if ([System.Version]$OSVersion -ge [System.Version]$Settings.MinimumBuild) {
-        if ([System.Version]$OSVersion -le [System.Version]$Settings.MaximumBuild) {
-
-            #region Implement each setting in the JSON
-            if ($Settings.Registry.ChangeOwner.Length -gt 0) {
-                foreach ($Item in $Settings.Registry.ChangeOwner) {
-                    Set-RegistryOwner -RootKey $Item.Root -Key $Item.Key -Sid $Item.Sid @prefs
-                }
-            }
-            switch ($Settings.Registry.Type) {
-                "DefaultProfile" {
-                    Set-DefaultUserProfile -Setting $Settings.Registry.Set @prefs; break
-                }
-                "Direct" {
-                    Set-Registry -Setting $Settings.Registry.Set @prefs; break
-                    Remove-RegistryPath -Path $Settings.Registry.Remove @prefs; break
-                }
-                default {
-                    Write-LogFile -Message "Skipped registry settings: $($Config.FullName)"
-                }
-            }
-
-            switch ($Settings.StartMenu.Type) {
-                "Server" {
-                    if ((Get-WindowsFeature -Name $Settings.StartMenu.Feature).InstallState -eq "Installed") {
-                        Copy-File -Path $Settings.StartMenu.Exists -Parent $WorkingPath @prefs
-                    }
-                    else {
-                        Copy-File -Path $Settings.StartMenu.NotExists -Parent $WorkingPath @prefs
-                    }
-                }
-                "Client" {
-                    Copy-File -Path $Settings.StartMenu.$OSName -Parent $WorkingPath @prefs
-                }
-                default {
-                    Write-LogFile -Message "Skipped Start menu settings: $($Config.FullName)"
-                }
-            }
-
-            foreach ($Shortcut in $Settings.Shortcuts) {
-                Set-Shortcut -Path $Shortcut.Path -Arguments $Shortcut.Arguments @prefs
-            }
-
-            Copy-File -Path $Settings.Files.Copy -Parent $WorkingPath @prefs
-            Remove-Path -Path $Settings.Paths.Remove @prefs
-            Remove-Feature -Feature $Settings.Features.Disable @prefs
-            Remove-Capability -Capability $Settings.Capabilities.Remove @prefs
-            Remove-Package -Package $Settings.Packages.Remove @prefs
-            Stop-NamedService -Service $Settings.Services.Stop @prefs
-            Start-NamedService -Service $Settings.Services.Start @prefs
-            Restart-NamedService -Service $Settings.Services.Restart @prefs
-            #endregion
-        }
-        else {
-            Write-LogFile -Message "Skipped maximum version: $($Config.FullName)"
+    #region Configure machine level settings
+    if ($Settings.MachineRegistry.ChangeOwner.Length -gt 0) {
+        foreach ($Item in $Settings.MachineRegistry.ChangeOwner) {
+            Set-RegistryOwner -RootKey $Item.Root -Key $Item.Key -Sid $Item.Sid
         }
     }
-    else {
-        Write-LogFile -Message "Skipped minimum version: $($Config.FullName)"
+    Set-Registry -Setting $Settings.MachineRegistry.Set
+    Remove-RegistryPath -Path $Settings.MachineRegistry.Remove
+
+    foreach ($Shortcut in $Settings.Shortcuts) {
+        Set-Shortcut -Path $Shortcut.Path -Arguments $Shortcut.Arguments
     }
+
+    Copy-File -Path $Settings.Files.Copy -Parent $WorkingPath
+    Remove-Path -Path $Settings.Paths.Remove
+
+    Remove-Feature -Feature $Settings.Features.Disable
+    Remove-Capability -Capability $Settings.Capabilities.Remove
+    Remove-Package -Package $Settings.Packages.Remove
+
+    Stop-NamedService -Service $Settings.Services.Stop
+    Start-NamedService -Service $Settings.Services.Start
+    Restart-NamedService -Service $Settings.Services.Restart
+    #endregion
+
+    # Set default user profile settings
+    Set-DefaultUserProfile -Setting $Settings.UserRegistry.Set
 }
 #endregion
 
@@ -253,7 +215,7 @@ if ($Platform -eq "Client") {
         }
         else {
             Write-LogFile -Message "Run script: $WorkingPath\Remove-AppxApps.ps1"
-            $Apps = & $Script.FullName @prefs -Confirm:$false
+            $Apps = & $Script.FullName  -Confirm:$false
             foreach ($App in $Apps) { Write-LogFile -Message "Removed AppX app: $App" }
         }
     }
