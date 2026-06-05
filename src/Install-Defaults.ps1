@@ -158,7 +158,7 @@ Write-LogFile -Message "Script version: $DisplayVersion"
 $ConfigurationFiles = @(Get-ChildItem -Path "$WorkingPath\configs" -Include "*.json" -Recurse)
 Write-LogFile -Message "Found: $($ConfigurationFiles.Count) configuration files"
 
-# Read the configuration files and filter based on the platform, model, and build of the local system
+# Read the configuration files, convert from JSON, and filter based on the platform, model, and build of the local system
 $Configurations = $ConfigurationFiles | `
     ForEach-Object { Get-Content -Path $_.FullName -Raw | ConvertFrom-Json } | `
     Where-Object { $Platform -in $_.Targets.Platforms -and $Model -in $_.Targets.Models } | `

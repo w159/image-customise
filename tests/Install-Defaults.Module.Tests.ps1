@@ -46,7 +46,7 @@ Describe 'Module Import' {
         $ExportedFunctions = @(
             'Get-Symbol', 'Write-Message', 'Write-LogFile',
             'Get-Platform', 'Get-OSName', 'Get-Model',
-            'Get-SettingsContent', 'Set-RegistryOwner',
+            'Set-RegistryOwner',
             'Set-Registry', 'Remove-RegistryPath', 'Set-DefaultUserProfile',
             'Copy-File', 'New-Directory', 'Remove-Path',
             'Remove-Feature', 'Remove-Capability', 'Remove-Package',
@@ -159,37 +159,6 @@ Describe 'Get-Model' {
     It 'Should return a valid model type' {
         $Result = Get-Model
         $Result | Should -BeIn @('Virtual', 'Physical')
-    }
-}
-
-Describe 'Get-SettingsContent' {
-    BeforeAll {
-        $TestJsonPath = "$env:TEMP\test-settings.json"
-        $TestContent = @{
-            MinimumBuild = '10.0.19041'
-            MaximumBuild = '10.0.99999'
-            Registry = @{
-                Type = 'Direct'
-                Set = @()
-            }
-        } | ConvertTo-Json
-        Set-Content -Path $TestJsonPath -Value $TestContent
-    }
-
-    It 'Should parse valid JSON file' {
-        $Result = Get-SettingsContent -Path $TestJsonPath
-        $Result | Should -Not -BeNullOrEmpty
-        $Result.MinimumBuild | Should -Be '10.0.19041'
-    }
-
-    It 'Should throw on invalid file path' {
-        { Get-SettingsContent -Path 'C:\NonExistent\file.json' } | Should -Throw
-    }
-
-    AfterAll {
-        if (Test-Path $TestJsonPath) {
-            Remove-Item -Path $TestJsonPath -Force
-        }
     }
 }
 
