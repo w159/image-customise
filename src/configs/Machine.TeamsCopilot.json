@@ -1,9 +1,17 @@
 {
-    "Description": "Computer level settings for Windows 11 21H2 to 23H2.",
+    "Description": "Computer level settings for Windows 11 21H2 to 23H2. Removes Microsoft Teams Chat and the Copilot button on the taskbar.",
     "MinimumBuild": "10.0.22000",
     "MaximumBuild": "10.0.22631",
-    "Registry": {
-        "Type": "Direct",
+    "Targets": {
+        "Platforms": [
+            "client"
+        ],
+        "Models": [
+            "physical",
+            "virtual"
+        ]
+    },
+    "MachineRegistry": {
         "ChangeOwner": [
             {
                 "Root": "HKLM",

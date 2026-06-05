@@ -2,8 +2,16 @@
     "Description": "Default user profile settings for Windows Server 2025 and above.",
     "MinimumBuild": "10.0.26100",
     "MaximumBuild": "10.0.99999",
-    "Registry": {
-        "Type": "DefaultProfile",
+    "Targets": {
+        "Platforms": [
+            "server"
+        ],
+        "Models": [
+            "physical",
+            "virtual"
+        ]
+    },
+    "UserRegistry": {
         "Set": [
             {
                 "path": "HKCU:\\Software\\Microsoft\\ServerManager",
@@ -26,18 +34,6 @@
                 "type": "Dword",
                 "note": "Required to support the setting selected for VisiblePlaces."
             }
-        ]
-    },
-    "StartMenu": {
-        "Type": "Server",
-        "Feature": "RDS-RD-Server",
-        "Exists": [
-            {
-                "Source": "start\\Windows2025RDSStart.bin",
-                "Destination": "C:\\Users\\Default\\AppData\\Local\\Packages\\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\\LocalState\\start2.bin"
-            }
-        ],
-        "NotExists": [
         ]
     },
     "Files": {

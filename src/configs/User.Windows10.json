@@ -2,8 +2,16 @@
     "Description": "Default user profile settings for Windows 10.",
     "MinimumBuild": "10.0.14393",
     "MaximumBuild": "10.0.20999",
-    "Registry": {
-        "Type": "DefaultProfile",
+    "Targets": {
+        "Platforms": [
+            "client"
+        ],
+        "Models": [
+            "physical",
+            "virtual"
+        ]
+    },
+    "UserRegistry": {
         "Set": [
             {
                 "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Accent",
@@ -39,6 +47,14 @@
                 "value": 3288359857,
                 "type": "DWord",
                 "note": "Sets the accent colour on window title bars and borders"
+            }
+        ]
+    },
+    "Files": {
+        "Copy": [
+            {
+                "Source": "start\\Windows10StartMenuLayout.xml",
+                "Destination": "C:\\Users\\Default\\AppData\\Local\\Microsoft\\Windows\\Shell\\LayoutModification.xml"
             }
         ]
     }

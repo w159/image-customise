@@ -1,9 +1,17 @@
 {
-    "Description": "Default user profile settings for all Windows Server editions.",
+    "Description": "Default user profile settings for all Windows Server 2022 and below editions.",
     "MinimumBuild": "10.0.14393",
     "MaximumBuild": "10.0.20348",
-    "Registry": {
-        "Type": "DefaultProfile",
+    "Targets": {
+        "Platforms": [
+            "rds-server"
+        ],
+        "Models": [
+            "physical",
+            "virtual"
+        ]
+    },
+    "UserRegistry": {
         "Set": [
             {
                 "path": "HKCU:\\Software\\Microsoft\\ServerManager",
@@ -35,23 +43,12 @@
             }
         ]
     },
-    "StartMenu": {
-        "Type": "Server",
-        "Feature": "RDS-RD-Server",
-        "Exists": [
+    "Files": {
+        "Copy": [
             {
                 "Source": "start\\WindowsRDSStartMenuLayout.xml",
                 "Destination": "C:\\Users\\Default\\AppData\\Local\\Microsoft\\Windows\\Shell\\LayoutModification.xml"
             }
-        ],
-        "NotExists": [
-            {
-                "Source": "start\\WindowsServerStartMenuLayout.xml",
-                "Destination": "C:\\Users\\Default\\AppData\\Local\\Microsoft\\Windows\\Shell\\LayoutModification.xml"
-            }
         ]
-    },
-    "Files": {
-        "Copy": []
     }
 }

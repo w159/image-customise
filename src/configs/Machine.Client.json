@@ -2,8 +2,16 @@
     "Description": "Computer level settings for Windows client editions.",
     "MinimumBuild": "10.0.14393",
     "MaximumBuild": "10.0.99999",
-    "Registry": {
-        "Type": "Direct",
+    "Targets": {
+        "Platforms": [
+            "client"
+        ],
+        "Models": [
+            "physical",
+            "virtual"
+        ]
+    },
+    "MachineRegistry": {
         "Set": [
             {
                 "path": "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer",

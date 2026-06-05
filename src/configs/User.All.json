@@ -2,14 +2,25 @@
     "Description": "Default user profile settings for all Windows editions",
     "MinimumBuild": "10.0.14393",
     "MaximumBuild": "10.0.99999",
-    "Registry": {
-        "Type": "DefaultProfile",
+    "Targets": {
+        "Platforms": [
+            "client",
+            "multisession",
+            "rds-server",
+            "server"
+        ],
+        "Models": [
+            "physical",
+            "virtual"
+        ]
+    },
+    "UserRegistry": {
         "Set": [
             {
                 "path": "HKCU:\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Network\\Persistent Connections",
                 "name": "SaveConnections",
                 "value": "No",
-                "Type": "String",
+                "type": "String",
                 "note": "Prevents persistent mapped drives in Explorer. Assumes scripts or GPP are used to map network drives"
             },
             {

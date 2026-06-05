@@ -2,9 +2,19 @@
     "Description": "Default user profile settings for all Windows editions on virtual machines.",
     "MinimumBuild": "10.0.14393",
     "MaximumBuild": "10.0.99999",
-    "Registry": {
+    "Targets": {
+        "Platforms": [
+            "client",
+            "multisession",
+            "rds-server",
+            "server"
+        ],
+        "Models": [
+            "virtual"
+        ]
+    },
+    "UserRegistry": {
         "Source": "https://learn.microsoft.com/en-us/windows-server/remote/remote-desktop-services/rds-vdi-recommendations-2004",
-        "Type": "DefaultProfile",
         "Set": [
             {
                 "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
@@ -16,7 +26,7 @@
             {
                 "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
                 "name": "EnableTransparency",
-                "value": "0",
+                "value": 0,
                 "type": "DWord",
                 "note": "Disable transparency for the Start menu, Taskbar and windows"
             },

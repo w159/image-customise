@@ -2,8 +2,16 @@
     "Description": "Default user profile settings for Windows 11.",
     "MinimumBuild": "10.0.22000",
     "MaximumBuild": "10.0.29999",
-    "Registry": {
-        "Type": "DefaultProfile",
+    "Targets": {
+        "Platforms": [
+            "client"
+        ],
+        "Models": [
+            "physical",
+            "virtual"
+        ]
+    },
+    "UserRegistry": {
         "Set": [
             {
                 "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
@@ -126,7 +134,7 @@
                 "note": "Disables Windows Spotlight subscribed content on the Lock Screen"
             }
         ],
-        "SetOthers": [
+        "Others": [
             {
                 "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
                 "name": "TaskbarAl",
@@ -154,6 +162,22 @@
                 "value": 0,
                 "type": "DWord",
                 "note": "Disables 'Settings / Privacy & Security / Recommendations & offers / Show notifications in Settings'"
+            }
+        ]
+    },
+    "Files": {
+        "Copy": [
+            {
+                "Source": "start\\Windows11StartMenuLayout.json",
+                "Destination": "C:\\Users\\Default\\AppData\\Local\\Microsoft\\Windows\\Shell\\LayoutModification.json"
+            },
+            {
+                "Source": "start\\Windows11TaskbarLayout.xml",
+                "Destination": "C:\\Users\\Default\\AppData\\Local\\Microsoft\\Windows\\Shell\\LayoutModification.xml"
+            },
+            {
+                "Source": "start\\Windows11Start.bin",
+                "Destination": "C:\\Users\\Default\\AppData\\Local\\Packages\\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\\LocalState\\start2.bin"
             }
         ]
     }

@@ -1,0 +1,22 @@
+{
+    "Description": "Computer level settings for Windows Server editions with the Remote Desktop Services role.",
+    "MinimumBuild": "10.0.14393",
+    "MaximumBuild": "10.0.99999",
+    "Targets": {
+        "Platforms": [
+            "multisession",
+            "rds-server"
+        ],
+        "Models": [
+            "physical",
+            "virtual"
+        ]
+    },
+    "Services": {
+        "Feature": "RDS-RD-Server",
+        "Enable": [
+            "Audiosrv",
+            "WSearch"
+        ]
+    }
+}
