@@ -5,6 +5,7 @@ using namespace System.Management.Automation
 [CmdletBinding(SupportsShouldProcess = $true)]
 param ()
 
+Set-StrictMode -Version Latest
 $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
 $InformationPreference = [System.Management.Automation.ActionPreference]::continue
 $ProgressPreference = [System.Management.Automation.ActionPreference]::SilentlyContinue
@@ -48,26 +49,6 @@ function Write-Message {
         [ValidateSet(1, 2, 3)]
         [System.Int16] $LogLevel = 1
     )
-
-    if ($null -eq $Message) {
-        $Message = ""
-    }
-
-    function Write-EmittedMessage {
-        param (
-            [Parameter(Mandatory = $true)]
-            [System.String] $Text
-        )
-
-        $Msg = [HostInformationMessage]@{
-            Message         = $Text.PadRight($Width)
-            ForegroundColor = $ForegroundColor
-            BackgroundColor = $BackgroundColor
-            NoNewline       = $false
-        }
-
-        Write-Information -MessageData $Msg -InformationAction "Continue" -Tags "Evergreen"
-    }
 
     # Get the time stamp and symbol
     $Date = "[$(Get-Date -Format 'HH:mm:ss')]"
@@ -114,7 +95,18 @@ function Write-Message {
         $Remaining = $Message.Substring($AvailableWidth)
 
         # Write the first line with prefix
-        Write-EmittedMessage -Text "$Prefix$($FirstLine.PadRight($AvailableWidth))"
+        $Msg = [HostInformationMessage]@{
+            Message         = "$Prefix$($FirstLine.PadRight($AvailableWidth))"
+            ForegroundColor = $ForegroundColor
+            BackgroundColor = $BackgroundColor
+            NoNewline       = $false
+        }
+        $params = @{
+            MessageData       = $Msg
+            InformationAction = "Continue"
+            Tags              = "Evergreen"
+        }
+        Write-Information @params
 
         # Write continuation lines with indentation matching the prefix
         $Indent = " " * $PrefixLength
@@ -130,172 +122,35 @@ function Write-Message {
                 $Remaining = ""
             }
 
-            Write-EmittedMessage -Text "$Indent$($CurrentLine.PadRight($ContinuationWidth))"
+            $Msg = [HostInformationMessage]@{
+                Message         = "$Indent$($CurrentLine.PadRight($ContinuationWidth))"
+                ForegroundColor = $ForegroundColor
+                BackgroundColor = $BackgroundColor
+                NoNewline       = $false
+            }
+            $params = @{
+                MessageData       = $Msg
+                InformationAction = "Continue"
+                Tags              = "Evergreen"
+            }
+            Write-Information @params
         }
     }
     else {
         # Message fits on one line
         $FullMessage = "$Prefix$Message"
-        Write-EmittedMessage -Text "$($FullMessage.PadRight($Width))"
-    }
-}
-
-function Invoke-LoggedAction {
-    [CmdletBinding(SupportsShouldProcess = $true)]
-    param (
-        [Parameter(Mandatory = $true)]
-        [System.Object] $InputObject,
-
-        [Parameter(Mandatory = $true)]
-        [System.String] $Target,
-
-        [Parameter(Mandatory = $true)]
-        [System.String] $ActionName,
-
-        [Parameter(Mandatory = $true)]
-        [System.Management.Automation.ScriptBlock] $Action,
-
-        [ValidateSet(1, 2, 3)]
-        [System.Int16] $LogLevel = 1
-    )
-
-    try {
-        if ($PSCmdlet.ShouldProcess($Target, $ActionName)) {
-            $Message = & $Action $InputObject
-            if (-not [string]::IsNullOrWhiteSpace([string]$Message)) {
-                Write-LogFile -Message $Message -LogLevel $LogLevel
-            }
+        $Msg = [HostInformationMessage]@{
+            Message         = "$($FullMessage.PadRight($Width))"
+            ForegroundColor = $ForegroundColor
+            BackgroundColor = $BackgroundColor
+            NoNewline       = $false
         }
-    }
-    catch {
-        Write-LogFile -Message $_.Exception.Message -LogLevel 3
-    }
-}
-
-function Close-RegistryHandle {
-    param (
-        [Parameter(Mandatory = $false)]
-        $RegistryItem
-    )
-
-    if ($null -ne $RegistryItem -and $RegistryItem.PSObject.Properties.Name -contains 'Handle') {
-        $RegistryItem.Handle.Close()
-    }
-}
-
-function Ensure-RegistryKey {
-    [CmdletBinding(SupportsShouldProcess = $true)]
-    param (
-        [Parameter(Mandatory = $true)]
-        [System.String] $Path
-    )
-
-    if (Test-Path -Path $Path) {
-        return
-    }
-
-    $ItemResult = $null
-    try {
-        if ($PSCmdlet.ShouldProcess($Path, "New-Item")) {
-            $params = @{
-                Path  = $Path
-                Type  = "RegistryKey"
-                Force = $true
-            }
-            $ItemResult = New-Item @params
-            Write-LogFile -Message "New registry path: $Path"
+        $params = @{
+            MessageData       = $Msg
+            InformationAction = "Continue"
+            Tags              = "Evergreen"
         }
-    }
-    catch {
-        Write-LogFile -Message $_.Exception.Message -LogLevel 3
-    }
-    finally {
-        Close-RegistryHandle -RegistryItem $ItemResult
-    }
-}
-
-function Invoke-ProtectedRegistryWrite {
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory = $true)]
-        [System.String] $Path,
-
-        [Parameter(Mandatory = $true)]
-        [System.String] $Name,
-
-        [Parameter(Mandatory = $true)]
-        [System.String] $Type,
-
-        [Parameter(Mandatory = $true)]
-        [System.Object] $Value
-    )
-
-    $RegExe = $null
-    try {
-        $RegExe = Copy-RegExe
-        if ($RegExe) {
-            & $RegExe add ($Path -replace "\:", "") `
-                /v $Name `
-                /t $Type `
-                /d $Value `
-                /f `
-                /reg:64 `
-                /z
-            Write-LogFile -Message "Set protected registry property: $Path; $Name, $Value"
-        }
-    }
-    catch {
-        Write-LogFile -Message $_.Exception.Message -LogLevel 3
-    }
-    finally {
-        if ($RegExe -and (Test-Path -Path $RegExe)) {
-            Remove-Item -Path $RegExe -Force -ErrorAction SilentlyContinue
-        }
-    }
-}
-
-function Invoke-RegistryValueWrite {
-    [CmdletBinding(SupportsShouldProcess = $true)]
-    param (
-        [Parameter(Mandatory = $true)]
-        [System.Object[]] $Setting,
-
-        [Parameter(Mandatory = $true)]
-        [System.Management.Automation.ScriptBlock] $PathTransform
-    )
-
-    foreach ($Item in $Setting) {
-        $RegPath = & $PathTransform $Item.path
-        Ensure-RegistryKey -Path $RegPath
-
-        try {
-            if ($PSCmdlet.ShouldProcess("$RegPath, $($Item.name), $($Item.value)", "Set-ItemProperty")) {
-                if ($Item.type -eq "Binary") {
-                    $Value = -split $Item.value -replace ' ', { [Convert]::ToByte($_, 16) }
-                }
-                else {
-                    $Value = $Item.value
-                }
-
-                if ($Item.protected -eq $true) {
-                    Invoke-ProtectedRegistryWrite -Path $RegPath -Name $Item.name -Type $Item.type -Value $Value
-                }
-                else {
-                    $params = @{
-                        Path  = $RegPath
-                        Name  = $Item.name
-                        Value = $Value
-                        Type  = $Item.type
-                        Force = $true
-                    }
-                    Set-ItemProperty @params | Out-Null
-                    Write-LogFile -Message "Set registry property: $($Item.path); $($Item.name), $($Item.value)"
-                }
-            }
-        }
-        catch {
-            Write-LogFile -Message $_.Exception.Message -LogLevel 3
-        }
+        Write-Information @params
     }
 }
 
@@ -365,6 +220,11 @@ function Write-LogFile {
                 Add-Content -Value $Line -Path $LogFile
             }
             Write-Message -Message $Msg -LogLevel $LogLevel
+
+            # Write-Warning for log level 2 or 3
+            # if ($LogLevel -eq 3 -or $LogLevel -eq 2) {
+            #     Write-Warning -Message "[$TimeGenerated] $Msg"
+            # }
         }
     }
 }
@@ -441,6 +301,20 @@ function Get-Model {
     }
     Write-LogFile -Message "Model: $Model"
     Write-Output -InputObject $Model
+}
+
+function Get-SettingsContent ($Path) {
+    # Return a JSON object from the text/JSON file passed
+    try {
+        Write-LogFile -Message "Importing: $Path"
+        $Settings = Get-Content -Path $Path | ConvertFrom-Json
+    }
+    catch {
+        # If we have an error we won't get usable data
+        Write-LogFile -Message $_.Exception.Message -LogLevel 3
+        throw $_
+    }
+    Write-Output -InputObject $Settings
 }
 
 function Set-RegistryOwner {
@@ -524,7 +398,71 @@ function Set-Registry {
     [CmdletBinding(SupportsShouldProcess = $true)]
     param ($Setting)
 
-    Invoke-RegistryValueWrite -Setting $Setting -PathTransform { param ($Path) $Path }
+    foreach ($Item in $Setting) {
+        if (-not(Test-Path -Path $Item.path)) {
+            try {
+                if ($PSCmdlet.ShouldProcess($Item.path, "New-Item")) {
+                    $params = @{
+                        Path  = $Item.path
+                        Type  = "RegistryKey"
+                        Force = $true
+                    }
+                    $ItemResult = New-Item @params
+                    Write-LogFile -Message "New registry path: $($Item.path)"
+                }
+            }
+            catch {
+                Write-LogFile -Message $_.Exception.Message -LogLevel 3
+            }
+            finally {
+                if ("Handle" -in ($ItemResult | Get-Member | Select-Object -ExpandProperty "Name")) { $ItemResult.Handle.Close() }
+            }
+        }
+
+        try {
+            if ($PSCmdlet.ShouldProcess("$($Item.path), $($Item.name), $($Item.value)", "Set-ItemProperty")) {
+
+                # Convert binary values to byte arrays
+                if ($Item.type -eq "Binary") {
+                    $Value = -split $Item.value -replace ' ', { [Convert]::ToByte($_, 16) }
+                }
+                else {
+                    $Value = $Item.value
+                }
+
+                if ($Item.protected -eq $true) {
+                    #  Use reg1.exe to set protected registry values
+                    $RegExe = Copy-RegExe
+                    if ($RegExe) {
+                        & $RegExe add ($Item.path -replace "\:", "") `
+                            /v $Item.name `
+                            /t $Item.type `
+                            /d $Value `
+                            /f `
+                            /reg:64 `
+                            /z
+                        Write-LogFile -Message "Set protected registry property: $($Item.path); $($Item.name), $($Item.value)"
+                        Remove-Item -Path $RegExe -Force
+                    }
+                }
+                else {
+                    # Use Set-ItemProperty to set the registry value
+                    $params = @{
+                        Path  = $Item.path
+                        Name  = $Item.name
+                        Value = $Value
+                        Type  = $Item.type
+                        Force = $true
+                    }
+                    Set-ItemProperty @params | Out-Null
+                    Write-LogFile -Message "Set registry property: $($Item.path); $($Item.name), $($Item.value)"
+                }
+            }
+        }
+        catch {
+            Write-LogFile -Message $_.Exception.Message -LogLevel 3
+        }
+    }
 }
 
 function Remove-RegistryPath {
@@ -533,15 +471,20 @@ function Remove-RegistryPath {
     param ($Path)
 
     foreach ($Item in $Path) {
-        Invoke-LoggedAction -InputObject $Item -Target $Item.path -ActionName "Remove-Item" -Action {
-            param ($CurrentItem)
-
-            $params = @{
-                Path  = $CurrentItem.path
-                Force = $true
+        try {
+            if ($PSCmdlet.ShouldProcess($Item.path, "Remove-Item")) {
+                if (Test-Path -Path $Item.path) {
+                    $params = @{
+                        Path  = $Item.path
+                        Force = $true
+                    }
+                    Remove-Item @params | Out-Null
+                    Write-LogFile -Message "Remove registry path: $($Item.path)"
+                }
             }
-            Remove-Item @params | Out-Null
-            return "Remove registry path: $($CurrentItem.path)"
+        }
+        catch {
+            Write-LogFile -Message $_.Exception.Message -LogLevel 3
         }
     }
 }
@@ -550,15 +493,16 @@ function Set-DefaultUserProfile {
     # Add settings into the default profile
     [CmdletBinding(SupportsShouldProcess = $true)]
     param ($Setting)
+
     try {
         # Variables
         $RegDefaultUser = "$env:SystemDrive\Users\Default\NTUSER.DAT"
         $DefaultUserPath = "HKLM:\MountDefaultUser"
 
         try {
+            $RegPath = $DefaultUserPath -replace ":", ""
             if ($PSCmdlet.ShouldProcess("reg load $RegPath $RegDefaultUser", "Start-Process")) {
                 # Load registry hive
-                $RegPath = $DefaultUserPath -replace ":", ""
                 $params = @{
                     FilePath     = "reg"
                     ArgumentList = "load $RegPath $RegDefaultUser"
@@ -575,7 +519,75 @@ function Set-DefaultUserProfile {
             throw $_
         }
 
-        Invoke-RegistryValueWrite -Setting $Setting -PathTransform { param ($Path) $Path -replace "HKCU:", $DefaultUserPath }
+        # Process Registry Commands
+        foreach ($Item in $Setting) {
+            $RegPath = $Item.path -replace "HKCU:", $DefaultUserPath
+            if (-not(Test-Path -Path $RegPath)) {
+                try {
+                    if ($PSCmdlet.ShouldProcess($RegPath, "New-Item")) {
+                        $params = @{
+                            Path  = $RegPath
+                            Type  = "RegistryKey"
+                            Force = $true
+                        }
+                        $ItemResult = New-Item @params
+                        Write-LogFile -Message "New registry path: $($Item.path)"
+                    }
+                }
+                catch {
+                    Write-LogFile -Message $_.Exception.Message -LogLevel 3
+                }
+                finally {
+                    if ($null -ne $Result) {
+                        if ("Handle" -in ($ItemResult | Get-Member -ErrorAction "SilentlyContinue" | Select-Object -ExpandProperty "Name")) { $ItemResult.Handle.Close() }
+                    }
+                }
+            }
+
+            try {
+                if ($PSCmdlet.ShouldProcess("$RegPath, $($Item.name), $($Item.value)", "Set-ItemProperty")) {
+
+                    # Convert binary values to byte arrays
+                    if ($Item.type -eq "Binary") {
+                        $Value = -split $Item.value -replace ' ', { [Convert]::ToByte($_, 16) }
+                    }
+                    else {
+                        $Value = $Item.value
+                    }
+
+                    if ($Item.protected -eq $true) {
+                        #  Use reg1.exe to set protected registry values
+                        $RegExe = Copy-RegExe
+                        if ($RegExe) {
+                            & $RegExe add ($RegPath -replace "\:", "") `
+                                /v $Item.name `
+                                /t $Item.type `
+                                /d $Value `
+                                /f `
+                                /reg:64 `
+                                /z
+                            Write-LogFile -Message "Set protected registry property: $($Item.path); $($Item.name), $($Item.value)"
+                            Remove-Item -Path $RegExe -Force
+                        }
+                    }
+                    else {
+                        # Use Set-ItemProperty to set the registry value
+                        $params = @{
+                            Path  = $RegPath
+                            Name  = $Item.name
+                            Value = $Value
+                            Type  = $Item.type
+                            Force = $true
+                        }
+                        Set-ItemProperty @params | Out-Null
+                        Write-LogFile -Message "Set registry property: $($Item.path); $($Item.name), $($Item.value)"
+                    }
+                }
+            }
+            catch {
+                Write-LogFile -Message $_.Exception.Message -LogLevel 3
+            }
+        }
     }
     catch {
         Write-LogFile -Message $_.Exception.Message -LogLevel 3
@@ -605,28 +617,31 @@ function Copy-File {
     # Copy a file from source to destination. Create the destination directory if it doesn't exist
     [CmdletBinding(SupportsShouldProcess = $true)]
     param ($Path, $Parent)
+
     foreach ($Item in $Path) {
-        $Source = Join-Path -Path $Parent -ChildPath $Item.Source
-        Invoke-LoggedAction -InputObject $Item -Target "$Source to $($Item.Destination)" -ActionName "Copy-Item" -Action {
-            param ($CurrentItem)
-
-            $Source = Join-Path -Path $Parent -ChildPath $CurrentItem.Source
-            Write-LogFile -Message "Source: $Source"
-            Write-LogFile -Message "Destination: $($CurrentItem.Destination)"
-
-            if (-not (Test-Path -Path $Source)) {
-                return $null
+        $Source = $(Join-Path -Path $Parent -ChildPath $Item.Source)
+        Write-LogFile -Message "Source: $Source"
+        Write-LogFile -Message "Destination: $($Item.Destination)"
+        if (Test-Path -Path $Source) {
+            New-Directory -Path $(Split-Path -Path $Item.Destination -Parent)
+            try {
+                if ($PSCmdlet.ShouldProcess("$Source to $($Item.Destination)", "Copy-Item")) {
+                    $params = @{
+                        Path        = $Source
+                        Destination = $Item.Destination
+                        Confirm     = $false
+                        Force       = $true
+                    }
+                    Copy-Item @params
+                    Write-LogFile -Message "Copy file: $Source to $($Item.Destination)"
+                }
             }
-
-            New-Directory -Path $(Split-Path -Path $CurrentItem.Destination -Parent)
-            $params = @{
-                Path        = $Source
-                Destination = $CurrentItem.Destination
-                Confirm     = $false
-                Force       = $true
+            catch {
+                Write-LogFile -Message $_.Exception.Message -LogLevel 3
             }
-            Copy-Item @params
-            return "Copy file: $Source to $($CurrentItem.Destination)"
+        }
+        else {
+            Write-LogFile -Message "Source path does not exist: $Source" -LogLevel 2
         }
     }
 }
@@ -635,20 +650,23 @@ function New-Directory {
     # Create a new directory
     [CmdletBinding(SupportsShouldProcess = $true)]
     param ($Path)
-    Invoke-LoggedAction -InputObject $Path -Target $Path -ActionName "New-Item" -Action {
-        param ($CurrentPath)
-
-        if (Test-Path -Path $CurrentPath) {
-            Write-LogFile -Message "Path exists: $CurrentPath"
-            return $null
+    if (Test-Path -Path $Path) {
+        Write-LogFile -Message "Path exists: $Path"
+    }
+    else {
+        try {
+            if ($PSCmdlet.ShouldProcess($Path, "New-Item")) {
+                $params = @{
+                    Path     = $Path
+                    ItemType = "Directory"
+                }
+                New-Item @params | Out-Null
+                Write-LogFile -Message "New path: $Path"
+            }
         }
-
-        $params = @{
-            Path     = $CurrentPath
-            ItemType = "Directory"
+        catch {
+            Write-LogFile -Message $_.Exception.Message -LogLevel 3
         }
-        New-Item @params | Out-Null
-        return "New path: $CurrentPath"
     }
 }
 
@@ -656,22 +674,24 @@ function Remove-Path {
     # Recursively remove a specific path
     [CmdletBinding(SupportsShouldProcess = $true)]
     param ($Path)
+
     foreach ($Item in $Path) {
-        Invoke-LoggedAction -InputObject $Item -Target $Item -ActionName "Remove-Item" -Action {
-            param ($CurrentPath)
-
-            if (-not (Test-Path -Path $CurrentPath)) {
-                return $null
+        if (Test-Path -Path $Item) {
+            try {
+                if ($PSCmdlet.ShouldProcess($Item, "Remove-Item")) {
+                    $params = @{
+                        Path    = $Item
+                        Recurse = $true
+                        Confirm = $false
+                        Force   = $true
+                    }
+                    Remove-Item @params
+                    Write-LogFile -Message "Remove path: $Item"
+                }
             }
-
-            $params = @{
-                Path    = $CurrentPath
-                Recurse = $true
-                Confirm = $false
-                Force   = $true
+            catch {
+                Write-LogFile -Message $_.Exception.Message -LogLevel 3
             }
-            Remove-Item @params
-            return "Remove path: $CurrentPath"
         }
     }
 }
@@ -681,18 +701,23 @@ function Remove-Feature {
     [CmdletBinding(SupportsShouldProcess = $true)]
     param ($Feature)
 
-    foreach ($Item in @($Feature)) {
-        Invoke-LoggedAction -InputObject $Item -Target $Item -ActionName "Disable-WindowsOptionalFeature" -Action {
-            param ($FeatureName)
-
-            $FeatureInfo = Get-WindowsOptionalFeature -Online -FeatureName $FeatureName
-            $params = @{
-                FeatureName = $FeatureInfo.FeatureName
-                Online      = $true
-                NoRestart   = $true
+    if ($Feature.Count -ge 1) {
+        $Feature | ForEach-Object { Get-WindowsOptionalFeature -Online -FeatureName $_ } | `
+            ForEach-Object {
+            try {
+                if ($PSCmdlet.ShouldProcess($_.FeatureName, "Disable-WindowsOptionalFeature")) {
+                    $params = @{
+                        FeatureName = $_.FeatureName
+                        Online      = $true
+                        NoRestart   = $true
+                    }
+                    Disable-WindowsOptionalFeature @params | Out-Null
+                    Write-LogFile -Message "Remove feature: $($_.FeatureName)"
+                }
             }
-            Disable-WindowsOptionalFeature @params | Out-Null
-            return "Remove feature: $($FeatureInfo.FeatureName)"
+            catch {
+                Write-LogFile -Message $_.Exception.Message -LogLevel 3
+            }
         }
     }
 }
@@ -702,16 +727,21 @@ function Remove-Capability {
     [CmdletBinding(SupportsShouldProcess = $true)]
     param ($Capability)
 
-    foreach ($Item in @($Capability)) {
-        Invoke-LoggedAction -InputObject $Item -Target $Item -ActionName "Remove-WindowsCapability" -Action {
-            param ($CapabilityName)
-
-            $params = @{
-                Name   = $CapabilityName
-                Online = $true
+    if ($Capability.Count -ge 1) {
+        foreach ($Item in $Capability) {
+            try {
+                if ($PSCmdlet.ShouldProcess($Item, "Remove-WindowsCapability")) {
+                    $params = @{
+                        Name   = $Item
+                        Online = $true
+                    }
+                    Remove-WindowsCapability @params | Out-Null
+                    Write-LogFile -Message "Remove capability: $($Item)"
+                }
             }
-            Remove-WindowsCapability @params | Out-Null
-            return "Remove capability: $CapabilityName"
+            catch {
+                Write-LogFile -Message $_.Exception.Message -LogLevel 3
+            }
         }
     }
 }
@@ -721,16 +751,21 @@ function Add-Capability {
     [CmdletBinding(SupportsShouldProcess = $true)]
     param ($Capability)
 
-    foreach ($Item in @($Capability)) {
-        Invoke-LoggedAction -InputObject $Item -Target $Item -ActionName "Add-WindowsCapability" -Action {
-            param ($CapabilityName)
-
-            $params = @{
-                Name   = $CapabilityName
-                Online = $true
+    if ($Capability.Count -ge 1) {
+        foreach ($Item in $Capability) {
+            try {
+                if ($PSCmdlet.ShouldProcess($Item, "Add-WindowsCapability")) {
+                    $params = @{
+                        Name   = $Item
+                        Online = $true
+                    }
+                    Add-WindowsCapability @params | Out-Null
+                    Write-LogFile -Message "Add capability: $($Item)"
+                }
             }
-            Add-WindowsCapability @params | Out-Null
-            return "Add capability: $CapabilityName"
+            catch {
+                Write-LogFile -Message $_.Exception.Message -LogLevel 3
+            }
         }
     }
 }
@@ -740,18 +775,23 @@ function Add-Feature {
     [CmdletBinding(SupportsShouldProcess = $true)]
     param ($Feature)
 
-    foreach ($Item in @($Feature)) {
-        Invoke-LoggedAction -InputObject $Item -Target $Item -ActionName "Enable-WindowsOptionalFeature" -Action {
-            param ($FeatureName)
-
-            $FeatureInfo = Get-WindowsOptionalFeature -Online -FeatureName $FeatureName
-            $params = @{
-                FeatureName = $FeatureInfo.FeatureName
-                Online      = $true
-                NoRestart   = $true
+    if ($Feature.Count -ge 1) {
+        $Feature | ForEach-Object { Get-WindowsOptionalFeature -Online -FeatureName $_ } | `
+            ForEach-Object {
+            try {
+                if ($PSCmdlet.ShouldProcess($_.FeatureName, "Enable-WindowsOptionalFeature")) {
+                    $params = @{
+                        FeatureName = $_.FeatureName
+                        Online      = $true
+                        NoRestart   = $true
+                    }
+                    Enable-WindowsOptionalFeature @params | Out-Null
+                    Write-LogFile -Message "Add feature: $($_.FeatureName)"
+                }
             }
-            Enable-WindowsOptionalFeature @params | Out-Null
-            return "Add feature: $($FeatureInfo.FeatureName)"
+            catch {
+                Write-LogFile -Message $_.Exception.Message -LogLevel 3
+            }
         }
     }
 }
@@ -761,18 +801,23 @@ function Remove-Package {
     [CmdletBinding(SupportsShouldProcess = $true)]
     param ($Package)
 
-    foreach ($Item in @($Package)) {
-        $Matches = Get-WindowsPackage -Online | Where-Object { $_.PackageName -match $Item }
-        foreach ($PackageItem in $Matches) {
-            Invoke-LoggedAction -InputObject $PackageItem -Target $PackageItem.PackageName -ActionName "Remove-WindowsPackage" -Action {
-                param ($CurrentPackage)
-
-                $params = @{
-                    PackageName = $CurrentPackage.PackageName
-                    Online      = $true
+    if ($Package.Count -ge 1) {
+        foreach ($Item in $Package) {
+            Get-WindowsPackage -Online | Where-Object { $_.PackageName -match $Item } | `
+                ForEach-Object {
+                try {
+                    if ($PSCmdlet.ShouldProcess($_.PackageName, "Remove-WindowsPackage")) {
+                        $params = @{
+                            PackageName = $_.PackageName
+                            Online      = $true
+                        }
+                        Remove-WindowsPackage @params | Out-Null
+                        Write-LogFile -Message "Remove package: $($_.PackageName)"
+                    }
                 }
-                Remove-WindowsPackage @params | Out-Null
-                return "Remove package: $($CurrentPackage.PackageName)"
+                catch {
+                    Write-LogFile -Message $_.Exception.Message -LogLevel 3
+                }
             }
         }
     }
@@ -789,7 +834,17 @@ function Restart-NamedService {
     [CmdletBinding(SupportsShouldProcess = $true)]
     param ($Service)
 
-    Invoke-ServiceAction -Service $Service -Action "Restart"
+    foreach ($Item in $Service) {
+        try {
+            if ($PSCmdlet.ShouldProcess($Item, "Restart-Service")) {
+                Get-Service -Name $Item | Restart-Service -Force
+                Write-LogFile -Message "Restart service: $Item"
+            }
+        }
+        catch {
+            Write-LogFile -Message $_.Exception.Message -LogLevel 3
+        }
+    }
 }
 
 function Start-NamedService {
@@ -797,7 +852,17 @@ function Start-NamedService {
     [CmdletBinding(SupportsShouldProcess = $true)]
     param ($Service)
 
-    Invoke-ServiceAction -Service $Service -Action "Start"
+    foreach ($Item in $Service) {
+        try {
+            if ($PSCmdlet.ShouldProcess($Item, "Start-Service")) {
+                Get-Service -Name $Item | Start-Service
+                Write-LogFile -Message "Start service: $Item"
+            }
+        }
+        catch {
+            Write-LogFile -Message $_.Exception.Message -LogLevel 3
+        }
+    }
 }
 
 function Stop-NamedService {
@@ -805,31 +870,15 @@ function Stop-NamedService {
     [CmdletBinding(SupportsShouldProcess = $true)]
     param ($Service)
 
-    Invoke-ServiceAction -Service $Service -Action "Stop"
-}
-
-function Invoke-ServiceAction {
-    [CmdletBinding(SupportsShouldProcess = $true)]
-    param (
-        [Parameter(Mandatory = $true)]
-        [System.String[]] $Service,
-
-        [Parameter(Mandatory = $true)]
-        [ValidateSet("Start", "Stop", "Restart")]
-        [System.String] $Action
-    )
-
-    foreach ($Item in @($Service)) {
-        Invoke-LoggedAction -InputObject $Item -Target $Item -ActionName "$Action-Service" -Action {
-            param ($ServiceName)
-
-            switch ($Action) {
-                "Start" { Get-Service -Name $ServiceName | Start-Service }
-                "Stop" { Get-Service -Name $ServiceName | Stop-Service -Force }
-                "Restart" { Get-Service -Name $ServiceName | Restart-Service -Force }
+    foreach ($Item in $Service) {
+        try {
+            if ($PSCmdlet.ShouldProcess($Item, "Stop-Service")) {
+                Get-Service -Name $Item | Stop-Service -Force
+                Write-LogFile -Message "Stop service: $Item"
             }
-
-            return "$Action service: $ServiceName"
+        }
+        catch {
+            Write-LogFile -Message $_.Exception.Message -LogLevel 3
         }
     }
 }
@@ -1182,7 +1231,7 @@ function Set-Shortcut {
             # }
         }
         catch {
-            Write-LogFile -Message "Failed to modify shortcut '$Path': $($_.Exception.Message)" -LogLevel 3
+            Write-LogFile -Message "Failed to modify shortcut '$Path': $($_.Exception.Message)" -Level 3
         }
         finally {
             # Release COM object
@@ -1203,12 +1252,12 @@ function Set-Shortcut {
 }
 
 Export-ModuleMember -Function 'Get-Symbol',
-'Write-Message',
 'Get-Platform',
 'Get-Model',
 'Get-OSName',
+'Get-SettingsContent',
 'Write-LogFile',
-'Set-RegistryOwner',
+'Set-RegistryKeyOwner',
 'Set-Registry',
 'Remove-RegistryPath',
 'Set-DefaultUserProfile',
