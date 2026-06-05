@@ -6,10 +6,17 @@ using namespace System.Management.Automation
 param ()
 
 $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
-$InformationPreference = [System.Management.Automation.ActionPreference]::Continue
+$InformationPreference = [System.Management.Automation.ActionPreference]::continue
 $ProgressPreference = [System.Management.Automation.ActionPreference]::SilentlyContinue
 $WarningPreference = [System.Management.Automation.ActionPreference]::SilentlyContinue
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+
+function IsAdministrator {
+    # Check if the current user has administrative privileges
+    $CurrentUser = [Security.Principal.WindowsIdentity]::GetCurrent()
+    $Principal = New-Object Security.Principal.WindowsPrincipal($CurrentUser)
+    return $Principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+}
 
 function Get-Symbol {
     [CmdletBinding()]
@@ -208,13 +215,10 @@ function Write-LogFile {
             $Line = '<![LOG[{0}]LOG]!><time="{1}" date="{2}" component="{3}" context="{4}" type="{5}" thread="{6}" file="">' -f $LineFormat
 
             # Add content to the log file and output to the console
-            Add-Content -Value $Line -Path $LogFile
+            if (IsAdministrator) {
+                Add-Content -Value $Line -Path $LogFile
+            }
             Write-Message -Message $Msg -LogLevel $LogLevel
-
-            # Write-Warning for log level 2 or 3
-            # if ($LogLevel -eq 3 -or $LogLevel -eq 2) {
-            #     Write-Warning -Message "[$TimeGenerated] $Msg"
-            # }
         }
     }
 }
@@ -1067,14 +1071,14 @@ function Set-Shortcut {
     param (
         [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateScript({
-            if (-not (Test-Path -Path $_ -PathType Leaf)) {
-                throw "Shortcut file does not exist: $_"
-            }
-            if ($_ -notmatch '\.lnk$') {
-                throw "File must be a .lnk shortcut file: $_"
-            }
-            return $true
-        })]
+                if (-not (Test-Path -Path $_ -PathType Leaf)) {
+                    throw "Shortcut file does not exist: $_"
+                }
+                if ($_ -notmatch '\.lnk$') {
+                    throw "File must be a .lnk shortcut file: $_"
+                }
+                return $true
+            })]
         [System.String] $Path,
 
         [Parameter(Mandatory = $false)]
@@ -1236,30 +1240,30 @@ function Set-Shortcut {
 }
 
 Export-ModuleMember -Function 'Get-Symbol',
-    'Get-Platform',
-    'Get-Model',
-    'Get-OSName',
-    'Get-SettingsContent',
-    'Write-LogFile',
-    'Set-RegistryKeyOwner',
-    'Set-Registry',
-    'Remove-RegistryPath',
-    'Set-DefaultUserProfile',
-    'Copy-File',
-    'New-Directory',
-    'Remove-Path',
-    'Add-Capability',
-    'Add-Feature',
-    'Remove-Feature',
-    'Remove-Capability',
-    'Remove-Package',
-    'Get-CurrentUserSid',
-    'Restart-NamedService',
-    'Start-NamedService',
-    'Stop-NamedService',
-    'Install-SystemLanguage',
-    'Set-SystemLocale',
-    'Set-TimeZoneUsingName',
-    'Test-IsOobeComplete',
-    'Copy-RegExe',
-    'Set-Shortcut'
+'Get-Platform',
+'Get-Model',
+'Get-OSName',
+'Get-SettingsContent',
+'Write-LogFile',
+'Set-RegistryKeyOwner',
+'Set-Registry',
+'Remove-RegistryPath',
+'Set-DefaultUserProfile',
+'Copy-File',
+'New-Directory',
+'Remove-Path',
+'Add-Capability',
+'Add-Feature',
+'Remove-Feature',
+'Remove-Capability',
+'Remove-Package',
+'Get-CurrentUserSid',
+'Restart-NamedService',
+'Start-NamedService',
+'Stop-NamedService',
+'Install-SystemLanguage',
+'Set-SystemLocale',
+'Set-TimeZoneUsingName',
+'Test-IsOobeComplete',
+'Copy-RegExe',
+'Set-Shortcut'
