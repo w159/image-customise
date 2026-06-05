@@ -15,113 +15,133 @@
         ]
     },
     "MachineRegistry": {
+        "ChangeOwner": [],
         "Set": [
             {
                 "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer",
                 "name": "DisableEdgeDesktopShortcutCreation",
                 "value": 1,
                 "type": "DWord",
-                "note": "Prevents the Microsoft Edge short added to the public desktop"
+                "note": "Prevents the Microsoft Edge short added to the public desktop",
+                "protected": false
             },
             {
                 "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\EdgeUpdate",
                 "name": "CreateDesktopShortcutDefault",
                 "value": "0",
                 "type": "Dword",
-                "note": "Prevent the Microsoft Edge shortcut from being added to the desktop"
+                "note": "Prevent the Microsoft Edge shortcut from being added to the desktop",
+                "protected": false
             },
             {
                 "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\EdgeUpdate",
                 "name": "RemoveDesktopShortcutDefault",
                 "value": "1",
                 "type": "Dword",
-                "note": "Prevent the Microsoft Edge shortcut from being added to the desktop"
+                "note": "Prevent the Microsoft Edge shortcut from being added to the desktop",
+                "protected": false
             },
             {
                 "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
                 "name": "SearchbarAllowed",
                 "value": "0",
                 "type": "Dword",
-                "note": "Prevent the Microsoft Edge search bar from being added to the desktop"
+                "note": "Prevent the Microsoft Edge search bar from being added to the desktop",
+                "protected": false
             },
             {
                 "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\FontSubstitutes",
                 "name": "MS Shell Dlg",
                 "value": "Tahoma",
                 "type": "String",
-                "note": "Replaces the `MS Shell Dlg` font with `Tahoma` for UI consistency"
+                "note": "Replaces the `MS Shell Dlg` font with `Tahoma` for UI consistency",
+                "protected": false
             },
             {
                 "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\FontSubstitutes",
                 "name": "MS Shell Dlg 2",
                 "value": "Tahoma",
                 "type": "String",
-                "note": "Replaces the `MS Shell Dlg 2` font with `Tahoma` for UI consistency"
+                "note": "Replaces the `MS Shell Dlg 2` font with `Tahoma` for UI consistency",
+                "protected": false
             },
             {
                 "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\location",
                 "name": "Value",
                 "value": "Allow",
                 "type": "String",
-                "note": "Enables location services"
+                "note": "Enables location services",
+                "protected": false
             },
             {
                 "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\tzautoupdate",
                 "name": "Start",
                 "value": 3,
                 "type": "DWord",
-                "note": "Enable Set time zone automatically"
+                "note": "Enable Set time zone automatically",
+                "protected": false
             },
             {
                 "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer",
                 "name": "DisableEdgeDesktopShortcutCreation",
                 "value": 1,
                 "type": "DWord",
-                "note": "Prevents the Microsoft Edge short added to the public desktop"
+                "note": "Prevents the Microsoft Edge short added to the public desktop",
+                "protected": false
             },
             {
                 "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\EdgeUpdate",
                 "name": "CreateDesktopShortcutDefault",
                 "value": "0",
                 "type": "Dword",
-                "note": "Prevent the Microsoft Edge shortcut from being added to the desktop"
+                "note": "Prevent the Microsoft Edge shortcut from being added to the desktop",
+                "protected": false
             },
             {
                 "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\EdgeUpdate",
                 "name": "RemoveDesktopShortcutDefault",
                 "value": "1",
                 "type": "Dword",
-                "note": "Prevent the Microsoft Edge shortcut from being added to the desktop"
+                "note": "Prevent the Microsoft Edge shortcut from being added to the desktop",
+                "protected": false
             },
             {
                 "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge",
                 "name": "SearchbarAllowed",
                 "value": "0",
                 "type": "Dword",
-                "note": "Prevent the Microsoft Edge search bar from being added to the desktop"
+                "note": "Prevent the Microsoft Edge search bar from being added to the desktop",
+                "protected": false
             },
             {
                 "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\FontSubstitutes",
                 "name": "MS Shell Dlg",
                 "value": "Tahoma",
                 "type": "String",
-                "note": "Replaces the `MS Shell Dlg` font with `Tahoma` for UI consistency"
+                "note": "Replaces the `MS Shell Dlg` font with `Tahoma` for UI consistency",
+                "protected": false
             },
             {
                 "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\FontSubstitutes",
                 "name": "MS Shell Dlg 2",
                 "value": "Tahoma",
                 "type": "String",
-                "note": "Replaces the `MS Shell Dlg 2` font with `Tahoma` for UI consistency"
+                "note": "Replaces the `MS Shell Dlg 2` font with `Tahoma` for UI consistency",
+                "protected": false
             },
             {
                 "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\location",
                 "name": "Value",
                 "value": "Allow",
                 "type": "String",
-                "note": "Enables location services"
+                "note": "Enables location services",
+                "protected": false
             }
-        ]
+        ],
+        "Remove": []
+    },
+    "UserRegistry": {
+        "Set": []
     },
     "Paths": {
         "Remove": [
@@ -179,5 +199,8 @@
         "Start": [
             "tzautoupdate"
         ]
+    },
+    "Files": {
+        "Copy": []
     }
 }

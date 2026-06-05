@@ -32,15 +32,44 @@
                 "name": "ConfigureChatAutoInstall",
                 "value": 0,
                 "type": "DWord",
-                "note": "Prevents the install of the consumer Microsoft Teams client"
+                "note": "Prevents the install of the consumer Microsoft Teams client",
+                "protected": false
             },
             {
                 "path": "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
                 "name": "ShowCopilotButton",
                 "value": 0,
                 "type": "DWord",
-                "note": "Removes the Copilot button from the taskbar"
+                "note": "Removes the Copilot button from the taskbar",
+                "protected": false
             }
         ]
+    },
+    "UserRegistry": {
+        "Set": []
+    },
+    "Paths": {
+        "Remove": []
+    },
+    "Features": {
+        "Disable": []
+    },
+    "Capabilities": {
+        "Remove": [],
+        "Others": []
+    },
+    "Packages": {
+        "Remove": []
+    },
+    "Shortcuts": {
+        "Edit": []
+    },
+    "Services": {
+        "Restart": [],
+        "Stop": [],
+        "Start": []
+    },
+    "Files": {
+        "Copy": []
     }
 }

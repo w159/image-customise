@@ -12,11 +12,38 @@
             "virtual"
         ]
     },
+    "MachineRegistry": {
+        "ChangeOwner": [],
+        "Set": [],
+        "Remove": []
+    },
+    "UserRegistry": {
+        "Set": []
+    },
+    "Paths": {
+        "Remove": []
+    },
+    "Features": {
+        "Disable": []
+    },
+    "Capabilities": {
+        "Remove": [],
+        "Others": []
+    },
+    "Packages": {
+        "Remove": []
+    },
+    "Shortcuts": {
+        "Edit": []
+    },
     "Services": {
         "Feature": "RDS-RD-Server",
         "Enable": [
             "Audiosrv",
             "WSearch"
         ]
+    },
+    "Files": {
+        "Copy": []
     }
 }

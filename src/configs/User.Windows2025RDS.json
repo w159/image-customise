@@ -11,6 +11,11 @@
             "virtual"
         ]
     },
+    "MachineRegistry": {
+        "ChangeOwner": [],
+        "Set": [],
+        "Remove": []
+    },
     "UserRegistry": {
         "Set": [
             {
@@ -18,23 +23,47 @@
                 "name": "DoNotOpenServerManagerAtLogon",
                 "value": 1,
                 "type": "DWord",
-                "note": "Prevents Server Manager from starting at login"
+                "note": "Prevents Server Manager from starting at login",
+                "protected": false
             },
             {
                 "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Start",
                 "name": "VisiblePlaces",
                 "value": "188 36 138 20 12 214 137 66 160 128 110 217 187 162 72 130 134 8 115 82 170 81 67 66 159 123 39 118 88 70 89 212",
                 "type": "Binary",
-                "note": "Adds 'Settings' and 'File Explorer' next to the power button on the Start menu."
+                "note": "Adds 'Settings' and 'File Explorer' next to the power button on the Start menu.",
+                "protected": false
             },
             {
                 "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Start",
                 "name": "PlacesInitializedVersion",
                 "value": "2",
                 "type": "Dword",
-                "note": "Required to support the setting selected for VisiblePlaces."
+                "note": "Required to support the setting selected for VisiblePlaces.",
+                "protected": false
             }
         ]
+    },
+    "Paths": {
+        "Remove": []
+    },
+    "Features": {
+        "Disable": []
+    },
+    "Capabilities": {
+        "Remove": [],
+        "Others": []
+    },
+    "Packages": {
+        "Remove": []
+    },
+    "Shortcuts": {
+        "Edit": []
+    },
+    "Services": {
+        "Restart": [],
+        "Stop": [],
+        "Start": []
     },
     "Files": {
         "Copy": [

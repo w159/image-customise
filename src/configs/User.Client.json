@@ -11,6 +11,11 @@
             "virtual"
         ]
     },
+    "MachineRegistry": {
+        "ChangeOwner": [],
+        "Set": [],
+        "Remove": []
+    },
     "UserRegistry": {
         "Set": [
             {
@@ -18,28 +23,32 @@
                 "name": "BackgroundType",
                 "value": 0,
                 "type": "DWord",
-                "note": "Sets the desktop background type to a picture"
+                "note": "Sets the desktop background type to a picture",
+                "protected": false
             },
             {
                 "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\DesktopSpotlight\\Settings",
                 "name": "EnabledState",
                 "value": 0,
                 "type": "DWord",
-                "note": "Disables Windows spotlight"
+                "note": "Disables Windows spotlight",
+                "protected": false
             },
             {
                 "path": "HKCU:\\Console\\%%Startup",
                 "name": "DelegationConsole",
                 "value": "{2EACA947-7F5F-4CFA-BA87-8F7FBEEFBE69}",
                 "type": "String",
-                "note": "Sets Windows Terminal as the default terminal"
+                "note": "Sets Windows Terminal as the default terminal",
+                "protected": false
             },
             {
                 "path": "HKCU:\\Console\\%%Startup",
                 "name": "DelegationTerminal",
                 "value": "{E12CFF52-A866-4C77-9A90-F570A7AA2C6B}",
                 "type": "String",
-                "note": "Sets Windows Terminal as the default terminal"
+                "note": "Sets Windows Terminal as the default terminal",
+                "protected": false
             }
         ],
         "Others": [
@@ -48,8 +57,33 @@
                 "name": "CurrentTheme",
                 "value": "C:\\WINDOWS\\resources\\themes\\themeC.theme",
                 "type": "String",
-                "note": "Sets set default Windows theme to change the default colours and wallpaper"
+                "note": "Sets set default Windows theme to change the default colours and wallpaper",
+                "protected": false
             }
         ]
+    },
+    "Paths": {
+        "Remove": []
+    },
+    "Features": {
+        "Disable": []
+    },
+    "Capabilities": {
+        "Remove": [],
+        "Others": []
+    },
+    "Packages": {
+        "Remove": []
+    },
+    "Shortcuts": {
+        "Edit": []
+    },
+    "Services": {
+        "Restart": [],
+        "Stop": [],
+        "Start": []
+    },
+    "Files": {
+        "Copy": []
     }
 }

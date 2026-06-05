@@ -11,6 +11,11 @@
             "virtual"
         ]
     },
+    "MachineRegistry": {
+        "ChangeOwner": [],
+        "Set": [],
+        "Remove": []
+    },
     "UserRegistry": {
         "Set": [
             {
@@ -18,37 +23,63 @@
                 "name": "AccentColor",
                 "value": 4289992518,
                 "type": "DWord",
-                "note": "Sets the accent colour on window title bars and borders"
+                "note": "Sets the accent colour on window title bars and borders",
+                "protected": false
             },
             {
                 "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Accent",
                 "name": "AccentPalette",
                 "value": "86CAFF005FB2F2001E91EA000063B10000427500002D4F000020380000CC6A00",
                 "Type": "String",
-                "note": "Sets the accent colour on window title bars and borders"
+                "note": "Sets the accent colour on window title bars and borders",
+                "protected": false
             },
             {
                 "path": "HKCU:\\Software\\Microsoft\\Windows\\DWM",
                 "name": "AccentColor",
                 "value": 4289815296,
                 "type": "DWord",
-                "note": "Sets the accent colour on window title bars and borders"
+                "note": "Sets the accent colour on window title bars and borders",
+                "protected": false
             },
             {
                 "path": "HKCU:\\Software\\Microsoft\\Windows\\DWM",
                 "name": "ColorizationAfterglow",
                 "value": 3288359857,
                 "type": "DWord",
-                "note": "Sets the accent colour on window title bars and borders"
+                "note": "Sets the accent colour on window title bars and borders",
+                "protected": false
             },
             {
                 "path": "HKCU:\\Software\\Microsoft\\Windows\\DWM",
                 "name": "ColorizationColor",
                 "value": 3288359857,
                 "type": "DWord",
-                "note": "Sets the accent colour on window title bars and borders"
+                "note": "Sets the accent colour on window title bars and borders",
+                "protected": false
             }
         ]
+    },
+    "Paths": {
+        "Remove": []
+    },
+    "Features": {
+        "Disable": []
+    },
+    "Capabilities": {
+        "Remove": [],
+        "Others": []
+    },
+    "Packages": {
+        "Remove": []
+    },
+    "Shortcuts": {
+        "Edit": []
+    },
+    "Services": {
+        "Restart": [],
+        "Stop": [],
+        "Start": []
     },
     "Files": {
         "Copy": [
