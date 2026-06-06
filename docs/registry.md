@@ -3,38 +3,6 @@ layout: doc
 ---
 # Registry Settings
 
-## _Configuration.Template.json
-
-**Configuration settings template file.**
-
-| Minimum build | Maximum build |
-| ------------- | ------------- |
-| 10.0.14393.0 | 10.0.99999.0 |
-
-|  |
-||
-
-## _Configuration.Template.json
-
-**Configuration settings template file.**
-
-| Minimum build | Maximum build |
-| ------------- | ------------- |
-| 10.0.14393.0 | 10.0.99999.0 |
-
-|  |
-||
-
-
-**Configuration settings template file.**
-
-| Minimum build | Maximum build |
-| ------------- | ------------- |
-| 10.0.14393.0 | 10.0.99999.0 |
-
-|  |
-||
-
 ## Machine.All.json
 
 **Computer level settings for all Windows 10 and above.**
@@ -61,27 +29,6 @@ layout: doc
 | HKLM: \SOFTWARE \Microsoft \Windows NT \CurrentVersion \FontSubstitutes | MS Shell Dlg 2 | Tahoma | Replaces the `MS Shell Dlg 2` font with `Tahoma` for UI consistency |
 | HKLM: \SOFTWARE \Microsoft \Windows \CurrentVersion \CapabilityAccessManager \ConsentStore \location | Value | Allow | Enables location services |
 
-## Machine.All.json
-
-**Computer level settings for all Windows 10 and above.**
-
-| Minimum build | Maximum build |
-| ------------- | ------------- |
-| 10.0.14393.0 | 10.0.99999.0 |
-
-|  |
-||
-
-
-**Computer level settings for all Windows 10 and above.**
-
-| Minimum build | Maximum build |
-| ------------- | ------------- |
-| 10.0.14393.0 | 10.0.99999.0 |
-
-|  |
-||
-
 ## Machine.Client.json
 
 **Computer level settings for Windows client editions.**
@@ -95,17 +42,6 @@ layout: doc
 | HKLM: \Software \Microsoft \Windows \CurrentVersion \Explorer | DisableEdgeDesktopShortcutCreation | 1 | Prevents the Microsoft Edge short added to the public desktop |
 | HKLM: \Software \Policies \Microsoft \Windows \CloudContent | DisableWindowsConsumerFeatures | 1 | Disables the Microsoft Windows consumer features |
 | HKLM: \Software \Policies \Microsoft \Windows \CloudContent | DisableCloudOptimizedContent | 1 | Disables the customisation of the taskbar with additional shortcuts (e.g. new Outlook) |
-
-## Machine.Client.json
-
-**Computer level settings for Windows client editions.**
-
-| Minimum build | Maximum build |
-| ------------- | ------------- |
-| 10.0.14393.0 | 10.0.99999.0 |
-
-|  |
-||
 
 
 **Computer level settings for Windows client editions.**
@@ -124,38 +60,6 @@ layout: doc
 | HKLM: \SOFTWARE \Microsoft \WindowsUpdate \Orchestrator \UScheduler_Oobe \OutlookUpdate | Removes the Outlook (new) app from the Windows Update Orchestrator to prevent automatic install on Windows 11 |
 | HKLM: \SOFTWARE \Microsoft \Windows \CurrentVersion \WindowsUpdate \Orchestrator \UScheduler \MS_Outlook | Removes the Outlook (new) app from the Windows Update Orchestrator to prevent automatic install on Windows 10 |
 
-## Machine.RDS.json
-
-**Computer level settings for Windows Server editions with the Remote Desktop Services role.**
-
-| Minimum build | Maximum build |
-| ------------- | ------------- |
-| 10.0.14393.0 | 10.0.99999.0 |
-
-|  |
-||
-
-## Machine.RDS.json
-
-**Computer level settings for Windows Server editions with the Remote Desktop Services role.**
-
-| Minimum build | Maximum build |
-| ------------- | ------------- |
-| 10.0.14393.0 | 10.0.99999.0 |
-
-|  |
-||
-
-
-**Computer level settings for Windows Server editions with the Remote Desktop Services role.**
-
-| Minimum build | Maximum build |
-| ------------- | ------------- |
-| 10.0.14393.0 | 10.0.99999.0 |
-
-|  |
-||
-
 ## Machine.TeamsCopilot.json
 
 **Computer level settings for Windows 11 21H2 to 23H2. Removes Microsoft Teams Chat and the Copilot button on the taskbar.**
@@ -168,28 +72,6 @@ layout: doc
 | ---- | ---- | ----- | ---- |
 | HKLM: \Software \Microsoft \Windows \CurrentVersion \Communications | ConfigureChatAutoInstall | 0 | Prevents the install of the consumer Microsoft Teams client |
 | HKLM: \Software \Microsoft \Windows \CurrentVersion \Explorer \Advanced | ShowCopilotButton | 0 | Removes the Copilot button from the taskbar |
-
-## Machine.TeamsCopilot.json
-
-**Computer level settings for Windows 11 21H2 to 23H2. Removes Microsoft Teams Chat and the Copilot button on the taskbar.**
-
-| Minimum build | Maximum build |
-| ------------- | ------------- |
-| 10.0.22000.0 | 10.0.22631.0 |
-
-|  |
-||
-
-## User.All.json
-
-**Default user profile settings for all Windows editions**
-
-| Minimum build | Maximum build |
-| ------------- | ------------- |
-| 10.0.14393.0 | 10.0.99999.0 |
-
-|  |
-||
 
 ## User.All.json
 
@@ -224,27 +106,6 @@ layout: doc
 | HKCU: \Software \Adobe \Adobe Acrobat \DC \AVAlert \cCheckbox | iAppDoNotTakePDFOwnershipAtLaunchWin10 | 1 | Prevents the default file type dialog box at Adobe Acrobat Pro/Standard DC first launch |
 | HKCU: \Software \Microsoft \Windows \DWM | ColorPrevalence | 1 | Enables 'Show accent colour on title bars and window borders' |
 
-
-**Default user profile settings for all Windows editions**
-
-| Minimum build | Maximum build |
-| ------------- | ------------- |
-| 10.0.14393.0 | 10.0.99999.0 |
-
-|  |
-||
-
-## User.Client.json
-
-**Default user profile settings for all Windows client editions**
-
-| Minimum build | Maximum build |
-| ------------- | ------------- |
-| 10.0.14393.0 | 10.0.99999.0 |
-
-|  |
-||
-
 ## User.Client.json
 
 **Default user profile settings for all Windows client editions**
@@ -259,27 +120,6 @@ layout: doc
 | HKCU: \Software \Microsoft \Windows \CurrentVersion \DesktopSpotlight \Settings | EnabledState | 0 | Disables Windows spotlight |
 | HKCU: \Console \%%Startup | DelegationConsole | {2EACA947-7F5F-4CFA-BA87-8F7FBEEFBE69} | Sets Windows Terminal as the default terminal |
 | HKCU: \Console \%%Startup | DelegationTerminal | {E12CFF52-A866-4C77-9A90-F570A7AA2C6B} | Sets Windows Terminal as the default terminal |
-
-
-**Default user profile settings for all Windows client editions**
-
-| Minimum build | Maximum build |
-| ------------- | ------------- |
-| 10.0.14393.0 | 10.0.99999.0 |
-
-|  |
-||
-
-## User.Virtual.json
-
-**Default user profile settings for all Windows editions on virtual machines.**
-
-| Minimum build | Maximum build |
-| ------------- | ------------- |
-| 10.0.14393.0 | 10.0.99999.0 |
-
-|  |
-||
 
 ## User.Virtual.json
 
@@ -309,27 +149,6 @@ layout: doc
 | HKCU: \Software \Microsoft \Windows \CurrentVersion \BackgroundAccessApplications \Microsoft.YourPhone_8wekyb3d8bbwe | Disabled | 1 | Prevents the Your Phone app from running in the background |
 | HKCU: \Software \Microsoft \Windows \CurrentVersion \BackgroundAccessApplications \Microsoft.YourPhone_8wekyb3d8bbwe | DisabledByUser | 1 | Prevents the Your Phone app from running in the background |
 
-
-**Default user profile settings for all Windows editions on virtual machines.**
-
-| Minimum build | Maximum build |
-| ------------- | ------------- |
-| 10.0.14393.0 | 10.0.99999.0 |
-
-|  |
-||
-
-## User.Windows10.json
-
-**Default user profile settings for Windows 10.**
-
-| Minimum build | Maximum build |
-| ------------- | ------------- |
-| 10.0.14393.0 | 10.0.20999.0 |
-
-|  |
-||
-
 ## User.Windows10.json
 
 **Default user profile settings for Windows 10.**
@@ -345,27 +164,6 @@ layout: doc
 | HKCU: \Software \Microsoft \Windows \DWM | AccentColor | 4289815296 | Sets the accent colour on window title bars and borders |
 | HKCU: \Software \Microsoft \Windows \DWM | ColorizationAfterglow | 3288359857 | Sets the accent colour on window title bars and borders |
 | HKCU: \Software \Microsoft \Windows \DWM | ColorizationColor | 3288359857 | Sets the accent colour on window title bars and borders |
-
-
-**Default user profile settings for Windows 10.**
-
-| Minimum build | Maximum build |
-| ------------- | ------------- |
-| 10.0.14393.0 | 10.0.20999.0 |
-
-|  |
-||
-
-## User.Windows11.json
-
-**Default user profile settings for Windows 11.**
-
-| Minimum build | Maximum build |
-| ------------- | ------------- |
-| 10.0.22000.0 | 10.0.29999.0 |
-
-|  |
-||
 
 ## User.Windows11.json
 
@@ -395,27 +193,6 @@ layout: doc
 | HKCU: \Software \Microsoft \Windows \CurrentVersion \ContentDeliveryManager | SubscribedContent-338387Enabled | 0 | Disables Windows Spotlight subscribed content on the Lock Screen |
 | HKCU: \Software \Microsoft \Windows \CurrentVersion \ContentDeliveryManager | SubscribedContent-338387Enabled | 0 | Disables Windows Spotlight subscribed content on the Lock Screen |
 
-
-**Default user profile settings for Windows 11.**
-
-| Minimum build | Maximum build |
-| ------------- | ------------- |
-| 10.0.22000.0 | 10.0.29999.0 |
-
-|  |
-||
-
-## User.Windows2022RDS.json
-
-**Default user profile settings for all Windows Server 2022 and below editions.**
-
-| Minimum build | Maximum build |
-| ------------- | ------------- |
-| 10.0.14393.0 | 10.0.20348.0 |
-
-|  |
-||
-
 ## User.Windows2022RDS.json
 
 **Default user profile settings for all Windows Server 2022 and below editions.**
@@ -430,27 +207,6 @@ layout: doc
 | HKCU: \Software \Microsoft \Windows \CurrentVersion \Themes \Personalize | EnableBlurBehind | 1 | Disable blur for the Start menu, Taskbar and windows |
 | HKCU: \Software \Microsoft \Windows \CurrentVersion \Search | SearchboxTaskbarMode | 0 | Hides the Search icon on the Taskbar |
 | HKCU: \Software \Microsoft \Windows \CurrentVersion \Explorer \Advanced | ShowTaskViewButton | 0 | Removes the Task View button on the Taskbar |
-
-
-**Default user profile settings for all Windows Server 2022 and below editions.**
-
-| Minimum build | Maximum build |
-| ------------- | ------------- |
-| 10.0.14393.0 | 10.0.20348.0 |
-
-|  |
-||
-
-## User.Windows2022Server.json
-
-**Default user profile settings for all Windows Server 2022 and below editions.**
-
-| Minimum build | Maximum build |
-| ------------- | ------------- |
-| 10.0.14393.0 | 10.0.20348.0 |
-
-|  |
-||
 
 ## User.Windows2022Server.json
 
@@ -467,27 +223,6 @@ layout: doc
 | HKCU: \Software \Microsoft \Windows \CurrentVersion \Search | SearchboxTaskbarMode | 0 | Hides the Search icon on the Taskbar |
 | HKCU: \Software \Microsoft \Windows \CurrentVersion \Explorer \Advanced | ShowTaskViewButton | 0 | Removes the Task View button on the Taskbar |
 
-
-**Default user profile settings for all Windows Server 2022 and below editions.**
-
-| Minimum build | Maximum build |
-| ------------- | ------------- |
-| 10.0.14393.0 | 10.0.20348.0 |
-
-|  |
-||
-
-## User.Windows2025RDS.json
-
-**Default user profile settings for Windows Server 2025 Remote Desktop Services Host and above.**
-
-| Minimum build | Maximum build |
-| ------------- | ------------- |
-| 10.0.26100.0 | 10.0.99999.0 |
-
-|  |
-||
-
 ## User.Windows2025RDS.json
 
 **Default user profile settings for Windows Server 2025 Remote Desktop Services Host and above.**
@@ -502,27 +237,6 @@ layout: doc
 | HKCU: \Software \Microsoft \Windows \CurrentVersion \Start | VisiblePlaces | 188 36 138 20 12 214 137 66 160 128 110 217 187 162 72 130 134 8 115 82 170 81 67 66 159 123 39 118 88 70 89 212 | Adds 'Settings' and 'File Explorer' next to the power button on the Start menu. |
 | HKCU: \Software \Microsoft \Windows \CurrentVersion \Start | PlacesInitializedVersion | 2 | Required to support the setting selected for VisiblePlaces. |
 
-
-**Default user profile settings for Windows Server 2025 Remote Desktop Services Host and above.**
-
-| Minimum build | Maximum build |
-| ------------- | ------------- |
-| 10.0.26100.0 | 10.0.99999.0 |
-
-|  |
-||
-
-## User.Windows2025Server.json
-
-**Default user profile settings for Windows Server 2025 and above.**
-
-| Minimum build | Maximum build |
-| ------------- | ------------- |
-| 10.0.26100.0 | 10.0.99999.0 |
-
-|  |
-||
-
 ## User.Windows2025Server.json
 
 **Default user profile settings for Windows Server 2025 and above.**
@@ -536,13 +250,3 @@ layout: doc
 | HKCU: \Software \Microsoft \ServerManager | DoNotOpenServerManagerAtLogon | 1 | Prevents Server Manager from starting at login |
 | HKCU: \Software \Microsoft \Windows \CurrentVersion \Start | VisiblePlaces | 188 36 138 20 12 214 137 66 160 128 110 217 187 162 72 130 134 8 115 82 170 81 67 66 159 123 39 118 88 70 89 212 | Adds 'Settings' and 'File Explorer' next to the power button on the Start menu. |
 | HKCU: \Software \Microsoft \Windows \CurrentVersion \Start | PlacesInitializedVersion | 2 | Required to support the setting selected for VisiblePlaces. |
-
-
-**Default user profile settings for Windows Server 2025 and above.**
-
-| Minimum build | Maximum build |
-| ------------- | ------------- |
-| 10.0.26100.0 | 10.0.99999.0 |
-
-|  |
-||
