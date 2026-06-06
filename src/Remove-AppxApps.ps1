@@ -98,7 +98,8 @@ param (
         "Microsoft.WinAppRuntime.DDLM*",
         "Microsoft.LanguageExperiencePack*",
         "Microsoft.Ink.Handwriting.Main*",
-        "Microsoft.Teams.SlimCoreVdi*"),
+        "Microsoft.Teams.SlimCoreVdi*",
+        "WindowsWorkload.Manager*"),
 
     # Use Targeted switch to remove a targeted list of packages. Useful for in-place feature updates
     [Parameter(Mandatory = $false, ParameterSetName = "Targeted")]
