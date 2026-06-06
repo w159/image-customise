@@ -322,7 +322,12 @@ function Set-RegistryOwner {
         ### Step 1 - escalate current process's privilege
         # get SeTakeOwnership, SeBackup and SeRestore privileges before executes next lines, script needs Admin privilege
         $Import = '[DllImport("ntdll.dll")] public static extern int RtlAdjustPrivilege(ulong a, bool b, bool c, ref bool d);'
-        $Ntdll = Add-Type -Member $import -Name "NtDll" -PassThru
+        if ($null -eq ("NtDll" -as [System.Type])) {
+            $Ntdll = Add-Type -MemberDefinition $Import -Name "NtDll" -PassThru
+        }
+        else {
+            $Ntdll = "NtDll" -as [System.Type]
+        }
         $Privileges = @{ SeTakeOwnership = 9; SeBackup = 17; SeRestore = 18 }
         foreach ($i in $Privileges.Values) {
             $null = $Ntdll::RtlAdjustPrivilege($i, 1, 0, [ref]0)
@@ -384,7 +389,9 @@ function Set-Registry {
     [CmdletBinding(SupportsShouldProcess = $true)]
     param ($Setting)
 
+    $RegExe = $null
     foreach ($Item in $Setting) {
+        $ItemResult = $null
         if (-not(Test-Path -Path $Item.path)) {
             if ($PSCmdlet.ShouldProcess($Item.path, "New-Item")) {
                 try {
@@ -400,7 +407,7 @@ function Set-Registry {
                     Write-LogFile -Message $_.Exception.Message -LogLevel 3
                 }
                 finally {
-                    if ("Handle" -in ($ItemResult | Get-Member | Select-Object -ExpandProperty "Name")) { $ItemResult.Handle.Close() }
+                    if (($null -ne $ItemResult) -and ("Handle" -in ($ItemResult | Get-Member | Select-Object -ExpandProperty "Name"))) { $ItemResult.Handle.Close() }
                 }
             }
         }
@@ -417,7 +424,9 @@ function Set-Registry {
 
                 if ($Item.protected -eq $true) {
                     #  Use reg1.exe to set protected registry values
-                    $RegExe = Copy-RegExe
+                    if ($null -eq $RegExe) {
+                        $RegExe = Copy-RegExe
+                    }
                     if ($RegExe) {
                         & $RegExe add ($Item.path -replace "\:", "") `
                             /v $Item.name `
@@ -427,7 +436,6 @@ function Set-Registry {
                             /reg:64 `
                             /z
                         Write-LogFile -Message "Set protected registry property: $($Item.path); $($Item.name), $($Item.value)"
-                        Remove-Item -Path $RegExe -Force
                     }
                 }
                 else {
@@ -447,6 +455,10 @@ function Set-Registry {
                 Write-LogFile -Message $_.Exception.Message -LogLevel 3
             }
         }
+    }
+
+    if (($null -ne $RegExe) -and (Test-Path -Path $RegExe)) {
+        Remove-Item -Path $RegExe -Force
     }
 }
 
@@ -483,11 +495,12 @@ function Set-DefaultUserProfile {
         # Variables
         $RegDefaultUser = "$env:SystemDrive\Users\Default\NTUSER.DAT"
         $DefaultUserPath = "HKLM:\MountDefaultUser"
+        $Result = $null
+        $RegPath = $DefaultUserPath -replace ":", ""
+        $RegExe = $null
 
         if ($PSCmdlet.ShouldProcess("reg load $RegPath $RegDefaultUser", "Start-Process")) {
             try {
-                $RegPath = $DefaultUserPath -replace ":", ""
-
                 # Load registry hive
                 $params = @{
                     FilePath     = "reg"
@@ -508,6 +521,7 @@ function Set-DefaultUserProfile {
         # Process Registry Commands
         foreach ($Item in $Setting) {
             $RegPath = $Item.path -replace "HKCU:", $DefaultUserPath
+            $ItemResult = $null
             if (-not(Test-Path -Path $RegPath)) {
                 if ($PSCmdlet.ShouldProcess($RegPath, "New-Item")) {
                     try {
@@ -524,7 +538,7 @@ function Set-DefaultUserProfile {
                     }
                     finally {
                         if ($null -ne $Result) {
-                            if ("Handle" -in ($ItemResult | Get-Member -ErrorAction "SilentlyContinue" | Select-Object -ExpandProperty "Name")) { $ItemResult.Handle.Close() }
+                            if (($null -ne $ItemResult) -and ("Handle" -in ($ItemResult | Get-Member -ErrorAction "SilentlyContinue" | Select-Object -ExpandProperty "Name"))) { $ItemResult.Handle.Close() }
                         }
                     }
                 }
@@ -542,7 +556,9 @@ function Set-DefaultUserProfile {
 
                     if ($Item.protected -eq $true) {
                         #  Use reg1.exe to set protected registry values
-                        $RegExe = Copy-RegExe
+                        if ($null -eq $RegExe) {
+                            $RegExe = Copy-RegExe
+                        }
                         if ($RegExe) {
                             & $RegExe add ($RegPath -replace "\:", "") `
                                 /v $Item.name `
@@ -552,7 +568,6 @@ function Set-DefaultUserProfile {
                                 /reg:64 `
                                 /z
                             Write-LogFile -Message "Set protected registry property: $($Item.path); $($Item.name), $($Item.value)"
-                            Remove-Item -Path $RegExe -Force
                         }
                     }
                     else {
@@ -578,6 +593,9 @@ function Set-DefaultUserProfile {
         Write-LogFile -Message $_.Exception.Message -LogLevel 3
     }
     finally {
+        if (($null -ne $RegExe) -and (Test-Path -Path $RegExe)) {
+            Remove-Item -Path $RegExe -Force
+        }
         if ($PSCmdlet.ShouldProcess("reg unload $($DefaultUserPath -replace ':', '')", "Start-Process")) {
             try {
                 # Unload Registry Hive
@@ -788,8 +806,9 @@ function Remove-Package {
     param ($Package)
 
     if ($Package.Count -ge 1) {
+        $WindowsPackages = Get-WindowsPackage -Online
         foreach ($Item in $Package) {
-            Get-WindowsPackage -Online | Where-Object { $_.PackageName -match $Item } | `
+            $WindowsPackages | Where-Object { $_.PackageName -match $Item } | `
                 ForEach-Object {
                 if ($PSCmdlet.ShouldProcess($_.PackageName, "Remove-WindowsPackage")) {
                     try {
@@ -981,7 +1000,9 @@ namespace Api {
 }
 "@
 
-    Add-Type -TypeDefinition $TypeDef -Language "CSharp"
+    if ($null -eq ([System.Type]::GetType("Api.Kernel32", $false))) {
+        Add-Type -TypeDefinition $TypeDef -Language "CSharp"
+    }
     $IsOOBEComplete = $false
     [Void][Api.Kernel32]::OOBEComplete([ref] $IsOOBEComplete)
     return [System.Boolean]$IsOOBEComplete
@@ -1120,6 +1141,7 @@ function Set-Shortcut {
     }
 
     process {
+        $Shortcut = $null
         try {
             # Resolve to full path
             $ShortcutPath = Resolve-Path -Path $Path -ErrorAction Stop | Select-Object -ExpandProperty Path
