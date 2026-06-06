@@ -29,15 +29,14 @@ foreach ($file in $Configs) {
         $Table = [PSCustomObject]@{
             "Minimum build" = $json.MinimumBuild
             "Maximum build" = $json.MaximumBuild
-            "Scope"         = "Machine"
+        }
+        if ($null -ne $json.MachineRegistry.Type) {
+            $Table | Add-Member -MemberType "NoteProperty" -Name "Type" -Value $json.MachineRegistry.Type
         }
         $Markdown += $Table | New-MDTable -Shrink
         $Markdown += "`n"
-        foreach ($entry in $json.MachineRegistry.Set) {
-            $Markdown += "**``$($entry.name)``** = ``$($entry.value)`` ($($entry.type))`n"
-            $Markdown += ": $($entry.note)`n"
-            $Markdown += ": Path: ``$($entry.path)```n`n"
-        }
+        $Markdown += $json.MachineRegistry.Set | Select-Object -Property  @{ Name = "path"; Expression = { $_.path -replace "\\", " \" } }, "name", "value", "note" | New-MDTable -Shrink
+        $Markdown += "`n"
     }
 
     if ($json.UserRegistry.Set.Count -gt 0) {
@@ -47,33 +46,30 @@ foreach ($file in $Configs) {
         $Table = [PSCustomObject]@{
             "Minimum build" = $json.MinimumBuild
             "Maximum build" = $json.MaximumBuild
-            "Scope"         = "User"
+        }
+        if ($null -ne $json.UserRegistry.Type) {
+            $Table | Add-Member -MemberType "NoteProperty" -Name "Type" -Value $json.UserRegistry.Type
         }
         $Markdown += $Table | New-MDTable -Shrink
         $Markdown += "`n"
-        foreach ($entry in $json.UserRegistry.Set) {
-            $Markdown += "**``$($entry.name)``** = ``$($entry.value)`` ($($entry.type))`n"
-            $Markdown += ": $($entry.note)`n"
-            $Markdown += ": Path: ``$($entry.path)```n`n"
-        }
+        $Markdown += $json.UserRegistry.Set | Select-Object -Property  @{ Name = "path"; Expression = { $_.path -replace "\\", " \" } }, "name", "value", "note" | New-MDTable -Shrink
+        $Markdown += "`n"
     }
 
     if ($json.MachineRegistry.Remove.Count -gt 0) {
-        $Markdown += New-MDHeader -Text $file.Name -Level 2
         $Markdown += "`n"
         $Markdown += "**$($json.Description)**`n`n"
         $Table = [PSCustomObject]@{
             "Minimum build" = $json.MinimumBuild
             "Maximum build" = $json.MaximumBuild
-            "Scope"         = "Machine (remove)"
+        }
+        if ($null -ne $json.MachineRegistry.Type) {
+            $Table | Add-Member -MemberType "NoteProperty" -Name "Type" -Value $json.MachineRegistry.Type
         }
         $Markdown += $Table | New-MDTable -Shrink
         $Markdown += "`n"
-        foreach ($entry in $json.MachineRegistry.Remove) {
-            $Markdown += "``$($entry.path)```n"
-            if ($entry.note) { $Markdown += ": $($entry.note)`n" }
-            $Markdown += "`n"
-        }
+        $Markdown += $json.MachineRegistry.Remove | Select-Object -Property  @{ Name = "path"; Expression = { $_.path -replace "\\", " \" } }, "note" | New-MDTable -Shrink
+        $Markdown += "`n"
     }
 }
 ($Markdown.TrimEnd("`n")) | Out-File -FilePath $OutFile -Force -Encoding "Utf8"
@@ -285,10 +281,10 @@ foreach ($file in $Configs) {
         }
         $Markdown += $Table | New-MDTable -Shrink
         $Markdown += "`n"
-        $Markdown += $json.StartMenu.Exists | New-MDTable -Shrink
-        $Markdown += $json.StartMenu.NotExists | New-MDTable -Shrink
-        $Markdown += $json.StartMenu.Windows10 | New-MDTable -Shrink
-        $Markdown += $json.StartMenu.Windows11 | New-MDTable -Shrink
+        if ($json.StartMenu.Exists.Count -gt 0) { $Markdown += $json.StartMenu.Exists | New-MDTable -Shrink }
+        if ($json.StartMenu.NotExists.Count -gt 0) { $Markdown += $json.StartMenu.NotExists | New-MDTable -Shrink }
+        if ($json.StartMenu.Windows10.Count -gt 0) { $Markdown += $json.StartMenu.Windows10 | New-MDTable -Shrink }
+        if ($json.StartMenu.Windows11.Count -gt 0) { $Markdown += $json.StartMenu.Windows11 | New-MDTable -Shrink }
         $Markdown += "`n"
     }
 }

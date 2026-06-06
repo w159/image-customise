@@ -82,8 +82,7 @@ export default defineConfig({
           { text: 'Paths', link: 'paths.md' },
           { text: 'Registry', link: 'registry.md' },
           { text: 'Services', link: 'services.md' },
-          { text: 'Shortcuts', link: 'shortcuts.md' },
-          { text: 'Start Menu', link: 'startmenu.md' }
+          { text: 'Shortcuts', link: 'shortcuts.md' }
         ]
       }
     ],
