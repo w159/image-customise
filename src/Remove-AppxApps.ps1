@@ -58,7 +58,11 @@ param (
         "Microsoft.Edge.GameAssist_8wekyb3d8bbwe", # Microsoft Edge browser component
         "Microsoft.OfficePushNotificationUtility_8wekyb3d8bbwe", # Microsoft 365 apps
         "Microsoft.Office.ActionsServer_8wekyb3d8bbwe", # Microsoft 365 apps
+        "Microsoft.MicrosoftOfficeHub_8wekyb3d8bbwe", # Microsoft 365 apps, provides access to recent documents and other content across Microsoft 365 apps
         "aimgr_8wekyb3d8bbwe", # Microsoft 365 apps, Artificial Intelligence Manager
+        "Microsoft.EpmShellExtension_8wekyb3d8bbwe", # M365 shell extension for File Explorer
+        "MSTeams_8wekyb3d8bbwe", # Microsoft Teams desktop client
+        "Microsoft.OutlookForWindows_8wekyb3d8bbwe", # Microsoft Outlook (new) desktop client
 
         # System applications
         "Microsoft.WindowsStore_8wekyb3d8bbwe",
@@ -93,6 +97,7 @@ param (
         "MicrosoftCorporationII.WinAppRuntime.Main*",
         "Microsoft.WinAppRuntime.DDLM*",
         "Microsoft.LanguageExperiencePack*",
+        "Microsoft.Ink.Handwriting.Main*",
         "Microsoft.Teams.SlimCoreVdi*"),
 
     # Use Targeted switch to remove a targeted list of packages. Useful for in-place feature updates
@@ -106,7 +111,6 @@ param (
         "Microsoft.BingWeather_8wekyb3d8bbwe",
         "Microsoft.Copilot_8wekyb3d8bbwe",
         "Microsoft.GetHelp_8wekyb3d8bbwe",
-        "Microsoft.OutlookForWindows_8wekyb3d8bbwe",
         "Microsoft.Todos_8wekyb3d8bbwe",
         "Microsoft.Windows.DevHome_8wekyb3d8bbwe",
         "Microsoft.WindowsCamera_8wekyb3d8bbwe",
@@ -115,7 +119,6 @@ param (
         "Microsoft.XboxGameOverlay_8wekyb3d8bbwe",
         "Microsoft.XboxIdentityProvider_8wekyb3d8bbwe",
         "Microsoft.XboxSpeechToTextOverlay_8wekyb3d8bbwe",
-        "MSTeams_8wekyb3d8bbwe",
         "Microsoft.ZuneVideo_8wekyb3d8bbwe")
 )
 
