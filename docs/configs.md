@@ -28,6 +28,16 @@ JSON files are gathered based on properties of the local Windows instance. The f
 
 Each JSON file includes a `MinimumBuild` property that can be used to ensure specific configurations only apply to a specific version of Windows or above. For example, the property might ensure that configurations only apply to Windows 10 version `10.0.19041` and above.
 
+## Configuration Viewer
+
+The repository includes a read-only WPF viewer script to inspect configuration files:
+
+```powershell
+.\src\Start-DefaultsViewer.ps1
+```
+
+The viewer reads JSON files from `src\configs`, shows all available profiles in a list, and renders each section with a user-friendly detail panel. Item-level descriptions are shown from `note` fields where available and from the configuration schema where possible.
+
 ## Other Configurations
 
 `Install-Defaults.ps1` performs additional tasks not defined in the JSON configuration files:

@@ -1,0 +1,50 @@
+{
+    "$schema": "https://raw.githubusercontent.com/aaronparker/defaults/refs/heads/main/schema/configuration.schema.json",
+    "Description": "Computer level settings for Windows Server editions with the Remote Desktop Services role.",
+    "MinimumBuild": "10.0.14393.0",
+    "MaximumBuild": "10.0.99999.0",
+    "Targets": {
+        "Platforms": [
+            "multisession",
+            "rds-server"
+        ],
+        "Models": [
+            "physical",
+            "virtual"
+        ]
+    },
+    "MachineRegistry": {
+        "ChangeOwner": [],
+        "Set": [],
+        "Remove": []
+    },
+    "UserRegistry": {
+        "Set": []
+    },
+    "Paths": {
+        "Remove": []
+    },
+    "Features": {
+        "Disable": []
+    },
+    "Capabilities": {
+        "Remove": [],
+        "Others": []
+    },
+    "Packages": {
+        "Remove": []
+    },
+    "Shortcuts": {
+        "Edit": []
+    },
+    "Services": {
+        "Feature": "RDS-RD-Server",
+        "Enable": [
+            "Audiosrv",
+            "WSearch"
+        ]
+    },
+    "Files": {
+        "Copy": []
+    }
+}

@@ -1,0 +1,85 @@
+{
+    "$schema": "https://raw.githubusercontent.com/aaronparker/defaults/refs/heads/main/schema/configuration.schema.json",
+    "Description": "Default user profile settings for all Windows Server 2022 and below editions.",
+    "MinimumBuild": "10.0.14393.0",
+    "MaximumBuild": "10.0.20348.0",
+    "Targets": {
+        "Platforms": [
+            "server"
+        ],
+        "Models": [
+            "physical",
+            "virtual"
+        ]
+    },
+    "MachineRegistry": {
+        "ChangeOwner": [],
+        "Set": [],
+        "Remove": []
+    },
+    "UserRegistry": {
+        "Set": [
+            {
+                "path": "HKCU:\\Software\\Microsoft\\ServerManager",
+                "name": "DoNotOpenServerManagerAtLogon",
+                "value": 1,
+                "type": "DWord",
+                "note": "Prevents Server Manager from starting at login",
+                "protected": false
+            },
+            {
+                "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+                "name": "EnableBlurBehind",
+                "value": 1,
+                "type": "DWord",
+                "note": "Disable blur for the Start menu, Taskbar and windows",
+                "protected": false
+            },
+            {
+                "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Search",
+                "name": "SearchboxTaskbarMode",
+                "value": 0,
+                "type": "DWord",
+                "note": "Hides the Search icon on the Taskbar",
+                "protected": false
+            },
+            {
+                "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+                "name": "ShowTaskViewButton",
+                "value": 0,
+                "type": "DWord",
+                "note": "Removes the Task View button on the Taskbar",
+                "protected": false
+            }
+        ]
+    },
+    "Paths": {
+        "Remove": []
+    },
+    "Features": {
+        "Disable": []
+    },
+    "Capabilities": {
+        "Remove": [],
+        "Others": []
+    },
+    "Packages": {
+        "Remove": []
+    },
+    "Shortcuts": {
+        "Edit": []
+    },
+    "Services": {
+        "Restart": [],
+        "Stop": [],
+        "Start": []
+    },
+    "Files": {
+        "Copy": [
+            {
+                "Source": "start\\WindowsServerStartMenuLayout.xml",
+                "Destination": "C:\\Users\\Default\\AppData\\Local\\Microsoft\\Windows\\Shell\\LayoutModification.xml"
+            }
+        ]
+    }
+}

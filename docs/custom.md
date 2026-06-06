@@ -17,7 +17,7 @@ Registry settings should be laid out in the following format:
 {
     "MinimumBuild": "10.0.14393",
     "Registry": {
-        "Type": "DefaultProfile",
+        "type": "DefaultProfile",
         "Set": [
             {
                 "path": "HKCU:\\Software\\Microsoft\\TabletTip\\1.7",
@@ -139,7 +139,7 @@ For Windows 10 or Windows 11, the Start menu layout to import, is specified with
 {
     "MinimumBuild": "10.0.14393",
     "StartMenu": {
-        "Type": "Client",
+        "type": "Client",
         "Feature": "",
         "Windows10": [
             {
@@ -168,7 +168,7 @@ For Windows 10 or Windows 11, the Start menu layout to import, is specified with
 ```json [User.Server.json]
 {
     "StartMenu": {
-        "Type": "Server",
+        "type": "Server",
         "Feature": "RDS-RD-Server",
         "Exists": [
             {

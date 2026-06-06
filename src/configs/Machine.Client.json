@@ -1,30 +1,43 @@
 {
+    "$schema": "https://raw.githubusercontent.com/aaronparker/defaults/refs/heads/main/schema/configuration.schema.json",
     "Description": "Computer level settings for Windows client editions.",
-    "MinimumBuild": "10.0.14393",
-    "MaximumBuild": "10.0.99999",
-    "Registry": {
-        "Type": "Direct",
+    "MinimumBuild": "10.0.14393.0",
+    "MaximumBuild": "10.0.99999.0",
+    "Targets": {
+        "Platforms": [
+            "client"
+        ],
+        "Models": [
+            "physical",
+            "virtual"
+        ]
+    },
+    "MachineRegistry": {
+        "ChangeOwner": [],
         "Set": [
             {
                 "path": "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer",
                 "name": "DisableEdgeDesktopShortcutCreation",
                 "value": 1,
                 "type": "DWord",
-                "note": "Prevents the Microsoft Edge short added to the public desktop"
+                "note": "Prevents the Microsoft Edge short added to the public desktop",
+                "protected": false
             },
             {
                 "path": "HKLM:\\Software\\Policies\\Microsoft\\Windows\\CloudContent",
                 "name": "DisableWindowsConsumerFeatures",
                 "value": 1,
                 "type": "DWord",
-                "note": "Disables the Microsoft Windows consumer features"
+                "note": "Disables the Microsoft Windows consumer features",
+                "protected": false
             },
             {
                 "path": "HKLM:\\Software\\Policies\\Microsoft\\Windows\\CloudContent",
                 "name": "DisableCloudOptimizedContent",
                 "value": 1,
                 "type": "DWord",
-                "note": "Disables the customisation of the taskbar with additional shortcuts (e.g. new Outlook)"
+                "note": "Disables the customisation of the taskbar with additional shortcuts (e.g. new Outlook)",
+                "protected": false
             }
         ],
         "Remove": [
@@ -57,6 +70,30 @@
                 "note": "Removes the Outlook (new) app from the Windows Update Orchestrator to prevent automatic install on Windows 10"
             }
         ]
+    },
+    "UserRegistry": {
+        "Set": []
+    },
+    "Paths": {
+        "Remove": []
+    },
+    "Features": {
+        "Disable": []
+    },
+    "Capabilities": {
+        "Remove": [],
+        "Others": []
+    },
+    "Packages": {
+        "Remove": []
+    },
+    "Shortcuts": {
+        "Edit": []
+    },
+    "Services": {
+        "Restart": [],
+        "Stop": [],
+        "Start": []
     },
     "Files": {
         "Copy": [

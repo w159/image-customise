@@ -46,11 +46,11 @@ param (
 
     [Parameter(Mandatory = $false)]
     [ValidateScript({
-        if ($_ -and -not $PSBoundParameters.ContainsKey('Language')) {
-            throw "The -Language parameter is required when -InstallLanguagePack is specified."
-        }
-        return $true
-    })]
+            if ($_ -and -not $PSBoundParameters.ContainsKey('Language')) {
+                throw "The -Language parameter is required when -InstallLanguagePack is specified."
+            }
+            return $true
+        })]
     [System.Management.Automation.SwitchParameter] $InstallLanguagePack, # Install the language pack for the specified language
 
     [Parameter(Mandatory = $false)]
@@ -112,195 +112,190 @@ if (!([System.Environment]::Is64BitProcess)) {
 #endregion
 
 #region Configure the environment
+Set-StrictMode -Version Latest
 $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
-$InformationPreference = [System.Management.Automation.ActionPreference]::Continue
+$InformationPreference = [System.Management.Automation.ActionPreference]::continue
 $ProgressPreference = [System.Management.Automation.ActionPreference]::SilentlyContinue
 $WarningPreference = [System.Management.Automation.ActionPreference]::SilentlyContinue
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
 
-# Get start time of the script
-$StartTime = Get-Date
+try {
+    # Get start time of the script
+    $StartTime = Get-Date
 
-# Splat WhatIf and Verbose preferences to pass to functions
-$prefs = @{
-    WhatIf  = $WhatIfPreference
-    Verbose = $VerbosePreference
-}
+    # Configure working path
+    if ($Path.Length -eq 0) { $WorkingPath = $PWD.Path } else { $WorkingPath = $Path }
+    Push-Location -Path $WorkingPath
 
-# Configure working path
-if ($Path.Length -eq 0) { $WorkingPath = $PWD.Path } else { $WorkingPath = $Path }
-Push-Location -Path $WorkingPath
-#endregion
+    # Import functions
+    $ModuleFile = $(Join-Path -Path $PSScriptRoot -ChildPath "Install-Defaults.psm1")
+    Test-Path -Path $ModuleFile -PathType "Leaf" -ErrorAction "Stop" | Out-Null
+    Import-Module -Name $ModuleFile -Force -ErrorAction "Stop"
+    Write-LogFile -Message "Execution path: $WorkingPath"
 
-#region Import functions
-$ModuleFile = $(Join-Path -Path $PSScriptRoot -ChildPath "Install-Defaults.psm1")
-Test-Path -Path $ModuleFile -PathType "Leaf" -ErrorAction "Stop" | Out-Null
-Import-Module -Name $ModuleFile -Force -ErrorAction "Stop"
-Write-LogFile -Message "Execution path: $WorkingPath"
-#endregion
+    # Start logging
+    $PSProcesses = Get-CimInstance -ClassName "Win32_Process" -Filter "Name = 'powershell.exe'" | Select-Object -Property "CommandLine"
+    foreach ($Process in $PSProcesses) {
+        Write-LogFile -Message "Running process: $($Process.CommandLine)"
+    }
 
-# Start logging
-$PSProcesses = Get-CimInstance -ClassName "Win32_Process" -Filter "Name = 'powershell.exe'" | Select-Object -Property "CommandLine"
-foreach ($Process in $PSProcesses) {
-    Write-LogFile -Message "Running process: $($Process.CommandLine)"
-}
+    #region Get system properties
+    $Platform = Get-Platform
 
-#region Get system properties
-$Platform = Get-Platform
+    $Build = ([System.Environment]::OSVersion.Version).Build
+    $OSVersion = [System.Environment]::OSVersion.Version
+    Write-LogFile -Message "Build: $Build"
 
-$Build = ([System.Environment]::OSVersion.Version).Build
-$OSVersion = [System.Environment]::OSVersion.Version
-Write-LogFile -Message "Build: $Build"
+    $Model = Get-Model
+    $OSName = Get-OSName
 
-$Model = Get-Model
-$OSName = Get-OSName
+    $DisplayVersion = Get-ChildItem -Path $WorkingPath -Include "VERSION.txt" -Recurse | Get-Content -Raw
+    Write-LogFile -Message "Script version: $DisplayVersion"
+    #endregion
 
-$DisplayVersion = Get-ChildItem -Path $WorkingPath -Include "VERSION.txt" -Recurse | Get-Content -Raw
-Write-LogFile -Message "Script version: $DisplayVersion"
-#endregion
+    #region Gather configs
+    $ConfigurationFiles = @(Get-ChildItem -Path "$WorkingPath\configs" -Include "*.json" -Exclude "_Configuration.Template.json" -Recurse)
+    Write-LogFile -Message "Found: $($ConfigurationFiles.Count) configuration files"
 
-#region Gather configs
-$AllConfigs = @(Get-ChildItem -Path "$WorkingPath\configs" -Include "*.All.json" -Recurse -ErrorAction "Continue")
-$ModelConfigs = @(Get-ChildItem -Path "$WorkingPath\configs" -Include "*.$Model.json" -Recurse -ErrorAction "Continue")
-$BuildConfigs = @(Get-ChildItem -Path "$WorkingPath\configs" -Include "*.$Build.json" -Recurse -ErrorAction "Continue")
-$PlatformConfigs = @(Get-ChildItem -Path "$WorkingPath\configs" -Include "*.$Platform.json" -Recurse -ErrorAction "Continue")
-Write-LogFile -Message "Found: $(($AllConfigs + $ModelConfigs + $BuildConfigs + $PlatformConfigs).Count) configs"
-#endregion
+    # Read the configuration files, convert from JSON, and filter based on the platform, model, and build of the local system
+    $Configurations = $ConfigurationFiles | `
+        ForEach-Object { Get-Content -Path $_.FullName -Raw | ConvertFrom-Json } | `
+        Where-Object { $Platform -in $_.Targets.Platforms -and $Model -in $_.Targets.Models } | `
+        Where-Object { [System.Version]$OSVersion -ge [System.Version]$_.MinimumBuild } | `
+        Where-Object { [System.Version]$OSVersion -le [System.Version]$_.MaximumBuild }
+    Write-LogFile -Message "Found: $($Configurations.Count) applicable configuration sets to apply"
+    #endregion
 
-#region Implement the settings defined in each config file
-foreach ($Config in ($AllConfigs + $PlatformConfigs + $BuildConfigs + $ModelConfigs)) {
+    #region Implement the settings defined in each config file
+    foreach ($ConfigSet in $Configurations) {
+        Write-LogFile -Message "Configuration set: $($ConfigSet.Description)" 
 
-    # Read the settings JSON
-    Write-LogFile -Message "Running config: $($Config.FullName)"
-    $Settings = Get-SettingsContent -Path $Config.FullName @prefs
-
-    # Implement the settings only if the local build is greater or equal that what's specified in the JSON
-    if ([System.Version]$OSVersion -ge [System.Version]$Settings.MinimumBuild) {
-        if ([System.Version]$OSVersion -le [System.Version]$Settings.MaximumBuild) {
-
-            #region Implement each setting in the JSON
-            if ($Settings.Registry.ChangeOwner.Length -gt 0) {
-                foreach ($Item in $Settings.Registry.ChangeOwner) {
-                    Set-RegistryOwner -RootKey $Item.Root -Key $Item.Key -Sid $Item.Sid @prefs
-                }
+        #region Configure machine level settings. Validate that each property exists and has items before attempting to apply the setting
+        if (($null -ne $ConfigSet.MachineRegistry.PSObject.Properties['ChangeOwner']) -and ($ConfigSet.MachineRegistry.ChangeOwner.Length -gt 0)) {
+            foreach ($Item in $ConfigSet.MachineRegistry.ChangeOwner) {
+                Set-RegistryOwner -RootKey $Item.Root -Key $Item.Key -Sid $Item.Sid
             }
-            switch ($Settings.Registry.Type) {
-                "DefaultProfile" {
-                    Set-DefaultUserProfile -Setting $Settings.Registry.Set @prefs; break
-                }
-                "Direct" {
-                    Set-Registry -Setting $Settings.Registry.Set @prefs; break
-                    Remove-RegistryPath -Path $Settings.Registry.Remove @prefs; break
-                }
-                default {
-                    Write-LogFile -Message "Skipped registry settings: $($Config.FullName)"
-                }
-            }
+        }
 
-            switch ($Settings.StartMenu.Type) {
-                "Server" {
-                    if ((Get-WindowsFeature -Name $Settings.StartMenu.Feature).InstallState -eq "Installed") {
-                        Copy-File -Path $Settings.StartMenu.Exists -Parent $WorkingPath @prefs
-                    }
-                    else {
-                        Copy-File -Path $Settings.StartMenu.NotExists -Parent $WorkingPath @prefs
-                    }
-                }
-                "Client" {
-                    Copy-File -Path $Settings.StartMenu.$OSName -Parent $WorkingPath @prefs
-                }
-                default {
-                    Write-LogFile -Message "Skipped Start menu settings: $($Config.FullName)"
-                }
-            }
+        if (($null -ne $ConfigSet.MachineRegistry.PSObject.Properties['Set']) -and ($ConfigSet.MachineRegistry.Set.Length -gt 0)) {
+            Set-Registry -Setting $ConfigSet.MachineRegistry.Set
+        }
 
-            foreach ($Shortcut in $Settings.Shortcuts) {
-                Set-Shortcut -Path $Shortcut.Path -Arguments $Shortcut.Arguments @prefs
-            }
+        if (($null -ne $ConfigSet.MachineRegistry.PSObject.Properties['Remove']) -and ($ConfigSet.MachineRegistry.Remove.Length -gt 0)) {
+            Remove-RegistryPath -Path $ConfigSet.MachineRegistry.Remove
+        }
 
-            Copy-File -Path $Settings.Files.Copy -Parent $WorkingPath @prefs
-            Remove-Path -Path $Settings.Paths.Remove @prefs
-            Remove-Feature -Feature $Settings.Features.Disable @prefs
-            Remove-Capability -Capability $Settings.Capabilities.Remove @prefs
-            Remove-Package -Package $Settings.Packages.Remove @prefs
-            Stop-NamedService -Service $Settings.Services.Stop @prefs
-            Start-NamedService -Service $Settings.Services.Start @prefs
-            Restart-NamedService -Service $Settings.Services.Restart @prefs
-            #endregion
+        if (($null -ne $ConfigSet.Shortcuts.PSObject.Properties['Edit']) -and ($ConfigSet.Shortcuts.Edit.Length -gt 0)) {
+            foreach ($Shortcut in $ConfigSet.Shortcuts.Edit) {
+                Set-Shortcut -Path $Shortcut.Path -Arguments $Shortcut.Arguments
+            }
+        }
+
+        if (($null -ne $ConfigSet.Files.PSObject.Properties['Copy']) -and ($ConfigSet.Files.Copy.Length -gt 0)) {
+            Copy-File -Path $ConfigSet.Files.Copy -Parent $WorkingPath
+        }
+
+        if (($null -ne $ConfigSet.Paths.PSObject.Properties['Remove']) -and ($ConfigSet.Paths.Remove.Length -gt 0)) {
+            Remove-Path -Path $ConfigSet.Paths.Remove
+        }
+
+        if (($null -ne $ConfigSet.Features.PSObject.Properties['Disable']) -and ($ConfigSet.Features.Disable.Length -gt 0)) {
+            Remove-Feature -Feature $ConfigSet.Features.Disable
+        }
+
+        if (($null -ne $ConfigSet.Capabilities.PSObject.Properties['Remove']) -and ($ConfigSet.Capabilities.Remove.Length -gt 0)) {
+            Remove-Capability -Capability $ConfigSet.Capabilities.Remove
+        }
+
+        if (($null -ne $ConfigSet.Packages.PSObject.Properties['Remove']) -and ($ConfigSet.Packages.Remove.Length -gt 0)) {
+            Remove-Package -Package $ConfigSet.Packages.Remove
+        }
+
+        if (($null -ne $ConfigSet.Services.PSObject.Properties['Stop']) -and ($ConfigSet.Services.Stop.Length -gt 0)) {
+            Stop-NamedService -Service $ConfigSet.Services.Stop
+        }
+
+        if (($null -ne $ConfigSet.Services.PSObject.Properties['Start']) -and ($ConfigSet.Services.Start.Length -gt 0)) {
+            Start-NamedService -Service $ConfigSet.Services.Start
+        }
+
+        if (($null -ne $ConfigSet.Services.PSObject.Properties['Restart']) -and ($ConfigSet.Services.Restart.Length -gt 0)) {
+            Restart-NamedService -Service $ConfigSet.Services.Restart
+        }
+        #endregion
+
+        # Set default user profile settings
+        if (($null -ne $ConfigSet.UserRegistry.PSObject.Properties['Set']) -and ($ConfigSet.UserRegistry.Set.Length -gt 0)) {
+            Set-DefaultUserProfile -Setting $ConfigSet.UserRegistry.Set
+        }
+    }
+    #endregion
+
+    #region If on a client OS, remove AppX applications
+    if ($Platform -eq "Client") {
+        if (Test-IsOobeComplete) {
+            # If OOBE is complete, we should play it safe and not attempt to remove AppX apps
+            # Explicitly call Remove-AppxApps.ps1 instead, e.g. for gold images
+            Write-LogFile -Message "OOBE is complete. To remove AppX apps, explicitly call Remove-AppxApps.ps1" -LogLevel 2
         }
         else {
-            Write-LogFile -Message "Skipped maximum version: $($Config.FullName)"
+            # Run the script to remove AppX/UWP apps; Get the script location
+            $Script = Get-ChildItem -Path $WorkingPath -Include "Remove-AppxApps.ps1" -Recurse -ErrorAction "Continue"
+            if ($null -eq $Script) {
+                Write-LogFile -Message "Script not found: $WorkingPath\Remove-AppxApps.ps1" -LogLevel 3
+            }
+            else {
+                Write-LogFile -Message "Run script: $WorkingPath\Remove-AppxApps.ps1"
+                $Apps = & $Script.FullName  -Confirm:$false
+                foreach ($App in $Apps) { Write-LogFile -Message "Removed AppX app: $App" }
+            }
         }
     }
-    else {
-        Write-LogFile -Message "Skipped minimum version: $($Config.FullName)"
-    }
-}
-#endregion
+    #endregion
 
-#region If on a client OS, remove AppX applications
-if ($Platform -eq "Client") {
-    if (Test-IsOobeComplete) {
-        # If OOBE is complete, we should play it safe and not attempt to remove AppX apps
-        # Explicitly call Remove-AppxApps.ps1 instead, e.g. for gold images
-        Write-LogFile -Message "OOBE is complete. To remove AppX apps, explicitly call Remove-AppxApps.ps1" -LogLevel 2
-    }
-    else {
-        # Run the script to remove AppX/UWP apps; Get the script location
-        $Script = Get-ChildItem -Path $WorkingPath -Include "Remove-AppxApps.ps1" -Recurse -ErrorAction "Continue"
-        if ($null -eq $Script) {
-            Write-LogFile -Message "Script not found: $WorkingPath\Remove-AppxApps.ps1" -LogLevel 3
+    #region Set system language, locale and regional settings
+    if ($PSBoundParameters.ContainsKey('Language')) {
+        if ($OSVersion -ge [System.Version]"10.0.22000") {
+
+            if ($InstallLanguagePack.IsPresent) {
+                # Set language support by installing the specified language pack
+                Install-SystemLanguage -Language $Language
+            }
+
+            # Set locale settings
+            Set-SystemLocale -Language $Language
         }
         else {
-            Write-LogFile -Message "Run script: $WorkingPath\Remove-AppxApps.ps1"
-            $Apps = & $Script.FullName @prefs -Confirm:$false
-            foreach ($App in $Apps) { Write-LogFile -Message "Removed AppX app: $App" }
+            # On Windows Server 2022 or below, use dism to install language packs
+            # https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/dism-languages-and-international-servicing-command-line-options
+
+            # Set locale settings
+            Set-SystemLocale -Language $Language
         }
-    }
-}
-#endregion
-
-#region Set system language, locale and regional settings
-if ($PSBoundParameters.ContainsKey('Language')) {
-    if ($OSVersion -ge [System.Version]"10.0.22000") {
-
-        if ($InstallLanguagePack.IsPresent) {
-            # Set language support by installing the specified language pack
-            Install-SystemLanguage -Language $Language
-        }
-
-        # Set locale settings
-        Set-SystemLocale -Language $Language
     }
     else {
-        # On Windows Server 2022 or below, use dism to install language packs
-        # https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/dism-languages-and-international-servicing-command-line-options
-
-        # Set locale settings
-        Set-SystemLocale -Language $Language
+        Write-LogFile -Message "-Language parameter not specified. Skipping install language support"
     }
-}
-else {
-    Write-LogFile -Message "-Language parameter not specified. Skipping install language support"
-}
 
-if ($PSBoundParameters.ContainsKey('TimeZone')) {
-    Set-TimeZoneUsingName -TimeZone $TimeZone
-}
-else {
-    Write-LogFile -Message "-TimeZone parameter not specified. Skipping set time zone"
-}
-#endregion
+    if ($PSBoundParameters.ContainsKey('TimeZone')) {
+        Set-TimeZoneUsingName -TimeZone $TimeZone
+    }
+    else {
+        Write-LogFile -Message "-TimeZone parameter not specified. Skipping set time zone"
+    }
+    #endregion
 
-#region Copy the source files for use with upgrades
-if (Test-Path -Path "$FeatureUpdatePath\Install-Defaults.ps1" -PathType "Leaf") {
-    Write-LogFile -Message "Skipping copy to $FeatureUpdatePath"
-}
-else {
+    #region Copy the source files for use with upgrades
     try {
         Write-LogFile -Message "New directory: $FeatureUpdatePath"
-        New-Item -Path $FeatureUpdatePath -ItemType "Directory" -Force -ErrorAction "SilentlyContinue" | Out-Null
-        Copy-Item -Path "$WorkingPath\*" -Destination $FeatureUpdatePath -Recurse -ErrorAction "SilentlyContinue"
+        if (Test-Path -Path "$FeatureUpdatePath" -PathType "Container") {
+            Write-LogFile -Message "Directory already exists: $FeatureUpdatePath"
+        }
+        else {
+            Write-LogFile -Message "Creating directory: $FeatureUpdatePath"
+            New-Item -Path $FeatureUpdatePath -ItemType "Directory" -Force | Out-Null
+        }
+        Copy-Item -Path "$WorkingPath\*" -Destination $FeatureUpdatePath -Recurse -Force
         Write-LogFile -Message "Copied $WorkingPath\* to $FeatureUpdatePath"
     }
     catch {
@@ -308,6 +303,17 @@ else {
     }
 }
 #endregion
+catch {
+    Write-LogFile -Message "Unhandled error in Install-Defaults.ps1" -LogLevel 3
+    Write-LogFile -Message "Error: $($_.Exception.Message)" -LogLevel 3
+    Write-LogFile -Message "Type: $($_.Exception.GetType().FullName)" -LogLevel 3
+    Write-LogFile -Message "Script: $($_.InvocationInfo.ScriptName)" -LogLevel 3
+    Write-LogFile -Message "Line: $($_.InvocationInfo.ScriptLineNumber)" -LogLevel 3
+    Write-LogFile -Message "Offset: $($_.InvocationInfo.OffsetInLine)" -LogLevel 3
+    Write-LogFile -Message "Line text: $($_.InvocationInfo.Line.Trim())" -LogLevel 3
+    Write-LogFile -Message "Category: $($_.CategoryInfo)" -LogLevel 3
+    Write-LogFile -Message "FullyQualifiedErrorId: $($_.FullyQualifiedErrorId)" -LogLevel 3
+}
 
 #region Set uninstall registry value for detecting as an installed application
 $Key = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"

@@ -1,0 +1,76 @@
+{
+    "$schema": "https://raw.githubusercontent.com/aaronparker/defaults/refs/heads/main/schema/configuration.schema.json",
+    "Description": "Computer level settings for Windows 11 21H2 to 23H2. Removes Microsoft Teams Chat and the Copilot button on the taskbar.",
+    "MinimumBuild": "10.0.22000.0",
+    "MaximumBuild": "10.0.22631.0",
+    "Targets": {
+        "Platforms": [
+            "client"
+        ],
+        "Models": [
+            "physical",
+            "virtual"
+        ]
+    },
+    "MachineRegistry": {
+        "ChangeOwner": [
+            {
+                "Root": "HKLM",
+                "Key": "Software\\Microsoft\\Windows\\CurrentVersion\\Communications",
+                "Sid": "S-1-5-18",
+                "note": "Changes the owner of the key to SYSTEM"
+            },
+            {
+                "Root": "HKLM",
+                "Key": "Software\\Microsoft\\Windows\\CurrentVersion\\Communications",
+                "Sid": "S-1-5-32-544",
+                "note": "Changes the owner of the key to Administrators"
+            }
+        ],
+        "Set": [
+            {
+                "path": "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Communications",
+                "name": "ConfigureChatAutoInstall",
+                "value": 0,
+                "type": "DWord",
+                "note": "Prevents the install of the consumer Microsoft Teams client",
+                "protected": false
+            },
+            {
+                "path": "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+                "name": "ShowCopilotButton",
+                "value": 0,
+                "type": "DWord",
+                "note": "Removes the Copilot button from the taskbar",
+                "protected": false
+            }
+        ]
+    },
+    "UserRegistry": {
+        "Set": []
+    },
+    "Paths": {
+        "Remove": []
+    },
+    "Features": {
+        "Disable": []
+    },
+    "Capabilities": {
+        "Remove": [],
+        "Others": []
+    },
+    "Packages": {
+        "Remove": []
+    },
+    "Shortcuts": {
+        "Edit": []
+    },
+    "Services": {
+        "Restart": [],
+        "Stop": [],
+        "Start": []
+    },
+    "Files": {
+        "Copy": []
+    }
+}
