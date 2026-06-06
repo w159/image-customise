@@ -452,16 +452,6 @@
                 ],
                 "description": "Registry value type. Preferred key is \"type\"."
               },
-              "Type": {
-                "type": "string",
-                "enum": [
-                  "Binary",
-                  "String",
-                  "DWord",
-                  "Dword"
-                ],
-                "description": "Legacy casing kept for compatibility. Prefer \"type\"."
-              },
               "value": {
                 "anyOf": [
                   {
