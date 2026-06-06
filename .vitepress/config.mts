@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitepress'
+import markdownItDeflist from 'markdown-it-deflist'
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
@@ -13,6 +14,9 @@ export default defineConfig({
   },
   cleanUrls: true,
   markdown: {
+    config: (md) => {
+      md.use(markdownItDeflist)
+    },
     image: {
       // image lazy loading is disabled by default
       lazyLoading: true

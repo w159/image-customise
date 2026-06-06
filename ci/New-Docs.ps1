@@ -19,56 +19,61 @@ $Markdown = $Layout
 $Markdown += New-MDHeader -Text "Registry Settings" -Level 1
 $Markdown += "`n"
 foreach ($file in $Configs) {
-
+    if ($file.Name -like "_*") { continue }
     $json = Get-Content -Path $file.FullName | ConvertFrom-Json
-    if ($null -ne $json.MachineRegistry.Set) {
+
+    if ($json.MachineRegistry.Set.Count -gt 0) {
         $Markdown += New-MDHeader -Text $file.Name -Level 2
         $Markdown += "`n"
         $Markdown += "**$($json.Description)**`n`n"
         $Table = [PSCustomObject]@{
             "Minimum build" = $json.MinimumBuild
             "Maximum build" = $json.MaximumBuild
-        }
-        if ($null -ne $json.MachineRegistry.Type) {
-            $Table | Add-Member -MemberType "NoteProperty" -Name "Type" -Value $json.MachineRegistry.Type
+            "Scope"         = "Machine"
         }
         $Markdown += $Table | New-MDTable -Shrink
         $Markdown += "`n"
-        $Markdown += $json.MachineRegistry.Set | Select-Object -Property  @{ Name = "path"; Expression = { $_.path -replace "\\", " \" } }, "name", "value", "note" | New-MDTable -Shrink
-        $Markdown += "`n"
+        foreach ($entry in $json.MachineRegistry.Set) {
+            $Markdown += "**``$($entry.name)``** = ``$($entry.value)`` ($($entry.type))`n"
+            $Markdown += ": $($entry.note)`n"
+            $Markdown += ": Path: ``$($entry.path)```n`n"
+        }
     }
 
-    if ($null -ne $json.UserRegistry.Set) {
+    if ($json.UserRegistry.Set.Count -gt 0) {
         $Markdown += New-MDHeader -Text $file.Name -Level 2
         $Markdown += "`n"
         $Markdown += "**$($json.Description)**`n`n"
         $Table = [PSCustomObject]@{
             "Minimum build" = $json.MinimumBuild
             "Maximum build" = $json.MaximumBuild
-        }
-        if ($null -ne $json.UserRegistry.Type) {
-            $Table | Add-Member -MemberType "NoteProperty" -Name "Type" -Value $json.UserRegistry.Type
+            "Scope"         = "User"
         }
         $Markdown += $Table | New-MDTable -Shrink
         $Markdown += "`n"
-        $Markdown += $json.UserRegistry.Set | Select-Object -Property  @{ Name = "path"; Expression = { $_.path -replace "\\", " \" } }, "name", "value", "note" | New-MDTable -Shrink
-        $Markdown += "`n"
+        foreach ($entry in $json.UserRegistry.Set) {
+            $Markdown += "**``$($entry.name)``** = ``$($entry.value)`` ($($entry.type))`n"
+            $Markdown += ": $($entry.note)`n"
+            $Markdown += ": Path: ``$($entry.path)```n`n"
+        }
     }
 
-    if ($null -ne $json.MachineRegistry.Remove) {
+    if ($json.MachineRegistry.Remove.Count -gt 0) {
+        $Markdown += New-MDHeader -Text $file.Name -Level 2
         $Markdown += "`n"
         $Markdown += "**$($json.Description)**`n`n"
         $Table = [PSCustomObject]@{
             "Minimum build" = $json.MinimumBuild
             "Maximum build" = $json.MaximumBuild
-        }
-        if ($null -ne $json.MachineRegistry.Type) {
-            $Table | Add-Member -MemberType "NoteProperty" -Name "Type" -Value $json.MachineRegistry.Type
+            "Scope"         = "Machine (remove)"
         }
         $Markdown += $Table | New-MDTable -Shrink
         $Markdown += "`n"
-        $Markdown += $json.MachineRegistry.Remove | Select-Object -Property  @{ Name = "path"; Expression = { $_.path -replace "\\", " \" } }, "note" | New-MDTable -Shrink
-        $Markdown += "`n"
+        foreach ($entry in $json.MachineRegistry.Remove) {
+            $Markdown += "``$($entry.path)```n"
+            if ($entry.note) { $Markdown += ": $($entry.note)`n" }
+            $Markdown += "`n"
+        }
     }
 }
 ($Markdown.TrimEnd("`n")) | Out-File -FilePath $OutFile -Force -Encoding "Utf8"
@@ -80,9 +85,10 @@ $Markdown = $Layout
 $Markdown += New-MDHeader -Text "Removed Capabilities and Features" -Level 1
 $Markdown += "`n"
 foreach ($file in $Configs) {
-
+    if ($file.Name -like "_*") { continue }
     $json = Get-Content -Path $file.FullName | ConvertFrom-Json
-    if ($null -ne $json.Capabilities.Remove) {
+
+    if ($json.Capabilities.Remove.Count -gt 0) {
         $Markdown += New-MDHeader -Text $file.Name -Level 2
         $Markdown += "`n"
         $Markdown += "**$($json.Description)**`n`n"
@@ -100,7 +106,7 @@ foreach ($file in $Configs) {
         $Markdown += "`n"
     }
 
-    if ($null -ne $json.Features.Disable) {
+    if ($json.Features.Disable.Count -gt 0) {
         $Markdown += "`n"
         $Markdown += New-MDHeader -Text $file.Name -Level 2
         $Markdown += "`n"
@@ -119,7 +125,7 @@ foreach ($file in $Configs) {
         $Markdown += "`n"
     }
 
-    if ($null -ne $json.Packages.Remove) {
+    if ($json.Packages.Remove.Count -gt 0) {
         $Markdown += "`n"
         $Markdown += New-MDHeader -Text $file.Name -Level 2
         $Markdown += "`n"
@@ -147,9 +153,10 @@ $Markdown = $Layout
 $Markdown += New-MDHeader -Text "Removed Paths" -Level 1
 $Markdown += "`n"
 foreach ($file in $Configs) {
-
+    if ($file.Name -like "_*") { continue }
     $json = Get-Content -Path $file.FullName | ConvertFrom-Json
-    if ($null -ne $json.Paths.Remove) {
+
+    if ($json.Paths.Remove.Count -gt 0) {
         $Markdown += "`n"
         $Markdown += New-MDHeader -Text $file.Name -Level 2
         $Markdown += "`n"
@@ -177,9 +184,10 @@ $Markdown = $Layout
 $Markdown += New-MDHeader -Text "Services" -Level 1
 $Markdown += "`n"
 foreach ($file in $Configs) {
-
+    if ($file.Name -like "_*") { continue }
     $json = Get-Content -Path $file.FullName | ConvertFrom-Json
-    if ($null -ne $json.Services.Enable) {
+
+    if ($json.Services.Enable.Count -gt 0) {
         $Markdown += New-MDHeader -Text $file.Name -Level 2
         $Markdown += "`n"
         $Markdown += "**$($json.Description)**`n`n"
@@ -206,8 +214,9 @@ $Markdown = $Layout
 $Markdown += New-MDHeader -Text "Files" -Level 1
 $Markdown += "`n"
 foreach ($file in $Configs) {
-
+    if ($file.Name -like "_*") { continue }
     $json = Get-Content -Path $file.FullName | ConvertFrom-Json
+
     if ($json.Files.Copy.Count -gt 0) {
         $Markdown += New-MDHeader -Text $file.Name -Level 2
         $Markdown += "`n"
@@ -231,8 +240,9 @@ $Markdown = $Layout
 $Markdown += New-MDHeader -Text "Shortcuts" -Level 1
 $Markdown += "`n"
 foreach ($file in $Configs) {
-
+    if ($file.Name -like "_*") { continue }
     $json = Get-Content -Path $file.FullName | ConvertFrom-Json
+
     if ($json.Shortcuts.Count -gt 0) {
         $Markdown += New-MDHeader -Text $file.Name -Level 2
         $Markdown += "`n"
@@ -256,8 +266,9 @@ $Markdown = $Layout
 $Markdown += New-MDHeader -Text "Start Menu" -Level 1
 $Markdown += "`n"
 foreach ($file in $Configs) {
-
+    if ($file.Name -like "_*") { continue }
     $json = Get-Content -Path $file.FullName | ConvertFrom-Json
+
     if ($null -ne $json.StartMenu) {
         $Markdown += New-MDHeader -Text $file.Name -Level 2
         $Markdown += "`n"
