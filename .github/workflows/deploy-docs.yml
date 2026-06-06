@@ -9,6 +9,7 @@ on:
     branches: [main]
     paths:
       - 'docs/**'
+      - 'src/configs/**'
       - '.vitepress/**'
       - 'package.json'
       - 'package-lock.json'
@@ -50,6 +51,11 @@ jobs:
         uses: actions/configure-pages@v6
       - name: Install dependencies
         run: npm ci --force # or pnpm install / yarn install / bun install
+      - name: Generate documentation from configs
+        shell: pwsh
+        run: |
+          Install-Module MarkdownPS -Force -Scope CurrentUser -ErrorAction Stop
+          ./ci/New-Docs.ps1 -Path ./src/configs
       - name: Build with VitePress
         run: npm run docs:build # or pnpm docs:build / yarn docs:build / bun run docs:build
       - name: Upload artifact
