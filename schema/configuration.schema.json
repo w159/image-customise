@@ -1,0 +1,535 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://stealthpuppy.com/defaults/src/configs/Configuration.schema.json",
+  "title": "Install-Defaults Configuration Schema",
+  "description": "Authoring schema for Install-Defaults config files. Includes descriptions, examples, and practical constraints inferred from src/configs.",
+  "type": "object",
+  "properties": {
+    "Capabilities": {
+      "type": "object",
+      "properties": {
+        "Others": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Additional capability names to remove for special cases."
+        },
+        "Remove": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Capability names to remove."
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "Others",
+        "Remove"
+      ],
+      "description": "Windows capability package operations."
+    },
+    "Description": {
+      "type": "string",
+      "description": "Human-readable description of the configuration profile.",
+      "examples": [
+        "Windows 11 client defaults"
+      ]
+    },
+    "Features": {
+      "type": "object",
+      "properties": {
+        "Disable": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Optional Windows features to disable."
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "Disable"
+      ],
+      "description": "Optional Windows features configuration."
+    },
+    "Files": {
+      "type": "object",
+      "properties": {
+        "Copy": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "Destination": {
+                "type": "string",
+                "description": "Path to destination file or folder."
+              },
+              "Source": {
+                "type": "string",
+                "description": "Path to source file or folder."
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "Destination",
+              "Source"
+            ]
+          },
+          "description": "Copy operations from source to destination."
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "Copy"
+      ],
+      "description": "File operations to apply during configuration."
+    },
+    "MachineRegistry": {
+      "type": "object",
+      "properties": {
+        "ChangeOwner": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "Key": {
+                "type": "string"
+              },
+              "note": {
+                "type": "string"
+              },
+              "Root": {
+                "type": "string"
+              },
+              "Sid": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "Key",
+              "note",
+              "Root",
+              "Sid"
+            ]
+          },
+          "description": "Registry keys where owner/SID updates are required before modification."
+        },
+        "Remove": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "note": {
+                "type": "string"
+              },
+              "path": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "note",
+              "path"
+            ]
+          },
+          "description": "Machine registry paths to remove when present."
+        },
+        "Set": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "note": {
+                "type": "string"
+              },
+              "path": {
+                "type": "string"
+              },
+              "protected": {
+                "type": "boolean",
+                "description": "When true, preserve value from later overrides/removal steps."
+              },
+              "type": {
+                "type": "string",
+                "description": "Registry value type.",
+                "enum": [
+                  "String",
+                  "DWord",
+                  "Dword"
+                ],
+                "examples": [
+                  "DWord",
+                  "String"
+                ]
+              },
+              "value": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": true,
+            "required": [
+              "name",
+              "note",
+              "path",
+              "protected",
+              "type",
+              "value"
+            ]
+          },
+          "description": "Registry values to set at machine scope."
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "ChangeOwner",
+        "Set"
+      ],
+      "description": "Registry operations for HKLM and machine-scoped hives."
+    },
+    "MaximumBuild": {
+      "type": "string",
+      "description": "Maximum Windows build number this profile applies to.",
+      "pattern": "^[0-9]{4,6}$",
+      "examples": [
+        "99999"
+      ]
+    },
+    "MinimumBuild": {
+      "type": "string",
+      "description": "Minimum Windows build number this profile applies to.",
+      "pattern": "^[0-9]{4,6}$",
+      "examples": [
+        "19041"
+      ]
+    },
+    "Packages": {
+      "type": "object",
+      "properties": {
+        "Remove": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Provisioned packages to remove."
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "Remove"
+      ],
+      "description": "Provisioned package operations."
+    },
+    "Paths": {
+      "type": "object",
+      "properties": {
+        "Remove": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "File system paths to remove."
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "Remove"
+      ],
+      "description": "Path operations."
+    },
+    "Services": {
+      "type": "object",
+      "properties": {
+        "Enable": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Service names to set as enabled."
+        },
+        "Feature": {
+          "type": "string",
+          "description": "Optional feature/role gate that must be present before applying service actions.",
+          "examples": [
+            "RDS-RD-Server"
+          ]
+        },
+        "Restart": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Service names to restart."
+        },
+        "Start": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Service names to start."
+        },
+        "Stop": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Service names to stop."
+        }
+      },
+      "additionalProperties": true,
+      "description": "Service control operations and optional role/feature gating."
+    },
+    "Shortcuts": {
+      "type": "object",
+      "properties": {
+        "Edit": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "Arguments": {
+                "type": "string"
+              },
+              "Path": {
+                "type": "string",
+                "examples": [
+                  "C:/ProgramData/Microsoft/Windows/Start Menu/Programs/App.lnk"
+                ]
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "Arguments",
+              "Path"
+            ]
+          },
+          "description": "Shortcut files to modify and their target arguments."
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "Edit"
+      ],
+      "description": "Shortcut editing operations."
+    },
+    "Targets": {
+      "type": "object",
+      "properties": {
+        "Models": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "physical",
+              "virtual"
+            ]
+          },
+          "description": "Hardware model categories.",
+          "examples": [
+            [
+              "physical",
+              "virtual"
+            ]
+          ]
+        },
+        "Platforms": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "client",
+              "multisession",
+              "rds-server",
+              "server"
+            ]
+          },
+          "description": "Supported OS platform categories.",
+          "examples": [
+            [
+              "client"
+            ],
+            [
+              "server"
+            ]
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "Models",
+        "Platforms"
+      ],
+      "description": "Target device attributes used to determine profile applicability."
+    },
+    "UserRegistry": {
+      "type": "object",
+      "properties": {
+        "Others": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "note": {
+                "type": "string"
+              },
+              "path": {
+                "type": "string"
+              },
+              "protected": {
+                "type": "boolean"
+              },
+              "type": {
+                "type": "string"
+              },
+              "value": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": true,
+            "required": [
+              "name",
+              "note",
+              "path",
+              "protected",
+              "type",
+              "value"
+            ]
+          },
+          "description": "Registry values applied for non-default user contexts."
+        },
+        "Set": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "note": {
+                "type": "string"
+              },
+              "path": {
+                "type": "string"
+              },
+              "protected": {
+                "type": "boolean",
+                "description": "When true, preserve value from later overrides/removal steps."
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "Binary",
+                  "String",
+                  "DWord",
+                  "Dword"
+                ],
+                "description": "Registry value type. Preferred key is \"type\"."
+              },
+              "Type": {
+                "type": "string",
+                "enum": [
+                  "Binary",
+                  "String",
+                  "DWord",
+                  "Dword"
+                ],
+                "description": "Legacy casing kept for compatibility. Prefer \"type\"."
+              },
+              "value": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": true,
+            "required": [
+              "name",
+              "note",
+              "path",
+              "protected",
+              "value"
+            ],
+            "allOf": [
+              {
+                "anyOf": [
+                  {
+                    "required": [
+                      "type"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "Type"
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          "description": "Registry values to set at user scope."
+        },
+        "Source": {
+          "type": "string",
+          "description": "Source profile/group for this user registry block."
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "Set"
+      ],
+      "description": "Registry operations for HKCU and user-scoped hives."
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "Description",
+    "MinimumBuild",
+    "MaximumBuild",
+    "Targets",
+    "MachineRegistry",
+    "UserRegistry"
+  ],
+  "examples": [
+    {
+      "Description": "Windows client baseline defaults",
+      "MinimumBuild": "10.0.14393.0",
+      "MaximumBuild": "10.0.99999.0",
+      "Targets": {
+        "Platforms": [
+          "client"
+        ],
+        "Models": [
+          "physical",
+          "virtual"
+        ]
+      }
+    }
+  ]
+}
