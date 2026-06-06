@@ -21,7 +21,7 @@ $Markdown += "`n"
 foreach ($file in $Configs) {
 
     $json = Get-Content -Path $file.FullName | ConvertFrom-Json
-    if ($null -ne $json.Registry.Set) {
+    if ($null -ne $json.MachineRegistry.Set) {
         $Markdown += New-MDHeader -Text $file.Name -Level 2
         $Markdown += "`n"
         $Markdown += "**$($json.Description)**`n`n"
@@ -29,28 +29,45 @@ foreach ($file in $Configs) {
             "Minimum build" = $json.MinimumBuild
             "Maximum build" = $json.MaximumBuild
         }
-        if ($null -ne $json.Registry.Type) {
-            $Table | Add-Member -MemberType "NoteProperty" -Name "Type" -Value $json.Registry.Type
+        if ($null -ne $json.MachineRegistry.Type) {
+            $Table | Add-Member -MemberType "NoteProperty" -Name "Type" -Value $json.MachineRegistry.Type
         }
         $Markdown += $Table | New-MDTable -Shrink
         $Markdown += "`n"
-        $Markdown += $json.Registry.Set | Select-Object -Property  @{ Name = "path"; Expression = { $_.path -replace "\\", " \" } }, "name", "value", "note" | New-MDTable -Shrink
+        $Markdown += $json.MachineRegistry.Set | Select-Object -Property  @{ Name = "path"; Expression = { $_.path -replace "\\", " \" } }, "name", "value", "note" | New-MDTable -Shrink
         $Markdown += "`n"
     }
 
-    if ($null -ne $json.Registry.Remove) {
+    if ($null -ne $json.UserRegistry.Set) {
+        $Markdown += New-MDHeader -Text $file.Name -Level 2
         $Markdown += "`n"
         $Markdown += "**$($json.Description)**`n`n"
         $Table = [PSCustomObject]@{
             "Minimum build" = $json.MinimumBuild
             "Maximum build" = $json.MaximumBuild
         }
-        if ($null -ne $json.Registry.Type) {
-            $Table | Add-Member -MemberType "NoteProperty" -Name "Type" -Value $json.Registry.Type
+        if ($null -ne $json.UserRegistry.Type) {
+            $Table | Add-Member -MemberType "NoteProperty" -Name "Type" -Value $json.UserRegistry.Type
         }
         $Markdown += $Table | New-MDTable -Shrink
         $Markdown += "`n"
-        $Markdown += $json.Registry.Remove | Select-Object -Property  @{ Name = "path"; Expression = { $_.path -replace "\\", " \" } }, "note" | New-MDTable -Shrink
+        $Markdown += $json.UserRegistry.Set | Select-Object -Property  @{ Name = "path"; Expression = { $_.path -replace "\\", " \" } }, "name", "value", "note" | New-MDTable -Shrink
+        $Markdown += "`n"
+    }
+
+    if ($null -ne $json.MachineRegistry.Remove) {
+        $Markdown += "`n"
+        $Markdown += "**$($json.Description)**`n`n"
+        $Table = [PSCustomObject]@{
+            "Minimum build" = $json.MinimumBuild
+            "Maximum build" = $json.MaximumBuild
+        }
+        if ($null -ne $json.MachineRegistry.Type) {
+            $Table | Add-Member -MemberType "NoteProperty" -Name "Type" -Value $json.MachineRegistry.Type
+        }
+        $Markdown += $Table | New-MDTable -Shrink
+        $Markdown += "`n"
+        $Markdown += $json.MachineRegistry.Remove | Select-Object -Property  @{ Name = "path"; Expression = { $_.path -replace "\\", " \" } }, "note" | New-MDTable -Shrink
         $Markdown += "`n"
     }
 }
