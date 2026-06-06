@@ -34,13 +34,13 @@ jobs:
         with:
           path: ./src
           recurse: true
-          output: results.sarif
+      #     output: results.sarif
 
-      # Upload the SARIF file generated in the previous step
-      - name: Upload SARIF results file
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: results.sarif
+      # # Upload the SARIF file generated in the previous step
+      # - name: Upload SARIF results file
+      #   uses: github/codeql-action/upload-sarif@v4
+      #   with:
+      #     sarif_file: results.sarif
 
       - name: Install Pester
         shell: powershell
@@ -61,6 +61,9 @@ jobs:
           $Config.CodeCoverage.Enabled = $true
           $Config.CodeCoverage.CoveragePercentTarget = 50
           $Config.CodeCoverage.Path = "$env:GITHUB_WORKSPACE\src"
+          $Config.CodeCoverage.Exclude = @(
+            "$env:GITHUB_WORKSPACE\src\Start-DefaultsViewer.ps1"
+          )
           $Config.CodeCoverage.OutputFormat = "JaCoCo"
           $Config.CodeCoverage.OutputPath = "$env:GITHUB_WORKSPACE\CodeCoverage.xml"
           $Config.TestResult.Enabled = $true
@@ -83,15 +86,6 @@ jobs:
         if: always()
         with:
           files: "${{ github.workspace }}\\tests\\TestResults.xml"
-
-      # - name: Upload to Codecov
-      #   id: codecov
-      #   if: always()
-      #   uses: codecov/codecov-action@v5
-      #   with:
-      #     token: ${{ secrets.CODECOV_TOKEN }}
-      #     files: ./CodeCoverage.xml
-      #     verbose: true
 
       - name: Get version
         id: get-version
