@@ -31,7 +31,7 @@
                 "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
                 "name": "EnableBlurBehind",
                 "value": 1,
-                "Type": "DWord",
+                "type": "DWord",
                 "note": "Disable blur for the Start menu, Taskbar and windows",
                 "protected": false
             },

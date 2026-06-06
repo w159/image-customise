@@ -31,7 +31,7 @@
                 "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Accent",
                 "name": "AccentPalette",
                 "value": "86CAFF005FB2F2001E91EA000063B10000427500002D4F000020380000CC6A00",
-                "Type": "String",
+                "type": "String",
                 "note": "Sets the accent colour on window title bars and borders",
                 "protected": false
             },

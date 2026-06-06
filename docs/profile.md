@@ -28,7 +28,7 @@ These settings are imported into the default profile via direct file copies. The
 ::: code-group
 ```json [User.Client.json]
 "StartMenu": {
-    "Type": "Client",
+    "type": "Client",
     "Feature": "",
     "Windows10": [
         {
@@ -55,7 +55,7 @@ These settings are imported into the default profile via direct file copies. The
 
 ```json [User.Server.json]
 "StartMenu": {
-    "Type": "Server",
+    "type": "Server",
     "Feature": "RDS-RD-Server",
     "Exists": [
         {
