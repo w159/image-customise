@@ -3,26 +3,45 @@ layout: doc
 ---
 # Registry Settings
 
-## Machine-W1123H2.All.json
+## _Configuration.Template.json
 
-**Computer level settings for Windows 11 21H2 to 23H2.**
+**Configuration settings template file.**
 
-| Minimum build | Maximum build | Type |
-| ------------- | ------------- | ---- |
-| 10.0.22000 | 10.0.22631 | Direct |
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393.0 | 10.0.99999.0 |
 
-| path | name | value | note |
-| ---- | ---- | ----- | ---- |
-| HKLM: \Software \Microsoft \Windows \CurrentVersion \Communications | ConfigureChatAutoInstall | 0 | Prevents the install of the consumer Microsoft Teams client |
-| HKLM: \Software \Microsoft \Windows \CurrentVersion \Explorer \Advanced | ShowCopilotButton | 0 | Removes the Copilot button from the taskbar |
+|  |
+||
+
+## _Configuration.Template.json
+
+**Configuration settings template file.**
+
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393.0 | 10.0.99999.0 |
+
+|  |
+||
+
+
+**Configuration settings template file.**
+
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393.0 | 10.0.99999.0 |
+
+|  |
+||
 
 ## Machine.All.json
 
 **Computer level settings for all Windows 10 and above.**
 
-| Minimum build | Maximum build | Type |
-| ------------- | ------------- | ---- |
-| 10.0.14393 | 10.0.99999 | Direct |
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393.0 | 10.0.99999.0 |
 
 | path | name | value | note |
 | ---- | ---- | ----- | ---- |
@@ -33,14 +52,43 @@ layout: doc
 | HKLM: \SOFTWARE \Microsoft \Windows NT \CurrentVersion \FontSubstitutes | MS Shell Dlg | Tahoma | Replaces the `MS Shell Dlg` font with `Tahoma` for UI consistency |
 | HKLM: \SOFTWARE \Microsoft \Windows NT \CurrentVersion \FontSubstitutes | MS Shell Dlg 2 | Tahoma | Replaces the `MS Shell Dlg 2` font with `Tahoma` for UI consistency |
 | HKLM: \SOFTWARE \Microsoft \Windows \CurrentVersion \CapabilityAccessManager \ConsentStore \location | Value | Allow | Enables location services |
+| HKLM: \SYSTEM \CurrentControlSet \Services \tzautoupdate | Start | 3 | Enable Set time zone automatically |
+| HKLM: \SOFTWARE \Microsoft \Windows \CurrentVersion \Explorer | DisableEdgeDesktopShortcutCreation | 1 | Prevents the Microsoft Edge short added to the public desktop |
+| HKLM: \SOFTWARE \Policies \Microsoft \EdgeUpdate | CreateDesktopShortcutDefault | 0 | Prevent the Microsoft Edge shortcut from being added to the desktop |
+| HKLM: \SOFTWARE \Policies \Microsoft \EdgeUpdate | RemoveDesktopShortcutDefault | 1 | Prevent the Microsoft Edge shortcut from being added to the desktop |
+| HKLM: \SOFTWARE \Policies \Microsoft \Edge | SearchbarAllowed | 0 | Prevent the Microsoft Edge search bar from being added to the desktop |
+| HKLM: \SOFTWARE \Microsoft \Windows NT \CurrentVersion \FontSubstitutes | MS Shell Dlg | Tahoma | Replaces the `MS Shell Dlg` font with `Tahoma` for UI consistency |
+| HKLM: \SOFTWARE \Microsoft \Windows NT \CurrentVersion \FontSubstitutes | MS Shell Dlg 2 | Tahoma | Replaces the `MS Shell Dlg 2` font with `Tahoma` for UI consistency |
+| HKLM: \SOFTWARE \Microsoft \Windows \CurrentVersion \CapabilityAccessManager \ConsentStore \location | Value | Allow | Enables location services |
+
+## Machine.All.json
+
+**Computer level settings for all Windows 10 and above.**
+
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393.0 | 10.0.99999.0 |
+
+|  |
+||
+
+
+**Computer level settings for all Windows 10 and above.**
+
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393.0 | 10.0.99999.0 |
+
+|  |
+||
 
 ## Machine.Client.json
 
 **Computer level settings for Windows client editions.**
 
-| Minimum build | Maximum build | Type |
-| ------------- | ------------- | ---- |
-| 10.0.14393 | 10.0.99999 | Direct |
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393.0 | 10.0.99999.0 |
 
 | path | name | value | note |
 | ---- | ---- | ----- | ---- |
@@ -48,12 +96,23 @@ layout: doc
 | HKLM: \Software \Policies \Microsoft \Windows \CloudContent | DisableWindowsConsumerFeatures | 1 | Disables the Microsoft Windows consumer features |
 | HKLM: \Software \Policies \Microsoft \Windows \CloudContent | DisableCloudOptimizedContent | 1 | Disables the customisation of the taskbar with additional shortcuts (e.g. new Outlook) |
 
+## Machine.Client.json
 
 **Computer level settings for Windows client editions.**
 
-| Minimum build | Maximum build | Type |
-| ------------- | ------------- | ---- |
-| 10.0.14393 | 10.0.99999 | Direct |
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393.0 | 10.0.99999.0 |
+
+|  |
+||
+
+
+**Computer level settings for Windows client editions.**
+
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393.0 | 10.0.99999.0 |
 
 | path | note |
 | ---- | ---- |
@@ -65,83 +124,80 @@ layout: doc
 | HKLM: \SOFTWARE \Microsoft \WindowsUpdate \Orchestrator \UScheduler_Oobe \OutlookUpdate | Removes the Outlook (new) app from the Windows Update Orchestrator to prevent automatic install on Windows 11 |
 | HKLM: \SOFTWARE \Microsoft \Windows \CurrentVersion \WindowsUpdate \Orchestrator \UScheduler \MS_Outlook | Removes the Outlook (new) app from the Windows Update Orchestrator to prevent automatic install on Windows 10 |
 
-## Services.Client.json
+## Machine.RDS.json
 
-**Services settings for Windows client editions**
+**Computer level settings for Windows Server editions with the Remote Desktop Services role.**
 
-| Minimum build | Maximum build | Type |
-| ------------- | ------------- | ---- |
-| 10.0.14393 | 10.0.99999 | Direct |
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393.0 | 10.0.99999.0 |
 
-| path | name | value | note |
-| ---- | ---- | ----- | ---- |
-| HKLM: \SYSTEM \CurrentControlSet \Services \tzautoupdate | Start | 3 | Enable Set time zone automatically |
+|  |
+||
 
-## User-Windows10.All.json
+## Machine.RDS.json
 
-**Default user profile settings for Windows 10.**
+**Computer level settings for Windows Server editions with the Remote Desktop Services role.**
 
-| Minimum build | Maximum build | Type |
-| ------------- | ------------- | ---- |
-| 10.0.14393 | 10.0.20999 | DefaultProfile |
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393.0 | 10.0.99999.0 |
 
-| path | name | value | note |
-| ---- | ---- | ----- | ---- |
-| HKCU: \Software \Microsoft \Windows \CurrentVersion \Explorer \Accent | AccentColor | 4289992518 | Sets the accent colour on window title bars and borders |
-| HKCU: \Software \Microsoft \Windows \CurrentVersion \Explorer \Accent | AccentPalette | 86CAFF005FB2F2001E91EA000063B10000427500002D4F000020380000CC6A00 | Sets the accent colour on window title bars and borders |
-| HKCU: \Software \Microsoft \Windows \DWM | AccentColor | 4289815296 | Sets the accent colour on window title bars and borders |
-| HKCU: \Software \Microsoft \Windows \DWM | ColorizationAfterglow | 3288359857 | Sets the accent colour on window title bars and borders |
-| HKCU: \Software \Microsoft \Windows \DWM | ColorizationColor | 3288359857 | Sets the accent colour on window title bars and borders |
+|  |
+||
 
-## User-Windows11.All.json
 
-**Default user profile settings for Windows 11.**
+**Computer level settings for Windows Server editions with the Remote Desktop Services role.**
 
-| Minimum build | Maximum build | Type |
-| ------------- | ------------- | ---- |
-| 10.0.22000 | 10.0.29999 | DefaultProfile |
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393.0 | 10.0.99999.0 |
 
-| path | name | value | note |
-| ---- | ---- | ----- | ---- |
-| HKCU: \Software \Microsoft \Windows \CurrentVersion \Explorer \Advanced | TaskbarMn | 0 | Remove the Chat icon from the Taskbar - note: this value should not be needed on Windows 11 23H2 or higher |
-| HKCU: \Software \Microsoft \Windows \CurrentVersion \Explorer \Advanced | TaskbarDa | 0 | Remove the Widgets icon from the Taskbar - note: this value is protected by permissions |
-| HKCU: \Software \Microsoft \Windows \CurrentVersion \Start | VisiblePlaces | 188 36 138 20 12 214 137 66 160 128 110 217 187 162 72 130 134 8 115 82 170 81 67 66 159 123 39 118 88 70 89 212 | Adds 'Settings' and 'File Explorer' next to the power button on the Start menu. |
-| HKCU: \Software \Microsoft \Windows \CurrentVersion \Start | PlacesInitializedVersion | 2 | Required to support the setting selected for VisiblePlaces. |
-| HKCU: \Software \Microsoft \Windows \CurrentVersion \Explorer \Advanced | ShowNotificationIcon | 1 | Enables 'Notifications / Show notification bell icon' |
-| HKCU: \Software \Microsoft \Windows \CurrentVersion \Explorer \AutoInstalledPWAs | CopilotPWAPreinstallCompleted | 1 | Tells Windows that the Copilot PWA has been installed |
-| HKCU: \Software \Microsoft \Windows \CurrentVersion \Privacy | TailoredExperiencesWithDiagnosticDataEnabled | 0 | Disables 'Settings / Privacy & Security / Recommendations & offers / Personalised offers' |
-| HKCU: \Software \Microsoft \Windows \CurrentVersion \CPSS \Store \AdvertisingInfo | Value | 0 | Disables 'Settings / Privacy & Security / Recommendations & offers / Advertising ID' |
-| HKCU: \Software \Microsoft \Windows \CurrentVersion \AdvertisingInfo | Enabled | 0 | Disables 'Settings / Privacy & Security / Recommendations & offers / Advertising ID' |
-| HKCU: \Software \Microsoft \Windows \CurrentVersion \ContentDeliveryManager | SubscribedContent-338393Enabled | 0 | Disables suggested content in the Settings app |
-| HKCU: \Software \Microsoft \Windows \CurrentVersion \ContentDeliveryManager | SubscribedContent-353694Enabled | 0 | Disables suggested content in the Settings app |
-| HKCU: \Software \Microsoft \Windows \CurrentVersion \ContentDeliveryManager | SubscribedContent-353696Enabled | 0 | Disables suggested content in the Settings app |
-| HKCU: \Software \Microsoft \Windows \CurrentVersion \ContentDeliveryManager | SubscribedContent-338388Enabled | 0 | Disables suggested content in the Settings app |
-| HKCU: \Software \Microsoft \Windows \CurrentVersion \ContentDeliveryManager | SubscribedContent-338389Enabled | 0 | Disables suggested content in the Settings app |
-| HKCU: \Software \Microsoft \Windows \CurrentVersion \ContentDeliveryManager | RotatingLockScreenEnabled | 0 | Disables Windows Spotlight on the Lock Screen |
-| HKCU: \Software \Microsoft \Windows \CurrentVersion \ContentDeliveryManager | SubscribedContent-338387Enabled | 0 | Disables Windows Spotlight subscribed content on the Lock Screen |
-| HKCU: \Software \Microsoft \Windows \CurrentVersion \ContentDeliveryManager | SubscribedContent-338387Enabled | 0 | Disables Windows Spotlight subscribed content on the Lock Screen |
+|  |
+||
 
-## User-Windows2025.Server.json
+## Machine.TeamsCopilot.json
 
-**Default user profile settings for Windows Server 2025 and above.**
+**Computer level settings for Windows 11 21H2 to 23H2. Removes Microsoft Teams Chat and the Copilot button on the taskbar.**
 
-| Minimum build | Maximum build | Type |
-| ------------- | ------------- | ---- |
-| 10.0.26100 | 10.0.99999 | DefaultProfile |
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.22000.0 | 10.0.22631.0 |
 
 | path | name | value | note |
 | ---- | ---- | ----- | ---- |
-| HKCU: \Software \Microsoft \ServerManager | DoNotOpenServerManagerAtLogon | 1 | Prevents Server Manager from starting at login |
-| HKCU: \Software \Microsoft \Windows \CurrentVersion \Start | VisiblePlaces | 188 36 138 20 12 214 137 66 160 128 110 217 187 162 72 130 134 8 115 82 170 81 67 66 159 123 39 118 88 70 89 212 | Adds 'Settings' and 'File Explorer' next to the power button on the Start menu. |
-| HKCU: \Software \Microsoft \Windows \CurrentVersion \Start | PlacesInitializedVersion | 2 | Required to support the setting selected for VisiblePlaces. |
+| HKLM: \Software \Microsoft \Windows \CurrentVersion \Communications | ConfigureChatAutoInstall | 0 | Prevents the install of the consumer Microsoft Teams client |
+| HKLM: \Software \Microsoft \Windows \CurrentVersion \Explorer \Advanced | ShowCopilotButton | 0 | Removes the Copilot button from the taskbar |
+
+## Machine.TeamsCopilot.json
+
+**Computer level settings for Windows 11 21H2 to 23H2. Removes Microsoft Teams Chat and the Copilot button on the taskbar.**
+
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.22000.0 | 10.0.22631.0 |
+
+|  |
+||
 
 ## User.All.json
 
 **Default user profile settings for all Windows editions**
 
-| Minimum build | Maximum build | Type |
-| ------------- | ------------- | ---- |
-| 10.0.14393 | 10.0.99999 | DefaultProfile |
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393.0 | 10.0.99999.0 |
+
+|  |
+||
+
+## User.All.json
+
+**Default user profile settings for all Windows editions**
+
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393.0 | 10.0.99999.0 |
 
 | path | name | value | note |
 | ---- | ---- | ----- | ---- |
@@ -168,13 +224,34 @@ layout: doc
 | HKCU: \Software \Adobe \Adobe Acrobat \DC \AVAlert \cCheckbox | iAppDoNotTakePDFOwnershipAtLaunchWin10 | 1 | Prevents the default file type dialog box at Adobe Acrobat Pro/Standard DC first launch |
 | HKCU: \Software \Microsoft \Windows \DWM | ColorPrevalence | 1 | Enables 'Show accent colour on title bars and window borders' |
 
+
+**Default user profile settings for all Windows editions**
+
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393.0 | 10.0.99999.0 |
+
+|  |
+||
+
 ## User.Client.json
 
 **Default user profile settings for all Windows client editions**
 
-| Minimum build | Maximum build | Type |
-| ------------- | ------------- | ---- |
-| 10.0.14393 | 10.0.99999 | DefaultProfile |
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393.0 | 10.0.99999.0 |
+
+|  |
+||
+
+## User.Client.json
+
+**Default user profile settings for all Windows client editions**
+
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393.0 | 10.0.99999.0 |
 
 | path | name | value | note |
 | ---- | ---- | ----- | ---- |
@@ -183,28 +260,34 @@ layout: doc
 | HKCU: \Console \%%Startup | DelegationConsole | {2EACA947-7F5F-4CFA-BA87-8F7FBEEFBE69} | Sets Windows Terminal as the default terminal |
 | HKCU: \Console \%%Startup | DelegationTerminal | {E12CFF52-A866-4C77-9A90-F570A7AA2C6B} | Sets Windows Terminal as the default terminal |
 
-## User.Server.json
 
-**Default user profile settings for all Windows Server editions.**
+**Default user profile settings for all Windows client editions**
 
-| Minimum build | Maximum build | Type |
-| ------------- | ------------- | ---- |
-| 10.0.14393 | 10.0.20348 | DefaultProfile |
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393.0 | 10.0.99999.0 |
 
-| path | name | value | note |
-| ---- | ---- | ----- | ---- |
-| HKCU: \Software \Microsoft \ServerManager | DoNotOpenServerManagerAtLogon | 1 | Prevents Server Manager from starting at login |
-| HKCU: \Software \Microsoft \Windows \CurrentVersion \Themes \Personalize | EnableBlurBehind | 1 | Disable blur for the Start menu, Taskbar and windows |
-| HKCU: \Software \Microsoft \Windows \CurrentVersion \Search | SearchboxTaskbarMode | 0 | Hides the Search icon on the Taskbar |
-| HKCU: \Software \Microsoft \Windows \CurrentVersion \Explorer \Advanced | ShowTaskViewButton | 0 | Removes the Task View button on the Taskbar |
+|  |
+||
 
 ## User.Virtual.json
 
 **Default user profile settings for all Windows editions on virtual machines.**
 
-| Minimum build | Maximum build | Type |
-| ------------- | ------------- | ---- |
-| 10.0.14393 | 10.0.99999 | DefaultProfile |
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393.0 | 10.0.99999.0 |
+
+|  |
+||
+
+## User.Virtual.json
+
+**Default user profile settings for all Windows editions on virtual machines.**
+
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393.0 | 10.0.99999.0 |
 
 | path | name | value | note |
 | ---- | ---- | ----- | ---- |
@@ -225,3 +308,241 @@ layout: doc
 | HKCU: \Software \Microsoft \Windows \CurrentVersion \BackgroundAccessApplications \Microsoft.Windows.Photos_8wekyb3d8bbwe | DisabledByUser | 1 | Prevents the Photos app from running in the background |
 | HKCU: \Software \Microsoft \Windows \CurrentVersion \BackgroundAccessApplications \Microsoft.YourPhone_8wekyb3d8bbwe | Disabled | 1 | Prevents the Your Phone app from running in the background |
 | HKCU: \Software \Microsoft \Windows \CurrentVersion \BackgroundAccessApplications \Microsoft.YourPhone_8wekyb3d8bbwe | DisabledByUser | 1 | Prevents the Your Phone app from running in the background |
+
+
+**Default user profile settings for all Windows editions on virtual machines.**
+
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393.0 | 10.0.99999.0 |
+
+|  |
+||
+
+## User.Windows10.json
+
+**Default user profile settings for Windows 10.**
+
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393.0 | 10.0.20999.0 |
+
+|  |
+||
+
+## User.Windows10.json
+
+**Default user profile settings for Windows 10.**
+
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393.0 | 10.0.20999.0 |
+
+| path | name | value | note |
+| ---- | ---- | ----- | ---- |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \Explorer \Accent | AccentColor | 4289992518 | Sets the accent colour on window title bars and borders |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \Explorer \Accent | AccentPalette | 86CAFF005FB2F2001E91EA000063B10000427500002D4F000020380000CC6A00 | Sets the accent colour on window title bars and borders |
+| HKCU: \Software \Microsoft \Windows \DWM | AccentColor | 4289815296 | Sets the accent colour on window title bars and borders |
+| HKCU: \Software \Microsoft \Windows \DWM | ColorizationAfterglow | 3288359857 | Sets the accent colour on window title bars and borders |
+| HKCU: \Software \Microsoft \Windows \DWM | ColorizationColor | 3288359857 | Sets the accent colour on window title bars and borders |
+
+
+**Default user profile settings for Windows 10.**
+
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393.0 | 10.0.20999.0 |
+
+|  |
+||
+
+## User.Windows11.json
+
+**Default user profile settings for Windows 11.**
+
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.22000.0 | 10.0.29999.0 |
+
+|  |
+||
+
+## User.Windows11.json
+
+**Default user profile settings for Windows 11.**
+
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.22000.0 | 10.0.29999.0 |
+
+| path | name | value | note |
+| ---- | ---- | ----- | ---- |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \Explorer \Advanced | TaskbarMn | 0 | Remove the Chat icon from the Taskbar - note: this value should not be needed on Windows 11 23H2 or higher |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \Explorer \Advanced | TaskbarDa | 0 | Remove the Widgets icon from the Taskbar - note: this value is protected by permissions |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \Start | VisiblePlaces | 188 36 138 20 12 214 137 66 160 128 110 217 187 162 72 130 134 8 115 82 170 81 67 66 159 123 39 118 88 70 89 212 | Adds 'Settings' and 'File Explorer' next to the power button on the Start menu. |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \Start | PlacesInitializedVersion | 2 | Required to support the setting selected for VisiblePlaces. |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \Explorer \Advanced | ShowNotificationIcon | 1 | Enables 'Notifications / Show notification bell icon' |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \Explorer \AutoInstalledPWAs | CopilotPWAPreinstallCompleted | 1 | Tells Windows that the Copilot PWA has been installed |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \Privacy | TailoredExperiencesWithDiagnosticDataEnabled | 0 | Disables 'Settings / Privacy & Security / Recommendations & offers / Personalised offers' |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \CPSS \Store \AdvertisingInfo | Value | 0 | Disables 'Settings / Privacy & Security / Recommendations & offers / Advertising ID' |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \AdvertisingInfo | Enabled | 0 | Disables 'Settings / Privacy & Security / Recommendations & offers / Advertising ID' |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \ContentDeliveryManager | SubscribedContent-338393Enabled | 0 | Disables suggested content in the Settings app |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \ContentDeliveryManager | SubscribedContent-353694Enabled | 0 | Disables suggested content in the Settings app |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \ContentDeliveryManager | SubscribedContent-353696Enabled | 0 | Disables suggested content in the Settings app |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \ContentDeliveryManager | SubscribedContent-338388Enabled | 0 | Disables suggested content in the Settings app |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \ContentDeliveryManager | SubscribedContent-338389Enabled | 0 | Disables suggested content in the Settings app |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \ContentDeliveryManager | RotatingLockScreenEnabled | 0 | Disables Windows Spotlight on the Lock Screen |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \ContentDeliveryManager | SubscribedContent-338387Enabled | 0 | Disables Windows Spotlight subscribed content on the Lock Screen |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \ContentDeliveryManager | SubscribedContent-338387Enabled | 0 | Disables Windows Spotlight subscribed content on the Lock Screen |
+
+
+**Default user profile settings for Windows 11.**
+
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.22000.0 | 10.0.29999.0 |
+
+|  |
+||
+
+## User.Windows2022RDS.json
+
+**Default user profile settings for all Windows Server 2022 and below editions.**
+
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393.0 | 10.0.20348.0 |
+
+|  |
+||
+
+## User.Windows2022RDS.json
+
+**Default user profile settings for all Windows Server 2022 and below editions.**
+
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393.0 | 10.0.20348.0 |
+
+| path | name | value | note |
+| ---- | ---- | ----- | ---- |
+| HKCU: \Software \Microsoft \ServerManager | DoNotOpenServerManagerAtLogon | 1 | Prevents Server Manager from starting at login |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \Themes \Personalize | EnableBlurBehind | 1 | Disable blur for the Start menu, Taskbar and windows |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \Search | SearchboxTaskbarMode | 0 | Hides the Search icon on the Taskbar |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \Explorer \Advanced | ShowTaskViewButton | 0 | Removes the Task View button on the Taskbar |
+
+
+**Default user profile settings for all Windows Server 2022 and below editions.**
+
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393.0 | 10.0.20348.0 |
+
+|  |
+||
+
+## User.Windows2022Server.json
+
+**Default user profile settings for all Windows Server 2022 and below editions.**
+
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393.0 | 10.0.20348.0 |
+
+|  |
+||
+
+## User.Windows2022Server.json
+
+**Default user profile settings for all Windows Server 2022 and below editions.**
+
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393.0 | 10.0.20348.0 |
+
+| path | name | value | note |
+| ---- | ---- | ----- | ---- |
+| HKCU: \Software \Microsoft \ServerManager | DoNotOpenServerManagerAtLogon | 1 | Prevents Server Manager from starting at login |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \Themes \Personalize | EnableBlurBehind | 1 | Disable blur for the Start menu, Taskbar and windows |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \Search | SearchboxTaskbarMode | 0 | Hides the Search icon on the Taskbar |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \Explorer \Advanced | ShowTaskViewButton | 0 | Removes the Task View button on the Taskbar |
+
+
+**Default user profile settings for all Windows Server 2022 and below editions.**
+
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.14393.0 | 10.0.20348.0 |
+
+|  |
+||
+
+## User.Windows2025RDS.json
+
+**Default user profile settings for Windows Server 2025 Remote Desktop Services Host and above.**
+
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.26100.0 | 10.0.99999.0 |
+
+|  |
+||
+
+## User.Windows2025RDS.json
+
+**Default user profile settings for Windows Server 2025 Remote Desktop Services Host and above.**
+
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.26100.0 | 10.0.99999.0 |
+
+| path | name | value | note |
+| ---- | ---- | ----- | ---- |
+| HKCU: \Software \Microsoft \ServerManager | DoNotOpenServerManagerAtLogon | 1 | Prevents Server Manager from starting at login |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \Start | VisiblePlaces | 188 36 138 20 12 214 137 66 160 128 110 217 187 162 72 130 134 8 115 82 170 81 67 66 159 123 39 118 88 70 89 212 | Adds 'Settings' and 'File Explorer' next to the power button on the Start menu. |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \Start | PlacesInitializedVersion | 2 | Required to support the setting selected for VisiblePlaces. |
+
+
+**Default user profile settings for Windows Server 2025 Remote Desktop Services Host and above.**
+
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.26100.0 | 10.0.99999.0 |
+
+|  |
+||
+
+## User.Windows2025Server.json
+
+**Default user profile settings for Windows Server 2025 and above.**
+
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.26100.0 | 10.0.99999.0 |
+
+|  |
+||
+
+## User.Windows2025Server.json
+
+**Default user profile settings for Windows Server 2025 and above.**
+
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.26100.0 | 10.0.99999.0 |
+
+| path | name | value | note |
+| ---- | ---- | ----- | ---- |
+| HKCU: \Software \Microsoft \ServerManager | DoNotOpenServerManagerAtLogon | 1 | Prevents Server Manager from starting at login |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \Start | VisiblePlaces | 188 36 138 20 12 214 137 66 160 128 110 217 187 162 72 130 134 8 115 82 170 81 67 66 159 123 39 118 88 70 89 212 | Adds 'Settings' and 'File Explorer' next to the power button on the Start menu. |
+| HKCU: \Software \Microsoft \Windows \CurrentVersion \Start | PlacesInitializedVersion | 2 | Required to support the setting selected for VisiblePlaces. |
+
+
+**Default user profile settings for Windows Server 2025 and above.**
+
+| Minimum build | Maximum build |
+| ------------- | ------------- |
+| 10.0.26100.0 | 10.0.99999.0 |
+
+|  |
+||
