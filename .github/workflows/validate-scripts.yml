@@ -60,10 +60,8 @@ jobs:
           $Config.Run.PassThru = $true
           $Config.CodeCoverage.Enabled = $true
           $Config.CodeCoverage.CoveragePercentTarget = 50
-          $Config.CodeCoverage.Path = "$env:GITHUB_WORKSPACE\src"
-          $Config.CodeCoverage.Exclude = @(
-            "$env:GITHUB_WORKSPACE\src\Start-DefaultsViewer.ps1"
-          )
+          $Files = Get-ChildItem -Path "$env:GITHUB_WORKSPACE\src" -Recurse -File -Include *.ps1 -Exclude "Start-DefaultsViewer.ps1"
+          $Config.CodeCoverage.Path = $Files.FullName
           $Config.CodeCoverage.OutputFormat = "JaCoCo"
           $Config.CodeCoverage.OutputPath = "$env:GITHUB_WORKSPACE\CodeCoverage.xml"
           $Config.TestResult.Enabled = $true
