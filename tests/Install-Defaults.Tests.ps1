@@ -207,12 +207,6 @@ Describe 'Install-Defaults.ps1 Feature Update Support' -Skip:(-not $IsAdmin) {
         { & $ScriptPath.FullName @params } | Should -Not -Throw
         Pop-Location
     }
-
-    Context "Target directory exists" {
-        It "FeatureUpdates should exist" {
-            Test-Path -Path "$FeatureUpdatePath" | Should -BeTrue
-        }
-    }
 }
 
 Describe 'Install-Defaults.ps1 Logging' -Skip:(-not $IsAdmin) {

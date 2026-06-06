@@ -44,16 +44,18 @@ Describe 'Module Import' {
 
     It 'Should export expected functions' {
         $ExportedFunctions = @(
-            'Get-Symbol', 'Write-Message', 'Write-LogFile',
-            'Get-Platform', 'Get-OSName', 'Get-Model',
-            'Set-RegistryOwner',
-            'Set-Registry', 'Remove-RegistryPath', 'Set-DefaultUserProfile',
-            'Copy-File', 'New-Directory', 'Remove-Path',
-            'Remove-Feature', 'Remove-Capability', 'Remove-Package',
-            'Get-CurrentUserSid', 'Restart-NamedService',
+            'Add-Capability', 'Add-Feature',
+            'Copy-File', 'Copy-RegExe',
+            'Get-CurrentUserSid', 'Get-Model', 'Get-OSName', 'Get-Platform', 'Get-Symbol',
+            'Install-SystemLanguage', 'IsAdministrator',
+            'New-Directory',
+            'Remove-Capability', 'Remove-Feature', 'Remove-Package', 'Remove-Path', 'Remove-RegistryPath',
+            'Restart-NamedService',
+            'Set-DefaultUserProfile', 'Set-Registry', 'Set-RegistryOwner', 'Set-Shortcut',
+            'Set-SystemLocale', 'Set-TimeZoneUsingName',
             'Start-NamedService', 'Stop-NamedService',
-            'Install-SystemLanguage', 'Set-SystemLocale',
-            'Set-TimeZoneUsingName', 'Test-IsOobeComplete', 'Copy-RegExe'
+            'Test-IsOobeComplete',
+            'Write-LogFile', 'Write-Message'
         )
         
         $Module = Get-Module -Name 'Install-Defaults'
@@ -121,15 +123,15 @@ Describe 'Write-LogFile' {
 Describe 'Get-Platform' {
     It 'Should return a valid platform' {
         $Result = Get-Platform
-        $Result | Should -BeIn @('Client', 'Server')
+        $Result | Should -BeIn @('client', 'server', 'rds-server')
     }
 
     It 'Should match OS type' {
         $Result = Get-Platform
         if ($OSInfo.IsServer) {
-            $Result | Should -Be 'Server'
+            $Result | Should -BeIn @('server', 'rds-server')
         } else {
-            $Result | Should -Be 'Client'
+            $Result | Should -Be 'client'
         }
     }
 }
@@ -314,6 +316,57 @@ Describe 'Service Management Functions' {
 
     It 'Should handle Restart-NamedService with WhatIf' {
         { Restart-NamedService -Service @($TestService) -Confirm:$false -WhatIf } | Should -Not -Throw
+    }
+}
+
+Describe 'Set-Shortcut' {
+    BeforeAll {
+        $TestLnkPath = "$env:TEMP\PesterTestShortcut.lnk"
+        try {
+            $Shell = New-Object -ComObject "WScript.Shell"
+            $Shortcut = $Shell.CreateShortcut($TestLnkPath)
+            $Shortcut.TargetPath = "C:\Windows\System32\notepad.exe"
+            $Shortcut.Save()
+        }
+        finally {
+            if ($null -ne $Shell) { [System.Runtime.InteropServices.Marshal]::ReleaseComObject($Shell) | Out-Null }
+        }
+    }
+
+    It 'Should throw for a non-existent shortcut path' {
+        { Set-Shortcut -Path "$env:TEMP\DoesNotExist.lnk" -Target "C:\Windows\System32\notepad.exe" -Confirm:$false } | Should -Throw
+    }
+
+    It 'Should set a new target on an existing shortcut' {
+        { Set-Shortcut -Path $TestLnkPath -Target "C:\Windows\System32\notepad.exe" -Confirm:$false } | Should -Not -Throw
+    }
+
+    It 'Should set arguments on an existing shortcut' {
+        { Set-Shortcut -Path $TestLnkPath -Arguments "/A" -Confirm:$false } | Should -Not -Throw
+    }
+
+    It 'Should append arguments to an existing shortcut' {
+        { Set-Shortcut -Path $TestLnkPath -Arguments " --debug" -Append -Confirm:$false } | Should -Not -Throw
+    }
+
+    It 'Should set working directory on an existing shortcut' {
+        { Set-Shortcut -Path $TestLnkPath -WorkingDirectory "C:\Windows" -Confirm:$false } | Should -Not -Throw
+    }
+
+    It 'Should set description on an existing shortcut' {
+        { Set-Shortcut -Path $TestLnkPath -Description "Test shortcut" -Confirm:$false } | Should -Not -Throw
+    }
+
+    It 'Should support WindowStyle parameter' {
+        { Set-Shortcut -Path $TestLnkPath -WindowStyle "Normal" -Confirm:$false } | Should -Not -Throw
+    }
+
+    It 'Should support WhatIf without modifying the shortcut' {
+        { Set-Shortcut -Path $TestLnkPath -Target "C:\Windows\System32\calc.exe" -WhatIf -Confirm:$false } | Should -Not -Throw
+    }
+
+    AfterAll {
+        if (Test-Path $TestLnkPath) { Remove-Item -Path $TestLnkPath -Force -ErrorAction SilentlyContinue }
     }
 }
 
