@@ -1,4 +1,5 @@
 {
+    "$schema": "https://raw.githubusercontent.com/aaronparker/defaults/refs/heads/main/schema/configuration.schema.json",
     "Description": "Computer level settings for Windows 11 21H2 to 23H2. Removes Microsoft Teams Chat and the Copilot button on the taskbar.",
     "MinimumBuild": "10.0.22000.0",
     "MaximumBuild": "10.0.22631.0",

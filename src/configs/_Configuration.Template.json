@@ -1,7 +1,8 @@
 {
+    "$schema": "https://raw.githubusercontent.com/aaronparker/defaults/refs/heads/main/schema/configuration.schema.json",
     "Description": "Configuration settings template file.",
-    "MinimumBuild": "10.0.14393",
-    "MaximumBuild": "10.0.99999",
+    "MinimumBuild": "10.0.14393.0",
+    "MaximumBuild": "10.0.99999.0",
     "Targets": {
         "Platforms": [
             "client",
