@@ -69,10 +69,6 @@
     "Files": {
         "Copy": [
             {
-                "Source": "apps\\initial_preferences.json",
-                "Destination": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\initial_preferences"
-            },
-            {
                 "Source": "start\\Windows2025RDSStart.bin",
                 "Destination": "C:\\Users\\Default\\AppData\\Local\\Packages\\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\\LocalState\\start2.bin"
             }

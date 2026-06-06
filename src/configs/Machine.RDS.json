@@ -38,13 +38,17 @@
         "Edit": []
     },
     "Services": {
-        "Feature": "RDS-RD-Server",
         "Enable": [
             "Audiosrv",
             "WSearch"
         ]
     },
     "Files": {
-        "Copy": []
+        "Copy": [
+            {
+                "Source": "apps\\initial_preferences.json",
+                "Destination": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\initial_preferences"
+            }
+        ]
     }
 }
