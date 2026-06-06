@@ -56,9 +56,10 @@ Start-Process @params
 $params = @{
     Path        = $PackageOutput
     Filter      = "*.intunewin"
+    Recurse     = $true
     ErrorAction = "Stop"
 }
-$IntuneWinFile = Get-ChildItem
+$IntuneWinFile = Get-ChildItem @params
 Write-Information -InformationAction "Continue" -MessageData "Found package: $($IntuneWinFile.FullName)."
 #endregion
 
