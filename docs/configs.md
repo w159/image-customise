@@ -7,26 +7,34 @@ Configuration changes are implemented with `Install-Defaults.ps1`. This script r
 
 Configurations are stored in the following JSON files with the logic to make changes to Windows includes in `Install-Defaults.ps1`:
 
-* [Build.All.json](https://github.com/aaronparker/defaults/blob/main/src/Build.All.json)
-* [Machine-Windows11.All.json](https://github.com/aaronparker/defaults/blob/main/src/Machine-Windows11.All.json)
-* [Machine.All.json](https://github.com/aaronparker/defaults/blob/main/src/Machine.All.json)
-* [Machine.Client.json](https://github.com/aaronparker/defaults/blob/main/src/Machine.Client.json)
-* [Machine.Server.json](https://github.com/aaronparker/defaults/blob/main/src/Machine.Server.json)
-* [User-Windows10.All.json](https://github.com/aaronparker/defaults/blob/main/src/User-Windows10.All.json)
-* [User-Windows11.All.json](https://github.com/aaronparker/defaults/blob/main/src/User-Windows11.All.json)
-* [User.All.json](https://github.com/aaronparker/defaults/blob/main/src/User.All.json)
-* [User.Client.json](https://github.com/aaronparker/defaults/blob/main/src/User.Client.json)
-* [User.Server.json](https://github.com/aaronparker/defaults/blob/main/src/User.Machine.json)
-* [User.Virtual.json](https://github.com/aaronparker/defaults/blob/main/src/User.Virtual.json)
+* [Machine.All.json](https://github.com/aaronparker/defaults/blob/main/src/configs/Machine.All.json)
+* [Machine.Client.json](https://github.com/aaronparker/defaults/blob/main/src/configs/Machine.Client.json)
+* [Machine.RDS.json](https://github.com/aaronparker/defaults/blob/main/src/configs/Machine.RDS.json)
+* [Machine.TeamsCopilot.json](https://github.com/aaronparker/defaults/blob/main/src/configs/Machine.TeamsCopilot.json)
+* [User.All.json](https://github.com/aaronparker/defaults/blob/main/src/configs/User.All.json)
+* [User.Client.json](https://github.com/aaronparker/defaults/blob/main/src/configs/User.Client.json)
+* [User.Virtual.json](https://github.com/aaronparker/defaults/blob/main/src/configs/User.Virtual.json)
+* [User.Windows10.json](https://github.com/aaronparker/defaults/blob/main/src/configs/User.Windows10.json)
+* [User.Windows11.json](https://github.com/aaronparker/defaults/blob/main/src/configs/User.Windows11.json)
+* [User.Windows2022RDS.json](https://github.com/aaronparker/defaults/blob/main/src/configs/User.Windows2022RDS.json)
+* [User.Windows2022Server.json](https://github.com/aaronparker/defaults/blob/main/src/configs/User.Windows2022Server.json)
+* [User.Windows2025RDS.json](https://github.com/aaronparker/defaults/blob/main/src/configs/User.Windows2025RDS.json)
+* [User.Windows2025Server.json](https://github.com/aaronparker/defaults/blob/main/src/configs/User.Windows2025Server.json)
+
+## Applicability
+
+The applicability of the configurations is determined
 
 JSON files are gathered based on properties of the local Windows instance. The following keywords, used in the file names, ensure that the right JSON files are selected:
 
-* `Client` - Windows 10 or Windows 11
-* `Server` - Windows Server 2016, 2019, 2022, 2025 etc.
-* `Virtual` - Virtual machines, e.g. Hyper-V, Azure, vSphere, Parallels etc.
-* `All` - applies to all Windows install types
+* `client` - Windows 10 or Windows 11
+* `server` - Windows Server (e.g. Windows Server 2022, 2025)
+* `rds-server` - Windows Server Remote Desktop Services hosts
+* `multisession` - Not currently used. Intended for Windows multi-session in the future
 
-Each JSON file includes a `MinimumBuild` property that can be used to ensure specific configurations only apply to a specific version of Windows or above. For example, the property might ensure that configurations only apply to Windows 10 version `10.0.19041` and above.
+Each JSON file includes a `MinimumBuild` and `MaximumBuild` properties that are used to ensure configurations only apply to a specific versions of Windows. For example, the property might ensure that configurations only apply to Windows 10 version `10.0.19041` and above.
+
+All JSON files the `config` directory are read and then filtered based on these properties to create a list of configurations to apply to the current system.
 
 ## Configuration Viewer
 
@@ -37,6 +45,8 @@ The repository includes a read-only WPF viewer script to inspect configuration f
 ```
 
 The viewer reads JSON files from `src\configs`, shows all available profiles in a list, and renders each section with a user-friendly detail panel. Item-level descriptions are shown from `note` fields where available and from the configuration schema where possible.
+
+![](img/configviewer.png)
 
 ## Other Configurations
 
