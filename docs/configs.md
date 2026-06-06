@@ -23,9 +23,7 @@ Configurations are stored in the following JSON files with the logic to make cha
 
 ## Applicability
 
-The applicability of the configurations is determined
-
-JSON files are gathered based on properties of the local Windows instance. The following keywords, used in the file names, ensure that the right JSON files are selected:
+The applicability of the configurations is determined based on properties of the local Windows instance. The following keywords, used in the file names, ensure that the right JSON files are selected:
 
 * `client` - Windows 10 or Windows 11
 * `server` - Windows Server (e.g. Windows Server 2022, 2025)
