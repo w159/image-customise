@@ -258,19 +258,20 @@ try {
     #endregion
 
     #region Copy the source files for use with upgrades
-    if (Test-Path -Path "$FeatureUpdatePath\Install-Defaults.ps1" -PathType "Leaf") {
-        Write-LogFile -Message "Skipping copy to $FeatureUpdatePath"
+    try {
+        Write-LogFile -Message "New directory: $FeatureUpdatePath"
+        if (Test-Path -Path "$FeatureUpdatePath" -PathType "Container") {
+            Write-LogFile -Message "Directory already exists: $FeatureUpdatePath"
+        }
+        else {
+            Write-LogFile -Message "Creating directory: $FeatureUpdatePath"
+            New-Item -Path $FeatureUpdatePath -ItemType "Directory" -Force | Out-Null
+        }
+        Copy-Item -Path "$WorkingPath\*" -Destination $FeatureUpdatePath -Recurse -Force
+        Write-LogFile -Message "Copied $WorkingPath\* to $FeatureUpdatePath"
     }
-    else {
-        try {
-            Write-LogFile -Message "New directory: $FeatureUpdatePath"
-            New-Item -Path $FeatureUpdatePath -ItemType "Directory" -Force -ErrorAction "SilentlyContinue" | Out-Null
-            Copy-Item -Path "$WorkingPath\*" -Destination $FeatureUpdatePath -Recurse -ErrorAction "SilentlyContinue"
-            Write-LogFile -Message "Copied $WorkingPath\* to $FeatureUpdatePath"
-        }
-        catch {
-            Write-LogFile -Message $_.Exception.Message -LogLevel 3
-        }
+    catch {
+        Write-LogFile -Message $_.Exception.Message -LogLevel 3
     }
 }
 #endregion
@@ -281,12 +282,9 @@ catch {
     Write-LogFile -Message "Script: $($_.InvocationInfo.ScriptName)" -LogLevel 3
     Write-LogFile -Message "Line: $($_.InvocationInfo.ScriptLineNumber)" -LogLevel 3
     Write-LogFile -Message "Offset: $($_.InvocationInfo.OffsetInLine)" -LogLevel 3
-    #Write-LogFile -Message "Command: $($_.InvocationInfo.MyCommand)" -LogLevel 3
     Write-LogFile -Message "Line text: $($_.InvocationInfo.Line.Trim())" -LogLevel 3
-    #Write-LogFile -Message "Position: $($_.InvocationInfo.PositionMessage)" -LogLevel 3
     Write-LogFile -Message "Category: $($_.CategoryInfo)" -LogLevel 3
     Write-LogFile -Message "FullyQualifiedErrorId: $($_.FullyQualifiedErrorId)" -LogLevel 3
-    #Write-LogFile -Message "ScriptStackTrace: $($_.ScriptStackTrace)" -LogLevel 3
 }
 
 #region Set uninstall registry value for detecting as an installed application
