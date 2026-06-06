@@ -1,7 +1,7 @@
 {
     "Description": "Default user profile settings for all Windows Server 2022 and below editions.",
-    "MinimumBuild": "10.0.14393",
-    "MaximumBuild": "10.0.20348",
+    "MinimumBuild": "10.0.14393.0",
+    "MaximumBuild": "10.0.20348.0",
     "Targets": {
         "Platforms": [
             "server"

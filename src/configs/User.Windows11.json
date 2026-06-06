@@ -1,7 +1,7 @@
 {
     "Description": "Default user profile settings for Windows 11.",
-    "MinimumBuild": "10.0.22000",
-    "MaximumBuild": "10.0.29999",
+    "MinimumBuild": "10.0.22000.0",
+    "MaximumBuild": "10.0.29999.0",
     "Targets": {
         "Platforms": [
             "client"

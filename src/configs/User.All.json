@@ -1,7 +1,7 @@
 {
     "Description": "Default user profile settings for all Windows editions",
-    "MinimumBuild": "10.0.14393",
-    "MaximumBuild": "10.0.99999",
+    "MinimumBuild": "10.0.14393.0",
+    "MaximumBuild": "10.0.99999.0",
     "Targets": {
         "Platforms": [
             "client",
