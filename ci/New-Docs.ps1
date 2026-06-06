@@ -68,7 +68,7 @@ foreach ($file in $Configs) {
     if ($file.Name -like "_*") { continue }
     $json = Get-Content -Path $file.FullName | ConvertFrom-Json
 
-    if ($json.Capabilities.Remove.Count -gt 0) {
+    if ($json.Capabilities.Remove.Count -gt 0 -or $json.Features.Disable.Count -gt 0 -or $json.Packages.Remove.Count -gt 0) {
         $Markdown += New-MDHeader -Text $file.Name -Level 2
         $Markdown += "`n"
         $Markdown += "**$($json.Description)**`n`n"
@@ -78,50 +78,39 @@ foreach ($file in $Configs) {
         }
         $Markdown += $Table | New-MDTable -Shrink
         $Markdown += "`n"
-        $Markdown += $json.Capabilities.Remove | ForEach-Object {
-            [PSCustomObject]@{
-                "Capability" = $_
-            }
-        } | New-MDTable -Shrink
-        $Markdown += "`n"
-    }
 
-    if ($json.Features.Disable.Count -gt 0) {
-        $Markdown += "`n"
-        $Markdown += New-MDHeader -Text $file.Name -Level 2
-        $Markdown += "`n"
-        $Markdown += "**$($json.Description)**`n`n"
-        $Table = [PSCustomObject]@{
-            "Minimum build" = $json.MinimumBuild
-            "Maximum build" = $json.MaximumBuild
+        if ($json.Capabilities.Remove.Count -gt 0) {
+            $Markdown += New-MDHeader -Text "Removed Capabilities" -Level 3
+            $Markdown += "`n"
+            $Markdown += $json.Capabilities.Remove | ForEach-Object {
+                [PSCustomObject]@{
+                    "Capability" = $_
+                }
+            } | New-MDTable -Shrink
+            $Markdown += "`n"
         }
-        $Markdown += $Table | New-MDTable -Shrink
-        $Markdown += "`n"
-        $Markdown += $json.Features.Disable | ForEach-Object {
-            [PSCustomObject]@{
-                "Feature" = $_
-            }
-        } | New-MDTable -Shrink
-        $Markdown += "`n"
-    }
 
-    if ($json.Packages.Remove.Count -gt 0) {
-        $Markdown += "`n"
-        $Markdown += New-MDHeader -Text $file.Name -Level 2
-        $Markdown += "`n"
-        $Markdown += "**$($json.Description)**`n`n"
-        $Table = [PSCustomObject]@{
-            "Minimum build" = $json.MinimumBuild
-            "Maximum build" = $json.MaximumBuild
+        if ($json.Features.Disable.Count -gt 0) {
+            $Markdown += New-MDHeader -Text "Disabled Features" -Level 3
+            $Markdown += "`n"
+            $Markdown += $json.Features.Disable | ForEach-Object {
+                [PSCustomObject]@{
+                    "Feature" = $_
+                }
+            } | New-MDTable -Shrink
+            $Markdown += "`n"
         }
-        $Markdown += $Table | New-MDTable -Shrink
-        $Markdown += "`n"
-        $Markdown += $json.Packages.Remove | ForEach-Object {
-            [PSCustomObject]@{
-                "Feature" = $_
-            }
-        } | New-MDTable -Shrink
-        $Markdown += "`n"
+
+        if ($json.Packages.Remove.Count -gt 0) {
+            $Markdown += New-MDHeader -Text "Removed Packages" -Level 3
+            $Markdown += "`n"
+            $Markdown += $json.Packages.Remove | ForEach-Object {
+                [PSCustomObject]@{
+                    "Package" = $_
+                }
+            } | New-MDTable -Shrink
+            $Markdown += "`n"
+        }
     }
 }
 ($Markdown.TrimEnd("`n")) | Out-File -FilePath $OutFile -Force -Encoding "Utf8"

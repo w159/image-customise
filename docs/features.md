@@ -11,6 +11,8 @@ layout: doc
 | ------------- | ------------- |
 | 10.0.14393.0 | 10.0.99999.0 |
 
+### Removed Capabilities
+
 | Capability |
 | ---------- |
 | Media.WindowsMediaPlayer~~~~0.0.12.0 |
@@ -19,14 +21,7 @@ layout: doc
 | Print.Fax.Scan~~~~0.0.1.0 |
 | Print.Management.Console~~~~0.0.1.0 |
 
-
-## Machine.All.json
-
-**Computer level settings for all Windows 10 and above.**
-
-| Minimum build | Maximum build |
-| ------------- | ------------- |
-| 10.0.14393.0 | 10.0.99999.0 |
+### Disabled Features
 
 | Feature |
 | ------- |
@@ -38,15 +33,8 @@ layout: doc
 | MicrosoftWindowsPowerShellV2Root |
 | MicrosoftWindowsPowerShellV2 |
 
+### Removed Packages
 
-## Machine.All.json
-
-**Computer level settings for all Windows 10 and above.**
-
-| Minimum build | Maximum build |
-| ------------- | ------------- |
-| 10.0.14393.0 | 10.0.99999.0 |
-
-| Feature |
+| Package |
 | ------- |
 | Microsoft-Windows-MediaPlayer-Package* |
