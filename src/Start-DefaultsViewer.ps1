@@ -1,0 +1,1063 @@
+<#
+    .SYNOPSIS
+    GUI viewer for Windows Enterprise Defaults configuration profiles.
+#>
+[CmdletBinding(SupportsShouldProcess = $false)]
+param(
+    [System.String] $ConfigsPath = (Join-Path -Path $PSScriptRoot -ChildPath "configs"),
+    [System.String] $SchemaUrl = "https://raw.githubusercontent.com/aaronparker/defaults/refs/heads/main/schema/configuration.schema.json"
+)
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
+
+Add-Type -AssemblyName PresentationFramework
+Add-Type -AssemblyName PresentationCore
+Add-Type -AssemblyName WindowsBase
+
+# P/Invoke wrapper used to set the OS title-bar caption colour via DWM
+Add-Type -TypeDefinition @"
+using System;
+using System.Runtime.InteropServices;
+public static class DwmHelper {
+    [DllImport("dwmapi.dll")]
+    public static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
+    public const int DWMWA_CAPTION_COLOR = 35;
+}
+"@
+
+function Get-ObjectPropertyValue {
+    param(
+        [System.Object] $Object,
+        [System.String] $Name
+    )
+
+    if ($null -eq $Object) {
+        return $null
+    }
+
+    $property = $Object.PSObject.Properties[$Name]
+    if ($null -ne $property) {
+        return $property.Value
+    }
+
+    return $null
+}
+
+function Get-FallbackSchemaMap {
+    $map = @{}
+
+    $map["Description"] = "Human-readable description of the configuration profile."
+    $map["MinimumBuild"] = "Minimum Windows build number this profile applies to."
+    $map["MaximumBuild"] = "Maximum Windows build number this profile applies to."
+    $map["Targets"] = "Target device attributes used to determine profile applicability."
+    $map["Targets.Platforms"] = "Supported OS platform categories."
+    $map["Targets.Models"] = "Hardware model categories."
+
+    $map["MachineRegistry"] = "Registry operations for HKLM and machine-scoped hives."
+    $map["MachineRegistry.ChangeOwner"] = "Registry keys where owner or SID updates are required before modification."
+    $map["MachineRegistry.ChangeOwner.Root"] = "Registry root hive."
+    $map["MachineRegistry.ChangeOwner.Key"] = "Registry key path."
+    $map["MachineRegistry.ChangeOwner.Sid"] = "Security identifier to assign as owner."
+    $map["MachineRegistry.ChangeOwner.note"] = "Reason for the ownership change."
+    $map["MachineRegistry.Set"] = "Registry values to set at machine scope."
+    $map["MachineRegistry.Set.path"] = "Registry key path."
+    $map["MachineRegistry.Set.name"] = "Registry value name."
+    $map["MachineRegistry.Set.type"] = "Registry value type."
+    $map["MachineRegistry.Set.value"] = "Registry value data."
+    $map["MachineRegistry.Set.protected"] = "When true, preserve value from later overrides or removal steps."
+    $map["MachineRegistry.Set.note"] = "Human-readable explanation for this setting."
+    $map["MachineRegistry.Remove"] = "Machine registry paths to remove when present."
+    $map["MachineRegistry.Remove.path"] = "Registry path to remove."
+    $map["MachineRegistry.Remove.note"] = "Reason for removing this path."
+
+    $map["UserRegistry"] = "Registry operations for HKCU and user-scoped hives."
+    $map["UserRegistry.Source"] = "Source profile or group for this user registry block."
+    $map["UserRegistry.Set"] = "Registry values to set at user scope."
+    $map["UserRegistry.Set.path"] = "Registry key path."
+    $map["UserRegistry.Set.name"] = "Registry value name."
+    $map["UserRegistry.Set.type"] = "Preferred registry value type field."
+    $map["UserRegistry.Set.Type"] = "Legacy casing for registry value type."
+    $map["UserRegistry.Set.value"] = "Registry value data."
+    $map["UserRegistry.Set.protected"] = "When true, preserve value from later overrides or removal steps."
+    $map["UserRegistry.Set.note"] = "Human-readable explanation for this setting."
+    $map["UserRegistry.Others"] = "Registry values applied for non-default user contexts."
+
+    $map["Paths"] = "Path operations."
+    $map["Paths.Remove"] = "File system paths to remove."
+
+    $map["Features"] = "Optional Windows features configuration."
+    $map["Features.Disable"] = "Optional Windows features to disable."
+
+    $map["Capabilities"] = "Windows capability package operations."
+    $map["Capabilities.Remove"] = "Capability names to remove."
+    $map["Capabilities.Others"] = "Additional capability names to remove for special cases."
+
+    $map["Packages"] = "Provisioned package operations."
+    $map["Packages.Remove"] = "Provisioned packages to remove."
+
+    $map["Services"] = "Service control operations and optional role or feature gating."
+    $map["Services.Feature"] = "Optional feature or role gate required before applying service actions."
+    $map["Services.Start"] = "Service names to start."
+    $map["Services.Stop"] = "Service names to stop."
+    $map["Services.Restart"] = "Service names to restart."
+    $map["Services.Enable"] = "Service names to set as enabled."
+
+    $map["Shortcuts"] = "Shortcut editing operations."
+    $map["Shortcuts.Edit"] = "Shortcut files to modify and their target arguments."
+    $map["Shortcuts.Edit.Path"] = "Path to the shortcut file."
+    $map["Shortcuts.Edit.Arguments"] = "Arguments to assign to the shortcut target."
+
+    $map["Files"] = "File operations to apply during configuration."
+    $map["Files.Copy"] = "Copy operations from source to destination."
+    $map["Files.Copy.Source"] = "Path to source file or folder."
+    $map["Files.Copy.Destination"] = "Path to destination file or folder."
+
+    return $map
+}
+
+function Add-SchemaDescriptions {
+    param(
+        [hashtable] $Map,
+        [System.String] $Prefix,
+        [System.Object] $Node
+    )
+
+    if ($null -eq $Node) {
+        return
+    }
+
+    $description = Get-ObjectPropertyValue -Object $Node -Name "description"
+    if (-not [System.String]::IsNullOrWhiteSpace([System.String] $Prefix) -and -not [System.String]::IsNullOrWhiteSpace([System.String] $description)) {
+        $Map[$Prefix] = [System.String] $description
+    }
+
+    $properties = Get-ObjectPropertyValue -Object $Node -Name "properties"
+    if ($null -ne $properties) {
+        foreach ($propertyName in $properties.PSObject.Properties.Name) {
+            $childPrefix = if ([System.String]::IsNullOrWhiteSpace($Prefix)) {
+                $propertyName
+            }
+            else {
+                "$Prefix.$propertyName"
+            }
+
+            Add-SchemaDescriptions -Map $Map -Prefix $childPrefix -Node $properties.$propertyName
+        }
+    }
+
+    $items = Get-ObjectPropertyValue -Object $Node -Name "items"
+    if ($null -ne $items) {
+        Add-SchemaDescriptions -Map $Map -Prefix $Prefix -Node $items
+    }
+}
+
+function Get-SchemaMap {
+    param(
+        [System.String] $RemoteSchemaUrl
+    )
+
+    $map = Get-FallbackSchemaMap
+
+    try {
+        $schemaObject = Invoke-RestMethod -Uri $RemoteSchemaUrl -Method Get -TimeoutSec 10
+
+        if ($schemaObject -is [System.String]) {
+            $schemaObject = $schemaObject | ConvertFrom-Json -Depth 100
+        }
+
+        $properties = Get-ObjectPropertyValue -Object $schemaObject -Name "properties"
+        if ($null -ne $properties) {
+            foreach ($propertyName in $properties.PSObject.Properties.Name) {
+                Add-SchemaDescriptions -Map $map -Prefix $propertyName -Node $properties.$propertyName
+            }
+        }
+    }
+    catch {
+        Write-Information "Schema fetch failed. Using built-in descriptions only. $($_.Exception.Message)"
+    }
+
+    return $map
+}
+
+function Convert-ToDisplayValue {
+    param(
+        [System.Object] $Value
+    )
+
+    if ($null -eq $Value) {
+        return "(not set)"
+    }
+
+    if ($Value -is [System.Boolean]) {
+        return $Value.ToString().ToLowerInvariant()
+    }
+
+    if ($Value -is [System.Array]) {
+        return [System.String]::Join(", ", $Value)
+    }
+
+    return [System.String] $Value
+}
+
+function Get-PropertyValue {
+    param(
+        [System.Object] $Object,
+        [System.String[]] $Names
+    )
+
+    if ($null -eq $Object) {
+        return $null
+    }
+
+    foreach ($name in $Names) {
+        $value = Get-ObjectPropertyValue -Object $Object -Name $name
+        if ($null -ne $value) {
+            return $value
+        }
+    }
+
+    return $null
+}
+
+function New-TextBlock {
+    param(
+        [System.String] $Text,
+        [System.Double] $FontSize = 13,
+        [System.Windows.Media.Brush] $Foreground,
+        [System.Windows.FontWeight] $Weight = [System.Windows.FontWeights]::Normal,
+        [System.Windows.Thickness] $Margin = ([System.Windows.Thickness]::new(0))
+    )
+
+    $textBlock = [System.Windows.Controls.TextBlock]::new()
+    $textBlock.Text = $Text
+    $textBlock.FontSize = $FontSize
+    $textBlock.Foreground = $Foreground
+    $textBlock.FontWeight = $Weight
+    $textBlock.Margin = $Margin
+    $textBlock.TextWrapping = [System.Windows.TextWrapping]::Wrap
+    return $textBlock
+}
+
+function Add-FieldRow {
+    param(
+        [System.Windows.Controls.Panel] $Parent,
+        [System.String] $Label,
+        [System.Object] $Value,
+        [System.String] $Description,
+        [hashtable] $Theme
+    )
+
+    $container = [System.Windows.Controls.StackPanel]::new()
+    $container.Margin = [System.Windows.Thickness]::new(0, 0, 0, 8)
+
+    $grid = [System.Windows.Controls.Grid]::new()
+    $columnLabel = [System.Windows.Controls.ColumnDefinition]::new()
+    $columnLabel.Width = [System.Windows.GridLength]::new(160)
+    $columnValue = [System.Windows.Controls.ColumnDefinition]::new()
+    $columnValue.Width = [System.Windows.GridLength]::new(1, [System.Windows.GridUnitType]::Star)
+    [void] $grid.ColumnDefinitions.Add($columnLabel)
+    [void] $grid.ColumnDefinitions.Add($columnValue)
+
+    $labelBlock = New-TextBlock -Text $Label -FontSize 12 -Foreground $Theme.MutedBrush -Weight ([System.Windows.FontWeights]::SemiBold)
+    $valueBlock = New-TextBlock -Text (Convert-ToDisplayValue -Value $Value) -FontSize 12 -Foreground $Theme.PrimaryTextBrush
+
+    [System.Windows.Controls.Grid]::SetColumn($labelBlock, 0)
+    [System.Windows.Controls.Grid]::SetColumn($valueBlock, 1)
+
+    [void] $grid.Children.Add($labelBlock)
+    [void] $grid.Children.Add($valueBlock)
+    [void] $container.Children.Add($grid)
+
+    if (-not [System.String]::IsNullOrWhiteSpace($Description)) {
+        $descriptionBlock = New-TextBlock -Text $Description -FontSize 11 -Foreground $Theme.SubtleTextBrush -Margin ([System.Windows.Thickness]::new(160, 1, 0, 0))
+        [void] $container.Children.Add($descriptionBlock)
+    }
+
+    [void] $Parent.Children.Add($container)
+}
+
+function New-ItemExpander {
+    param(
+        [System.Object] $Item,
+        [System.String] $Header,
+        [System.Object[]] $Fields,
+        [System.String] $SchemaPrefix,
+        [hashtable] $SchemaMap,
+        [hashtable] $Theme
+    )
+
+    $expander = [System.Windows.Controls.Expander]::new()
+    $expander.Header = $Header
+    $expander.Margin = [System.Windows.Thickness]::new(0, 0, 0, 8)
+    $expander.Padding = [System.Windows.Thickness]::new(8)
+    $expander.Background = $Theme.SectionBackgroundBrush
+    $expander.BorderBrush = $Theme.BorderBrush
+    $expander.BorderThickness = [System.Windows.Thickness]::new(1)
+
+    $contentPanel = [System.Windows.Controls.StackPanel]::new()
+
+    $note = Get-PropertyValue -Object $Item -Names @("note", "Note")
+    $itemDescription = if (-not [System.String]::IsNullOrWhiteSpace([System.String] $note)) {
+        [System.String] $note
+    }
+    elseif ($SchemaMap.ContainsKey($SchemaPrefix)) {
+        [System.String] $SchemaMap[$SchemaPrefix]
+    }
+    else {
+        ""
+    }
+
+    if (-not [System.String]::IsNullOrWhiteSpace($itemDescription)) {
+        $descriptionCard = [System.Windows.Controls.Border]::new()
+        $descriptionCard.Margin = [System.Windows.Thickness]::new(0, 0, 0, 10)
+        $descriptionCard.Padding = [System.Windows.Thickness]::new(8)
+        $descriptionCard.CornerRadius = [System.Windows.CornerRadius]::new(4)
+        $descriptionCard.Background = $Theme.CalloutBrush
+
+        $descriptionText = New-TextBlock -Text $itemDescription -FontSize 12 -Foreground $Theme.PrimaryTextBrush
+        $descriptionCard.Child = $descriptionText
+        [void] $contentPanel.Children.Add($descriptionCard)
+    }
+
+    foreach ($field in $Fields) {
+        $fieldLabel = [System.String] $field.Label
+        $fieldNames = [System.String[]] $field.Names
+        $fieldSchemaKey = [System.String] $field.SchemaKey
+
+        $value = Get-PropertyValue -Object $Item -Names $fieldNames
+        if ($null -eq $value) {
+            continue
+        }
+
+        $fieldDescription = ""
+        if ($SchemaMap.ContainsKey($fieldSchemaKey)) {
+            $fieldDescription = [System.String] $SchemaMap[$fieldSchemaKey]
+        }
+
+        Add-FieldRow -Parent $contentPanel -Label $fieldLabel -Value $value -Description $fieldDescription -Theme $Theme
+    }
+
+    $expander.Content = $contentPanel
+    return $expander
+}
+
+function New-StringListGroup {
+    param(
+        [System.String] $Title,
+        [System.Object[]] $Items,
+        [System.String] $SchemaKey,
+        [hashtable] $SchemaMap,
+        [hashtable] $Theme
+    )
+
+    $groupPanel = [System.Windows.Controls.StackPanel]::new()
+    $groupPanel.Margin = [System.Windows.Thickness]::new(0, 0, 0, 10)
+
+    $titleText = New-TextBlock -Text ("{0} ({1})" -f $Title, $Items.Count) -FontSize 13 -Foreground $Theme.PrimaryTextBrush -Weight ([System.Windows.FontWeights]::SemiBold)
+    [void] $groupPanel.Children.Add($titleText)
+
+    if ($SchemaMap.ContainsKey($SchemaKey)) {
+        $groupDescription = New-TextBlock -Text ([System.String] $SchemaMap[$SchemaKey]) -FontSize 11 -Foreground $Theme.SubtleTextBrush -Margin ([System.Windows.Thickness]::new(0, 2, 0, 8))
+        [void] $groupPanel.Children.Add($groupDescription)
+    }
+
+    if ($Items.Count -eq 0) {
+        $emptyState = New-TextBlock -Text "No entries in this group." -FontSize 12 -Foreground $Theme.MutedBrush
+        [void] $groupPanel.Children.Add($emptyState)
+        return $groupPanel
+    }
+
+    foreach ($item in $Items) {
+        $itemBorder = [System.Windows.Controls.Border]::new()
+        $itemBorder.Margin = [System.Windows.Thickness]::new(0, 0, 0, 6)
+        $itemBorder.Padding = [System.Windows.Thickness]::new(8)
+        $itemBorder.CornerRadius = [System.Windows.CornerRadius]::new(4)
+        $itemBorder.Background = $Theme.SectionBackgroundBrush
+        $itemBorder.BorderBrush = $Theme.BorderBrush
+        $itemBorder.BorderThickness = [System.Windows.Thickness]::new(1)
+
+        $valueText = New-TextBlock -Text (Convert-ToDisplayValue -Value $item) -FontSize 12 -Foreground $Theme.PrimaryTextBrush
+        $itemBorder.Child = $valueText
+        [void] $groupPanel.Children.Add($itemBorder)
+    }
+
+    return $groupPanel
+}
+
+function New-SectionCard {
+    param(
+        [System.String] $Title,
+        [System.String] $Description,
+        [System.Int32] $Count,
+        [System.Windows.UIElement] $Content,
+        [hashtable] $Theme
+    )
+
+    $card = [System.Windows.Controls.Border]::new()
+    $card.Margin = [System.Windows.Thickness]::new(0, 0, 0, 12)
+    $card.Padding = [System.Windows.Thickness]::new(16)
+    $card.CornerRadius = [System.Windows.CornerRadius]::new(8)
+    $card.Background = $Theme.CardBrush
+    $card.BorderBrush = $Theme.BorderBrush
+    $card.BorderThickness = [System.Windows.Thickness]::new(1)
+
+    $stack = [System.Windows.Controls.StackPanel]::new()
+
+    $titleGrid = [System.Windows.Controls.Grid]::new()
+    $titleLeft = [System.Windows.Controls.ColumnDefinition]::new()
+    $titleLeft.Width = [System.Windows.GridLength]::new(1, [System.Windows.GridUnitType]::Star)
+    $titleRight = [System.Windows.Controls.ColumnDefinition]::new()
+    $titleRight.Width = [System.Windows.GridLength]::new(0, [System.Windows.GridUnitType]::Auto)
+    [void] $titleGrid.ColumnDefinitions.Add($titleLeft)
+    [void] $titleGrid.ColumnDefinitions.Add($titleRight)
+
+    $titleText = New-TextBlock -Text $Title -FontSize 16 -Foreground $Theme.PrimaryTextBrush -Weight ([System.Windows.FontWeights]::SemiBold)
+    $countText = New-TextBlock -Text ("Items: {0}" -f $Count) -FontSize 12 -Foreground $Theme.MutedBrush
+
+    [System.Windows.Controls.Grid]::SetColumn($titleText, 0)
+    [System.Windows.Controls.Grid]::SetColumn($countText, 1)
+
+    [void] $titleGrid.Children.Add($titleText)
+    [void] $titleGrid.Children.Add($countText)
+
+    [void] $stack.Children.Add($titleGrid)
+
+    if (-not [System.String]::IsNullOrWhiteSpace($Description)) {
+        $descriptionText = New-TextBlock -Text $Description -FontSize 12 -Foreground $Theme.SubtleTextBrush -Margin ([System.Windows.Thickness]::new(0, 4, 0, 10))
+        [void] $stack.Children.Add($descriptionText)
+    }
+
+    if ($null -ne $Content) {
+        [void] $stack.Children.Add($Content)
+    }
+
+    $card.Child = $stack
+    return $card
+}
+
+function New-Badge {
+    param(
+        [System.String] $Text,
+        [hashtable] $Theme
+    )
+
+    $badge = [System.Windows.Controls.Border]::new()
+    $badge.Margin = [System.Windows.Thickness]::new(0, 0, 8, 6)
+    $badge.Padding = [System.Windows.Thickness]::new(8, 3, 8, 3)
+    $badge.CornerRadius = [System.Windows.CornerRadius]::new(12)
+    $badge.Background = $Theme.BadgeBrush
+
+    $label = New-TextBlock -Text $Text -FontSize 11 -Foreground $Theme.PrimaryTextBrush -Weight ([System.Windows.FontWeights]::SemiBold)
+    $badge.Child = $label
+    return $badge
+}
+
+function Get-ConfigEntries {
+    param(
+        [System.String] $Path
+    )
+
+    if (-not (Test-Path -Path $Path)) {
+        throw "Config path not found: $Path"
+    }
+
+    $entries = @()
+    $files = Get-ChildItem -Path $Path -Filter "*.json" -File | Where-Object { $_.Name -ne "_Configuration.Template.json" } | Sort-Object -Property Name
+
+    foreach ($file in $files) {
+        try {
+            $raw = Get-Content -Path $file.FullName -Raw
+            $config = $raw | ConvertFrom-Json -Depth 100
+            $entries += [PSCustomObject]@{
+                Name = $file.Name
+                FullName = $file.FullName
+                ParseError = $null
+                Config = $config
+            }
+        }
+        catch {
+            $entries += [PSCustomObject]@{
+                Name = $file.Name
+                FullName = $file.FullName
+                ParseError = $_.Exception.Message
+                Config = $null
+            }
+        }
+    }
+
+    return ,$entries
+}
+
+# Windows 11 Fluent / WinUI 3 design token colours
+$theme = @{
+    PrimaryTextBrush       = [System.Windows.Media.SolidColorBrush]::new([System.Windows.Media.Color]::FromRgb(27, 27, 27))    # #1B1B1B  TextPrimary
+    SubtleTextBrush        = [System.Windows.Media.SolidColorBrush]::new([System.Windows.Media.Color]::FromRgb(96, 96, 96))     # #606060  TextSecondary
+    MutedBrush             = [System.Windows.Media.SolidColorBrush]::new([System.Windows.Media.Color]::FromRgb(138, 138, 138))  # #8A8A8A  TextTertiary
+    CardBrush              = [System.Windows.Media.SolidColorBrush]::new([System.Windows.Media.Color]::FromRgb(255, 255, 255))  # #FFFFFF  LayerFillDefault
+    BorderBrush            = [System.Windows.Media.SolidColorBrush]::new([System.Windows.Media.Color]::FromRgb(224, 224, 224))  # #E0E0E0  StrokeCardDefault
+    WindowBrush            = [System.Windows.Media.SolidColorBrush]::new([System.Windows.Media.Color]::FromRgb(243, 243, 243))  # #F3F3F3  MicaBase
+    SectionBackgroundBrush = [System.Windows.Media.SolidColorBrush]::new([System.Windows.Media.Color]::FromRgb(250, 250, 250))  # #FAFAFA  SubtleFillSecondary
+    BadgeBrush             = [System.Windows.Media.SolidColorBrush]::new([System.Windows.Media.Color]::FromRgb(204, 228, 247))  # #CCE4F7  AccentLight3
+    CalloutBrush           = [System.Windows.Media.SolidColorBrush]::new([System.Windows.Media.Color]::FromRgb(245, 245, 245))  # #F5F5F5  SubtleFillDefault
+    ErrorBrush             = [System.Windows.Media.SolidColorBrush]::new([System.Windows.Media.Color]::FromRgb(196, 43, 28))    # #C42B1C  SystemCritical
+}
+
+[xml] $windowXaml = @"
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Windows Enterprise Defaults"
+        Width="1280"
+        Height="800"
+        MinWidth="1100"
+        MinHeight="680"
+        WindowStartupLocation="CenterScreen"
+        FontFamily="Segoe UI Variable Text, Segoe UI"
+        Background="#F3F3F3"
+        UseLayoutRounding="True">
+    <Window.Resources>
+
+        <!-- Fluent ScrollBar thumb: rounded, colour-reactive -->
+        <Style x:Key="FluentScrollThumb" TargetType="Thumb">
+            <Setter Property="IsTabStop" Value="False" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Thumb">
+                        <Border Name="ThumbFill" Background="#8A8A8A" CornerRadius="3" />
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ThumbFill" Property="Background" Value="#606060" />
+                            </Trigger>
+                            <Trigger Property="IsDragging" Value="True">
+                                <Setter TargetName="ThumbFill" Property="Background" Value="#1B1B1B" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Transparent page-click area (replaces visible track segments) -->
+        <Style x:Key="FluentScrollPageButton" TargetType="RepeatButton">
+            <Setter Property="IsTabStop" Value="False" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RepeatButton">
+                        <Rectangle Fill="Transparent" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Fluent ScrollBar: 6 px wide, transparent track, no arrow buttons -->
+        <Style TargetType="ScrollBar">
+            <Setter Property="Width" Value="6" />
+            <Setter Property="MinWidth" Value="6" />
+            <Setter Property="Margin" Value="2,4" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Grid Background="Transparent">
+                            <Track Name="PART_Track" IsDirectionReversed="True">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="ScrollBar.PageUpCommand"
+                                                  Style="{StaticResource FluentScrollPageButton}" />
+                                </Track.DecreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Style="{StaticResource FluentScrollThumb}" />
+                                </Track.Thumb>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="ScrollBar.PageDownCommand"
+                                                  Style="{StaticResource FluentScrollPageButton}" />
+                                </Track.IncreaseRepeatButton>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Fluent ListBoxItem: Transparent default, #F5F5F5 hover, #CCE4F7 selected -->
+        <Style x:Key="FluentListBoxItem" TargetType="ListBoxItem">
+            <Setter Property="Padding" Value="10,8" />
+            <Setter Property="Margin" Value="0,1" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="#1B1B1B" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border Name="ItemBorder"
+                                Background="{TemplateBinding Background}"
+                                Padding="{TemplateBinding Padding}"
+                                CornerRadius="4">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#F5F5F5" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#CCE4F7" />
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsSelected" Value="True" />
+                                    <Condition Property="IsMouseOver" Value="True" />
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#B8D9F0" />
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="#FFFFFF" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="8" Padding="16,12" Margin="0,0,0,12">
+            <StackPanel Orientation="Vertical">
+                <TextBlock Text="Enterprise Defaults Viewer" FontSize="20" FontWeight="SemiBold" Foreground="#1B1B1B" />
+                <TextBlock Name="SubtitleTextBlock" Margin="0,4,0,0" FontSize="12" Foreground="#606060" />
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Background="#FFFFFF" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="8" Padding="8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Name="ListHeaderTextBlock" Grid.Row="0" FontSize="13" FontWeight="SemiBold" Foreground="#1B1B1B" Margin="4,4,4,8" />
+                    <ListBox Name="ConfigsListBox" Grid.Row="1"
+                             DisplayMemberPath="Name"
+                             BorderThickness="0"
+                             Background="Transparent"
+                             ItemContainerStyle="{StaticResource FluentListBoxItem}"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="2" Background="#FFFFFF" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="8" Padding="16">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Name="DetailsPanel" />
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>
+"@
+
+$reader = [System.Xml.XmlNodeReader]::new($windowXaml)
+$window = [System.Windows.Markup.XamlReader]::Load($reader)
+
+$configsListBox = [System.Windows.Controls.ListBox] $window.FindName("ConfigsListBox")
+$detailsPanel = [System.Windows.Controls.StackPanel] $window.FindName("DetailsPanel")
+$listHeaderTextBlock = [System.Windows.Controls.TextBlock] $window.FindName("ListHeaderTextBlock")
+$subtitleTextBlock = [System.Windows.Controls.TextBlock] $window.FindName("SubtitleTextBlock")
+
+$subtitleTextBlock.Text = "Configuration profiles viewer. Path: $ConfigsPath"
+
+$schemaMap = Get-SchemaMap -RemoteSchemaUrl $SchemaUrl
+$script:configEntries = @()
+
+function Add-EmptyMessage {
+    param(
+        [System.String] $Message
+    )
+
+    $messageCard = [System.Windows.Controls.Border]::new()
+    $messageCard.Padding = [System.Windows.Thickness]::new(16)
+    $messageCard.CornerRadius = [System.Windows.CornerRadius]::new(8)
+    $messageCard.Background = $theme.SectionBackgroundBrush
+    $messageCard.BorderBrush = $theme.BorderBrush
+    $messageCard.BorderThickness = [System.Windows.Thickness]::new(1)
+
+    $messageText = New-TextBlock -Text $Message -FontSize 13 -Foreground $theme.SubtleTextBrush
+    $messageCard.Child = $messageText
+    [void] $detailsPanel.Children.Add($messageCard)
+}
+
+function Add-GroupFromObjects {
+    param(
+        [System.Windows.Controls.Panel] $Parent,
+        [System.String] $Title,
+        [System.Object[]] $Items,
+        [ScriptBlock] $HeaderFactory,
+        [System.Object[]] $Fields,
+        [System.String] $Prefix
+    )
+
+    $titleBlock = New-TextBlock -Text ("{0} ({1})" -f $Title, $Items.Count) -FontSize 14 -Foreground $theme.PrimaryTextBrush -Weight ([System.Windows.FontWeights]::SemiBold) -Margin ([System.Windows.Thickness]::new(0, 0, 0, 6))
+    [void] $Parent.Children.Add($titleBlock)
+
+    if ($schemaMap.ContainsKey($Prefix)) {
+        $groupDescription = New-TextBlock -Text ([System.String] $schemaMap[$Prefix]) -FontSize 11 -Foreground $theme.SubtleTextBrush -Margin ([System.Windows.Thickness]::new(0, 0, 0, 8))
+        [void] $Parent.Children.Add($groupDescription)
+    }
+
+    if ($Items.Count -eq 0) {
+        $emptyText = New-TextBlock -Text "No entries in this group." -FontSize 12 -Foreground $theme.MutedBrush -Margin ([System.Windows.Thickness]::new(0, 0, 0, 8))
+        [void] $Parent.Children.Add($emptyText)
+        return
+    }
+
+    foreach ($item in $Items) {
+        $header = [System.String] (& $HeaderFactory $item)
+        $expander = New-ItemExpander -Item $item -Header $header -Fields $Fields -SchemaPrefix $Prefix -SchemaMap $schemaMap -Theme $theme
+        [void] $Parent.Children.Add($expander)
+    }
+}
+
+function Add-ConfigSummary {
+    param(
+        [System.Object] $Config,
+        [System.String] $Name
+    )
+
+    $summaryPanel = [System.Windows.Controls.StackPanel]::new()
+
+    $description = [System.String] (Get-PropertyValue -Object $Config -Names @("Description"))
+    if ([System.String]::IsNullOrWhiteSpace($description)) {
+        $description = "No description provided."
+    }
+
+    $title = New-TextBlock -Text $Name -FontSize 22 -Foreground $theme.PrimaryTextBrush -Weight ([System.Windows.FontWeights]::Bold)
+    $desc = New-TextBlock -Text $description -FontSize 13 -Foreground $theme.SubtleTextBrush -Margin ([System.Windows.Thickness]::new(0, 4, 0, 12))
+
+    [void] $summaryPanel.Children.Add($title)
+    [void] $summaryPanel.Children.Add($desc)
+
+    Add-FieldRow -Parent $summaryPanel -Label "Minimum Build" -Value (Get-PropertyValue -Object $Config -Names @("MinimumBuild")) -Description ($schemaMap["MinimumBuild"]) -Theme $theme
+    Add-FieldRow -Parent $summaryPanel -Label "Maximum Build" -Value (Get-PropertyValue -Object $Config -Names @("MaximumBuild")) -Description ($schemaMap["MaximumBuild"]) -Theme $theme
+
+    $targets = Get-PropertyValue -Object $Config -Names @("Targets")
+    $platforms = @(Get-PropertyValue -Object $targets -Names @("Platforms"))
+    $models = @(Get-PropertyValue -Object $targets -Names @("Models"))
+
+    $targetsLabel = New-TextBlock -Text "Targets" -FontSize 12 -Foreground $theme.MutedBrush -Weight ([System.Windows.FontWeights]::SemiBold)
+    [void] $summaryPanel.Children.Add($targetsLabel)
+
+    $badgePanel = [System.Windows.Controls.WrapPanel]::new()
+    $badgePanel.Margin = [System.Windows.Thickness]::new(0, 3, 0, 6)
+
+    foreach ($platform in $platforms) {
+        [void] $badgePanel.Children.Add((New-Badge -Text ("Platform: {0}" -f $platform) -Theme $theme))
+    }
+    foreach ($model in $models) {
+        [void] $badgePanel.Children.Add((New-Badge -Text ("Model: {0}" -f $model) -Theme $theme))
+    }
+
+    if (($platforms.Count + $models.Count) -eq 0) {
+        [void] $badgePanel.Children.Add((New-TextBlock -Text "No target metadata available." -FontSize 12 -Foreground $theme.MutedBrush))
+    }
+
+    [void] $summaryPanel.Children.Add($badgePanel)
+
+    $summaryCard = New-SectionCard -Title "Profile Summary" -Description "Core metadata and target applicability for this configuration file." -Count 1 -Content $summaryPanel -Theme $theme
+    [void] $detailsPanel.Children.Add($summaryCard)
+}
+
+function Add-MachineRegistrySection {
+    param(
+        [System.Object] $MachineRegistry
+    )
+
+    $changeOwnerItems = @(Get-PropertyValue -Object $MachineRegistry -Names @("ChangeOwner"))
+    $setItems = @(Get-PropertyValue -Object $MachineRegistry -Names @("Set"))
+    $removeItems = @(Get-PropertyValue -Object $MachineRegistry -Names @("Remove"))
+    $total = $changeOwnerItems.Count + $setItems.Count + $removeItems.Count
+
+    $body = [System.Windows.Controls.StackPanel]::new()
+
+    Add-GroupFromObjects -Parent $body -Title "ChangeOwner" -Items $changeOwnerItems -HeaderFactory { param($item) "{0}\\{1}" -f (Convert-ToDisplayValue (Get-PropertyValue -Object $item -Names @("Root"))), (Convert-ToDisplayValue (Get-PropertyValue -Object $item -Names @("Key"))) } -Fields @(
+        @{ Label = "Root"; Names = @("Root"); SchemaKey = "MachineRegistry.ChangeOwner.Root" },
+        @{ Label = "Key"; Names = @("Key"); SchemaKey = "MachineRegistry.ChangeOwner.Key" },
+        @{ Label = "SID"; Names = @("Sid", "SID"); SchemaKey = "MachineRegistry.ChangeOwner.Sid" },
+        @{ Label = "Note"; Names = @("note", "Note"); SchemaKey = "MachineRegistry.ChangeOwner.note" }
+    ) -Prefix "MachineRegistry.ChangeOwner"
+
+    Add-GroupFromObjects -Parent $body -Title "Set" -Items $setItems -HeaderFactory { param($item) "{0}  ->  {1}" -f (Convert-ToDisplayValue (Get-PropertyValue -Object $item -Names @("path", "Path"))), (Convert-ToDisplayValue (Get-PropertyValue -Object $item -Names @("name", "Name"))) } -Fields @(
+        @{ Label = "Path"; Names = @("path", "Path"); SchemaKey = "MachineRegistry.Set.path" },
+        @{ Label = "Name"; Names = @("name", "Name"); SchemaKey = "MachineRegistry.Set.name" },
+        @{ Label = "Type"; Names = @("type", "Type"); SchemaKey = "MachineRegistry.Set.type" },
+        @{ Label = "Value"; Names = @("value", "Value"); SchemaKey = "MachineRegistry.Set.value" },
+        @{ Label = "Protected"; Names = @("protected", "Protected"); SchemaKey = "MachineRegistry.Set.protected" },
+        @{ Label = "Note"; Names = @("note", "Note"); SchemaKey = "MachineRegistry.Set.note" }
+    ) -Prefix "MachineRegistry.Set"
+
+    Add-GroupFromObjects -Parent $body -Title "Remove" -Items $removeItems -HeaderFactory { param($item) (Convert-ToDisplayValue (Get-PropertyValue -Object $item -Names @("path", "Path"))) } -Fields @(
+        @{ Label = "Path"; Names = @("path", "Path"); SchemaKey = "MachineRegistry.Remove.path" },
+        @{ Label = "Note"; Names = @("note", "Note"); SchemaKey = "MachineRegistry.Remove.note" }
+    ) -Prefix "MachineRegistry.Remove"
+
+    $card = New-SectionCard -Title "MachineRegistry" -Description ($schemaMap["MachineRegistry"]) -Count $total -Content $body -Theme $theme
+    [void] $detailsPanel.Children.Add($card)
+}
+
+function Add-UserRegistrySection {
+    param(
+        [System.Object] $UserRegistry
+    )
+
+    $setItems = @(Get-PropertyValue -Object $UserRegistry -Names @("Set"))
+    $otherItems = @(Get-PropertyValue -Object $UserRegistry -Names @("Others"))
+    $source = Get-PropertyValue -Object $UserRegistry -Names @("Source")
+    $total = $setItems.Count + $otherItems.Count
+
+    $body = [System.Windows.Controls.StackPanel]::new()
+
+    if (-not [System.String]::IsNullOrWhiteSpace([System.String] $source)) {
+        $sourceBox = [System.Windows.Controls.Border]::new()
+        $sourceBox.Margin = [System.Windows.Thickness]::new(0, 0, 0, 10)
+        $sourceBox.Padding = [System.Windows.Thickness]::new(8)
+        $sourceBox.CornerRadius = [System.Windows.CornerRadius]::new(4)
+        $sourceBox.Background = $theme.CalloutBrush
+
+        $sourceText = New-TextBlock -Text ("Source: {0}" -f $source) -FontSize 12 -Foreground $theme.PrimaryTextBrush
+        $sourceBox.Child = $sourceText
+        [void] $body.Children.Add($sourceBox)
+    }
+
+    Add-GroupFromObjects -Parent $body -Title "Set" -Items $setItems -HeaderFactory { param($item) "{0}  ->  {1}" -f (Convert-ToDisplayValue (Get-PropertyValue -Object $item -Names @("path", "Path"))), (Convert-ToDisplayValue (Get-PropertyValue -Object $item -Names @("name", "Name"))) } -Fields @(
+        @{ Label = "Path"; Names = @("path", "Path"); SchemaKey = "UserRegistry.Set.path" },
+        @{ Label = "Name"; Names = @("name", "Name"); SchemaKey = "UserRegistry.Set.name" },
+        @{ Label = "Type"; Names = @("type", "Type"); SchemaKey = "UserRegistry.Set.type" },
+        @{ Label = "Value"; Names = @("value", "Value"); SchemaKey = "UserRegistry.Set.value" },
+        @{ Label = "Protected"; Names = @("protected", "Protected"); SchemaKey = "UserRegistry.Set.protected" },
+        @{ Label = "Note"; Names = @("note", "Note"); SchemaKey = "UserRegistry.Set.note" }
+    ) -Prefix "UserRegistry.Set"
+
+    Add-GroupFromObjects -Parent $body -Title "Others" -Items $otherItems -HeaderFactory { param($item) "{0}  ->  {1}" -f (Convert-ToDisplayValue (Get-PropertyValue -Object $item -Names @("path", "Path"))), (Convert-ToDisplayValue (Get-PropertyValue -Object $item -Names @("name", "Name"))) } -Fields @(
+        @{ Label = "Path"; Names = @("path", "Path"); SchemaKey = "UserRegistry.Set.path" },
+        @{ Label = "Name"; Names = @("name", "Name"); SchemaKey = "UserRegistry.Set.name" },
+        @{ Label = "Type"; Names = @("type", "Type"); SchemaKey = "UserRegistry.Set.type" },
+        @{ Label = "Value"; Names = @("value", "Value"); SchemaKey = "UserRegistry.Set.value" },
+        @{ Label = "Protected"; Names = @("protected", "Protected"); SchemaKey = "UserRegistry.Set.protected" },
+        @{ Label = "Note"; Names = @("note", "Note"); SchemaKey = "UserRegistry.Set.note" }
+    ) -Prefix "UserRegistry.Others"
+
+    $card = New-SectionCard -Title "UserRegistry" -Description ($schemaMap["UserRegistry"]) -Count $total -Content $body -Theme $theme
+    [void] $detailsPanel.Children.Add($card)
+}
+
+function Add-SimpleStringSection {
+    param(
+        [System.String] $SectionName,
+        [System.String] $GroupTitle,
+        [System.Object[]] $Items,
+        [System.String] $SchemaKey
+    )
+
+    $body = New-StringListGroup -Title $GroupTitle -Items $Items -SchemaKey $SchemaKey -SchemaMap $schemaMap -Theme $theme
+    $description = ""
+    if ($schemaMap.ContainsKey($SectionName)) {
+        $description = [System.String] $schemaMap[$SectionName]
+    }
+    $card = New-SectionCard -Title $SectionName -Description $description -Count $Items.Count -Content $body -Theme $theme
+    [void] $detailsPanel.Children.Add($card)
+}
+
+function Add-ServicesSection {
+    param(
+        [System.Object] $Services
+    )
+
+    $startItems = @(Get-PropertyValue -Object $Services -Names @("Start"))
+    $stopItems = @(Get-PropertyValue -Object $Services -Names @("Stop"))
+    $restartItems = @(Get-PropertyValue -Object $Services -Names @("Restart"))
+    $enableItems = @(Get-PropertyValue -Object $Services -Names @("Enable"))
+    $feature = Get-PropertyValue -Object $Services -Names @("Feature")
+
+    $total = $startItems.Count + $stopItems.Count + $restartItems.Count + $enableItems.Count
+    if (-not [System.String]::IsNullOrWhiteSpace([System.String] $feature)) {
+        $total += 1
+    }
+
+    $body = [System.Windows.Controls.StackPanel]::new()
+
+    if (-not [System.String]::IsNullOrWhiteSpace([System.String] $feature)) {
+        $featureBorder = [System.Windows.Controls.Border]::new()
+        $featureBorder.Margin = [System.Windows.Thickness]::new(0, 0, 0, 10)
+        $featureBorder.Padding = [System.Windows.Thickness]::new(8)
+        $featureBorder.CornerRadius = [System.Windows.CornerRadius]::new(4)
+        $featureBorder.Background = $theme.CalloutBrush
+
+        $featureLabel = New-TextBlock -Text ("Feature gate: {0}" -f $feature) -FontSize 12 -Foreground $theme.PrimaryTextBrush -Weight ([System.Windows.FontWeights]::SemiBold)
+        $featureDescription = New-TextBlock -Text ($schemaMap["Services.Feature"]) -FontSize 11 -Foreground $theme.SubtleTextBrush -Margin ([System.Windows.Thickness]::new(0, 2, 0, 0))
+
+        $featurePanel = [System.Windows.Controls.StackPanel]::new()
+        [void] $featurePanel.Children.Add($featureLabel)
+        [void] $featurePanel.Children.Add($featureDescription)
+
+        $featureBorder.Child = $featurePanel
+        [void] $body.Children.Add($featureBorder)
+    }
+
+    [void] $body.Children.Add((New-StringListGroup -Title "Start" -Items $startItems -SchemaKey "Services.Start" -SchemaMap $schemaMap -Theme $theme))
+    [void] $body.Children.Add((New-StringListGroup -Title "Stop" -Items $stopItems -SchemaKey "Services.Stop" -SchemaMap $schemaMap -Theme $theme))
+    [void] $body.Children.Add((New-StringListGroup -Title "Restart" -Items $restartItems -SchemaKey "Services.Restart" -SchemaMap $schemaMap -Theme $theme))
+    [void] $body.Children.Add((New-StringListGroup -Title "Enable" -Items $enableItems -SchemaKey "Services.Enable" -SchemaMap $schemaMap -Theme $theme))
+
+    $card = New-SectionCard -Title "Services" -Description ($schemaMap["Services"]) -Count $total -Content $body -Theme $theme
+    [void] $detailsPanel.Children.Add($card)
+}
+
+function Add-ShortcutsSection {
+    param(
+        [System.Object] $Shortcuts
+    )
+
+    $editItems = @(Get-PropertyValue -Object $Shortcuts -Names @("Edit"))
+
+    $body = [System.Windows.Controls.StackPanel]::new()
+
+    Add-GroupFromObjects -Parent $body -Title "Edit" -Items $editItems -HeaderFactory { param($item) (Convert-ToDisplayValue (Get-PropertyValue -Object $item -Names @("Path"))) } -Fields @(
+        @{ Label = "Path"; Names = @("Path", "path"); SchemaKey = "Shortcuts.Edit.Path" },
+        @{ Label = "Arguments"; Names = @("Arguments", "arguments"); SchemaKey = "Shortcuts.Edit.Arguments" }
+    ) -Prefix "Shortcuts.Edit"
+
+    $card = New-SectionCard -Title "Shortcuts" -Description ($schemaMap["Shortcuts"]) -Count $editItems.Count -Content $body -Theme $theme
+    [void] $detailsPanel.Children.Add($card)
+}
+
+function Add-FilesSection {
+    param(
+        [System.Object] $FilesSection
+    )
+
+    $copyItems = @(Get-PropertyValue -Object $FilesSection -Names @("Copy"))
+    $body = [System.Windows.Controls.StackPanel]::new()
+
+    $fields = @(
+        @{ Label = "Source"; Names = @("Source", "source"); SchemaKey = "Files.Copy.Source" },
+        @{ Label = "Destination"; Names = @("Destination", "destination"); SchemaKey = "Files.Copy.Destination" }
+    )
+
+    Add-GroupFromObjects -Parent $body -Title "Copy" -Items $copyItems -HeaderFactory {
+        param($item)
+        "{0}  ->  {1}" -f (Convert-ToDisplayValue (Get-PropertyValue -Object $item -Names @("Source", "source"))), (Convert-ToDisplayValue (Get-PropertyValue -Object $item -Names @("Destination", "destination")))
+    } -Fields $fields -Prefix "Files.Copy"
+
+    if ($copyItems.Count -gt 0) {
+        $resolvedCard = [System.Windows.Controls.Border]::new()
+        $resolvedCard.Margin = [System.Windows.Thickness]::new(0, 4, 0, 0)
+        $resolvedCard.Padding = [System.Windows.Thickness]::new(8)
+        $resolvedCard.CornerRadius = [System.Windows.CornerRadius]::new(4)
+        $resolvedCard.Background = $theme.CalloutBrush
+
+        $resolvedPanel = [System.Windows.Controls.StackPanel]::new()
+        [void] $resolvedPanel.Children.Add((New-TextBlock -Text "Resolved source previews" -FontSize 12 -Foreground $theme.PrimaryTextBrush -Weight ([System.Windows.FontWeights]::SemiBold) -Margin ([System.Windows.Thickness]::new(0, 0, 0, 6))))
+
+        foreach ($item in $copyItems) {
+            $source = [System.String] (Get-PropertyValue -Object $item -Names @("Source", "source"))
+            if ([System.String]::IsNullOrWhiteSpace($source)) {
+                continue
+            }
+
+            $resolved = Join-Path -Path $PSScriptRoot -ChildPath $source
+            [void] $resolvedPanel.Children.Add((New-TextBlock -Text ("{0} => {1}" -f $source, $resolved) -FontSize 11 -Foreground $theme.SubtleTextBrush -Margin ([System.Windows.Thickness]::new(0, 0, 0, 3))))
+        }
+
+        $resolvedCard.Child = $resolvedPanel
+        [void] $body.Children.Add($resolvedCard)
+    }
+
+    $card = New-SectionCard -Title "Files" -Description ($schemaMap["Files"]) -Count $copyItems.Count -Content $body -Theme $theme
+    [void] $detailsPanel.Children.Add($card)
+}
+
+function Render-Config {
+    param(
+        [System.Object] $Entry
+    )
+
+    $detailsPanel.Children.Clear()
+
+    if ($null -eq $Entry) {
+        Add-EmptyMessage -Message "Select a configuration file from the left pane to view details."
+        return
+    }
+
+    if (-not [System.String]::IsNullOrWhiteSpace([System.String] $Entry.ParseError)) {
+        $errorCard = [System.Windows.Controls.Border]::new()
+        $errorCard.Padding = [System.Windows.Thickness]::new(14)
+        $errorCard.CornerRadius = [System.Windows.CornerRadius]::new(8)
+        $errorCard.Background = [System.Windows.Media.SolidColorBrush]::new([System.Windows.Media.Color]::FromRgb(254, 226, 226))
+        $errorCard.BorderBrush = [System.Windows.Media.SolidColorBrush]::new([System.Windows.Media.Color]::FromRgb(248, 113, 113))
+        $errorCard.BorderThickness = [System.Windows.Thickness]::new(1)
+
+        $errorPanel = [System.Windows.Controls.StackPanel]::new()
+        [void] $errorPanel.Children.Add((New-TextBlock -Text ("Unable to parse {0}" -f $Entry.Name) -FontSize 16 -Foreground $theme.ErrorBrush -Weight ([System.Windows.FontWeights]::Bold)))
+        [void] $errorPanel.Children.Add((New-TextBlock -Text ([System.String] $Entry.ParseError) -FontSize 12 -Foreground $theme.ErrorBrush -Margin ([System.Windows.Thickness]::new(0, 4, 0, 0))))
+        $errorCard.Child = $errorPanel
+        [void] $detailsPanel.Children.Add($errorCard)
+        return
+    }
+
+    $config = $Entry.Config
+
+    Add-ConfigSummary -Config $config -Name $Entry.Name
+    Add-MachineRegistrySection -MachineRegistry (Get-PropertyValue -Object $config -Names @("MachineRegistry"))
+    Add-UserRegistrySection -UserRegistry (Get-PropertyValue -Object $config -Names @("UserRegistry"))
+
+    Add-SimpleStringSection -SectionName "Paths" -GroupTitle "Remove" -Items @(Get-PropertyValue -Object (Get-PropertyValue -Object $config -Names @("Paths")) -Names @("Remove")) -SchemaKey "Paths.Remove"
+    Add-SimpleStringSection -SectionName "Features" -GroupTitle "Disable" -Items @(Get-PropertyValue -Object (Get-PropertyValue -Object $config -Names @("Features")) -Names @("Disable")) -SchemaKey "Features.Disable"
+
+    $capabilities = Get-PropertyValue -Object $config -Names @("Capabilities")
+    $capBody = [System.Windows.Controls.StackPanel]::new()
+    [void] $capBody.Children.Add((New-StringListGroup -Title "Remove" -Items @(Get-PropertyValue -Object $capabilities -Names @("Remove")) -SchemaKey "Capabilities.Remove" -SchemaMap $schemaMap -Theme $theme))
+    [void] $capBody.Children.Add((New-StringListGroup -Title "Others" -Items @(Get-PropertyValue -Object $capabilities -Names @("Others")) -SchemaKey "Capabilities.Others" -SchemaMap $schemaMap -Theme $theme))
+    [void] $detailsPanel.Children.Add((New-SectionCard -Title "Capabilities" -Description ($schemaMap["Capabilities"]) -Count (@(Get-PropertyValue -Object $capabilities -Names @("Remove")).Count + @(Get-PropertyValue -Object $capabilities -Names @("Others")).Count) -Content $capBody -Theme $theme))
+
+    Add-SimpleStringSection -SectionName "Packages" -GroupTitle "Remove" -Items @(Get-PropertyValue -Object (Get-PropertyValue -Object $config -Names @("Packages")) -Names @("Remove")) -SchemaKey "Packages.Remove"
+
+    Add-ServicesSection -Services (Get-PropertyValue -Object $config -Names @("Services"))
+    Add-ShortcutsSection -Shortcuts (Get-PropertyValue -Object $config -Names @("Shortcuts"))
+    Add-FilesSection -FilesSection (Get-PropertyValue -Object $config -Names @("Files"))
+}
+
+function Reload-Configs {
+    $script:configEntries = Get-ConfigEntries -Path $ConfigsPath
+    $configsListBox.ItemsSource = $null
+    $configsListBox.ItemsSource = $script:configEntries
+    $listHeaderTextBlock.Text = "Configuration Files ({0})" -f $script:configEntries.Count
+
+    if ($script:configEntries.Count -gt 0) {
+        $configsListBox.SelectedIndex = 0
+    }
+    else {
+        Render-Config -Entry $null
+    }
+}
+
+$configsListBox.Add_SelectionChanged({
+    Render-Config -Entry $configsListBox.SelectedItem
+})
+
+Reload-Configs
+
+# Apply #F3F3F3 caption colour once the HWND exists (Windows 11 build 22000+)
+# COLORREF is 0x00BBGGRR; all channels are 0xF3 so the value is identical in any byte order
+$window.Add_SourceInitialized({
+    $helper = [System.Windows.Interop.WindowInteropHelper]::new($window)
+    $captionColor = 0x00F3F3F3
+    [void] [DwmHelper]::DwmSetWindowAttribute($helper.Handle, [DwmHelper]::DWMWA_CAPTION_COLOR, [ref] $captionColor, 4)
+})
+
+[void] $window.ShowDialog()
