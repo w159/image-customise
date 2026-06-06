@@ -8,8 +8,13 @@ param(
     [System.String] $SchemaUrl = "https://raw.githubusercontent.com/aaronparker/defaults/refs/heads/main/schema/configuration.schema.json"
 )
 
+#region Configure the environment
 Set-StrictMode -Version Latest
 $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
+$InformationPreference = [System.Management.Automation.ActionPreference]::continue
+$ProgressPreference = [System.Management.Automation.ActionPreference]::SilentlyContinue
+$WarningPreference = [System.Management.Automation.ActionPreference]::SilentlyContinue
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
 
 Add-Type -AssemblyName PresentationFramework
 Add-Type -AssemblyName PresentationCore
@@ -65,7 +70,7 @@ function Get-FallbackSchemaMap {
     $map["MachineRegistry.Set.name"] = "Registry value name."
     $map["MachineRegistry.Set.type"] = "Registry value type."
     $map["MachineRegistry.Set.value"] = "Registry value data."
-    $map["MachineRegistry.Set.protected"] = "When true, preserve value from later overrides or removal steps."
+    $map["MachineRegistry.Set.protected"] = "Windows protected registry value."
     $map["MachineRegistry.Set.note"] = "Human-readable explanation for this setting."
     $map["MachineRegistry.Remove"] = "Machine registry paths to remove when present."
     $map["MachineRegistry.Remove.path"] = "Registry path to remove."
@@ -79,7 +84,7 @@ function Get-FallbackSchemaMap {
     $map["UserRegistry.Set.type"] = "Preferred registry value type field."
     $map["UserRegistry.Set.Type"] = "Legacy casing for registry value type."
     $map["UserRegistry.Set.value"] = "Registry value data."
-    $map["UserRegistry.Set.protected"] = "When true, preserve value from later overrides or removal steps."
+    $map["UserRegistry.Set.protected"] = "Windows protected registry value."
     $map["UserRegistry.Set.note"] = "Human-readable explanation for this setting."
     $map["UserRegistry.Others"] = "Registry values applied for non-default user contexts."
 
@@ -163,7 +168,7 @@ function Get-SchemaMap {
         $schemaObject = Invoke-RestMethod -Uri $RemoteSchemaUrl -Method Get -TimeoutSec 10
 
         if ($schemaObject -is [System.String]) {
-            $schemaObject = $schemaObject | ConvertFrom-Json -Depth 100
+            $schemaObject = $schemaObject | ConvertFrom-Json
         }
 
         $properties = Get-ObjectPropertyValue -Object $schemaObject -Name "properties"
@@ -468,7 +473,7 @@ function Get-ConfigEntries {
     foreach ($file in $files) {
         try {
             $raw = Get-Content -Path $file.FullName -Raw
-            $config = $raw | ConvertFrom-Json -Depth 100
+            $config = $raw | ConvertFrom-Json
             $entries += [PSCustomObject]@{
                 Name = $file.Name
                 FullName = $file.FullName
