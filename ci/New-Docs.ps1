@@ -37,21 +37,21 @@ foreach ($file in $Configs) {
         if ($json.MachineRegistry.Set.Count -gt 0) {
             $Markdown += New-MDHeader -Text "Set Machine Registry Values" -Level 3
             $Markdown += "`n"
-            $Markdown += $json.MachineRegistry.Set | Select-Object -Property  @{ Name = "path"; Expression = { $_.path -replace "\\", " \" } }, "name", "value", "note" | New-MDTable -Shrink
+            $Markdown += $json.MachineRegistry.Set | New-MDTable -Shrink
             $Markdown += "`n"
         }
 
         if ($json.MachineRegistry.Remove.Count -gt 0) {
             $Markdown += New-MDHeader -Text "Remove Machine Registry Vaues" -Level 3
             $Markdown += "`n"
-            $Markdown += $json.MachineRegistry.Remove | Select-Object -Property  @{ Name = "path"; Expression = { $_.path -replace "\\", " \" } }, "note" | New-MDTable -Shrink
+            $Markdown += $json.MachineRegistry.Remove | New-MDTable -Shrink
             $Markdown += "`n"
         }
 
         if ($json.UserRegistry.Set.Count -gt 0) {
             $Markdown += New-MDHeader -Text "Set User Registry Values" -Level 3
             $Markdown += "`n"
-            $Markdown += $json.UserRegistry.Set | Select-Object -Property  @{ Name = "path"; Expression = { $_.path -replace "\\", " \" } }, "name", "value", "note" | New-MDTable -Shrink
+            $Markdown += $json.UserRegistry.Set | New-MDTable -Shrink
             $Markdown += "`n"
         }
     }

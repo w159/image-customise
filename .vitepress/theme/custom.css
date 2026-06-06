@@ -65,3 +65,10 @@
 .VPLocalNav.reached-top {
   border-bottom: none;
 }
+
+/* Scrollable tables - no text wrapping */
+.vp-doc table {
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+}
