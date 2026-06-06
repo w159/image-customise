@@ -126,14 +126,12 @@ try {
     # Configure working path
     if ($Path.Length -eq 0) { $WorkingPath = $PWD.Path } else { $WorkingPath = $Path }
     Push-Location -Path $WorkingPath
-    #endregion
 
-    #region Import functions
+    # Import functions
     $ModuleFile = $(Join-Path -Path $PSScriptRoot -ChildPath "Install-Defaults.psm1")
     Test-Path -Path $ModuleFile -PathType "Leaf" -ErrorAction "Stop" | Out-Null
     Import-Module -Name $ModuleFile -Force -ErrorAction "Stop"
     Write-LogFile -Message "Execution path: $WorkingPath"
-    #endregion
 
     # Start logging
     $PSProcesses = Get-CimInstance -ClassName "Win32_Process" -Filter "Name = 'powershell.exe'" | Select-Object -Property "CommandLine"
@@ -156,7 +154,7 @@ try {
     #endregion
 
     #region Gather configs
-    $ConfigurationFiles = @(Get-ChildItem -Path "$WorkingPath\configs" -Include "*.json" -Recurse)
+    $ConfigurationFiles = @(Get-ChildItem -Path "$WorkingPath\configs" -Include "*.json" -Exclude "_Configuration.Template.json" -Recurse)
     Write-LogFile -Message "Found: $($ConfigurationFiles.Count) configuration files"
 
     # Read the configuration files, convert from JSON, and filter based on the platform, model, and build of the local system
@@ -173,11 +171,12 @@ try {
         Write-LogFile -Message "Configuration set: $($ConfigSet.Description)" 
 
         #region Configure machine level settings
-        if ($ConfigSet.MachineRegistry.ChangeOwner.Length -gt 0) {
+        if (($null -ne $ConfigSet.MachineRegistry.PSObject.Properties['ChangeOwner']) -and ($ConfigSet.MachineRegistry.ChangeOwner.Length -gt 0)) {
             foreach ($Item in $ConfigSet.MachineRegistry.ChangeOwner) {
                 Set-RegistryOwner -RootKey $Item.Root -Key $Item.Key -Sid $Item.Sid
             }
         }
+
         Set-Registry -Setting $ConfigSet.MachineRegistry.Set
         Remove-RegistryPath -Path $ConfigSet.MachineRegistry.Remove
 
@@ -198,7 +197,9 @@ try {
         #endregion
 
         # Set default user profile settings
-        Set-DefaultUserProfile -Setting $ConfigSet.UserRegistry.Set
+        if (($null -ne $ConfigSet.UserRegistry.PSObject.Properties['Set']) -and ($ConfigSet.UserRegistry.Set.Length -gt 0)) {
+            Set-DefaultUserProfile -Setting $ConfigSet.UserRegistry.Set
+        }
     }
     #endregion
 
