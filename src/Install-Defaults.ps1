@@ -170,30 +170,58 @@ try {
     foreach ($ConfigSet in $Configurations) {
         Write-LogFile -Message "Configuration set: $($ConfigSet.Description)" 
 
-        #region Configure machine level settings
+        #region Configure machine level settings. Validate that each property exists and has items before attempting to apply the setting
         if (($null -ne $ConfigSet.MachineRegistry.PSObject.Properties['ChangeOwner']) -and ($ConfigSet.MachineRegistry.ChangeOwner.Length -gt 0)) {
             foreach ($Item in $ConfigSet.MachineRegistry.ChangeOwner) {
                 Set-RegistryOwner -RootKey $Item.Root -Key $Item.Key -Sid $Item.Sid
             }
         }
 
-        Set-Registry -Setting $ConfigSet.MachineRegistry.Set
-        Remove-RegistryPath -Path $ConfigSet.MachineRegistry.Remove
-
-        foreach ($Shortcut in $ConfigSet.Shortcuts.Edit) {
-            Set-Shortcut -Path $Shortcut.Path -Arguments $Shortcut.Arguments
+        if (($null -ne $ConfigSet.MachineRegistry.PSObject.Properties['Set']) -and ($ConfigSet.MachineRegistry.Set.Length -gt 0)) {
+            Set-Registry -Setting $ConfigSet.MachineRegistry.Set
         }
 
-        Copy-File -Path $ConfigSet.Files.Copy -Parent $WorkingPath
-        Remove-Path -Path $ConfigSet.Paths.Remove
+        if (($null -ne $ConfigSet.MachineRegistry.PSObject.Properties['Remove']) -and ($ConfigSet.MachineRegistry.Remove.Length -gt 0)) {
+            Remove-RegistryPath -Path $ConfigSet.MachineRegistry.Remove
+        }
 
-        Remove-Feature -Feature $ConfigSet.Features.Disable
-        Remove-Capability -Capability $ConfigSet.Capabilities.Remove
-        Remove-Package -Package $ConfigSet.Packages.Remove
+        if (($null -ne $ConfigSet.Shortcuts.PSObject.Properties['Edit']) -and ($ConfigSet.Shortcuts.Edit.Length -gt 0)) {
+            foreach ($Shortcut in $ConfigSet.Shortcuts.Edit) {
+                Set-Shortcut -Path $Shortcut.Path -Arguments $Shortcut.Arguments
+            }
+        }
 
-        Stop-NamedService -Service $ConfigSet.Services.Stop
-        Start-NamedService -Service $ConfigSet.Services.Start
-        Restart-NamedService -Service $ConfigSet.Services.Restart
+        if (($null -ne $ConfigSet.Files.PSObject.Properties['Copy']) -and ($ConfigSet.Files.Copy.Length -gt 0)) {
+            Copy-File -Path $ConfigSet.Files.Copy -Parent $WorkingPath
+        }
+
+        if (($null -ne $ConfigSet.Paths.PSObject.Properties['Remove']) -and ($ConfigSet.Paths.Remove.Length -gt 0)) {
+            Remove-Path -Path $ConfigSet.Paths.Remove
+        }
+
+        if (($null -ne $ConfigSet.Features.PSObject.Properties['Disable']) -and ($ConfigSet.Features.Disable.Length -gt 0)) {
+            Remove-Feature -Feature $ConfigSet.Features.Disable
+        }
+
+        if (($null -ne $ConfigSet.Capabilities.PSObject.Properties['Remove']) -and ($ConfigSet.Capabilities.Remove.Length -gt 0)) {
+            Remove-Capability -Capability $ConfigSet.Capabilities.Remove
+        }
+
+        if (($null -ne $ConfigSet.Packages.PSObject.Properties['Remove']) -and ($ConfigSet.Packages.Remove.Length -gt 0)) {
+            Remove-Package -Package $ConfigSet.Packages.Remove
+        }
+
+        if (($null -ne $ConfigSet.Services.PSObject.Properties['Stop']) -and ($ConfigSet.Services.Stop.Length -gt 0)) {
+            Stop-NamedService -Service $ConfigSet.Services.Stop
+        }
+
+        if (($null -ne $ConfigSet.Services.PSObject.Properties['Start']) -and ($ConfigSet.Services.Start.Length -gt 0)) {
+            Start-NamedService -Service $ConfigSet.Services.Start
+        }
+
+        if (($null -ne $ConfigSet.Services.PSObject.Properties['Restart']) -and ($ConfigSet.Services.Restart.Length -gt 0)) {
+            Restart-NamedService -Service $ConfigSet.Services.Restart
+        }
         #endregion
 
         # Set default user profile settings

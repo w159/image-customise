@@ -233,22 +233,28 @@ function Get-Platform {
     # Return platform we are running on - client or server
     switch -Regex ((Get-CimInstance -ClassName "CIM_OperatingSystem").Caption) {
         "Microsoft Windows Server*" {
-            $Platform = "Server"; break
+            if (Get-WindowsFeature | Where-Object { $_.Name -like "RDS*" -and $_.Installed }) {
+                $Platform = "rds-server"
+            }
+            else {
+                $Platform = "server"
+            }
+            break
         }
         "Microsoft Windows 10 Enterprise for Virtual Desktops" {
-            $Platform = "Client"; break
+            $Platform = "client"; break
         }
         "Microsoft Windows 11 Enterprise for Virtual Desktops" {
-            $Platform = "Client"; break
+            $Platform = "client"; break
         }
         "Microsoft Windows 10*" {
-            $Platform = "Client"; break
+            $Platform = "client"; break
         }
         "Microsoft Windows 11*" {
-            $Platform = "Client"; break
+            $Platform = "client"; break
         }
         default {
-            $Platform = "Client"
+            $Platform = "client"
         }
     }
     Write-LogFile -Message "Platform: $Platform"
