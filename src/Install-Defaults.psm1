@@ -303,20 +303,6 @@ function Get-Model {
     Write-Output -InputObject $Model
 }
 
-function Get-SettingsContent ($Path) {
-    # Return a JSON object from the text/JSON file passed
-    try {
-        Write-LogFile -Message "Importing: $Path"
-        $Settings = Get-Content -Path $Path | ConvertFrom-Json
-    }
-    catch {
-        # If we have an error we won't get usable data
-        Write-LogFile -Message $_.Exception.Message -LogLevel 3
-        throw $_
-    }
-    Write-Output -InputObject $Settings
-}
-
 function Set-RegistryOwner {
     # Change the owner on the specified registry path
     # Links: https://stackoverflow.com/questions/12044432/how-do-i-take-ownership-of-a-registry-key-via-powershell
@@ -400,8 +386,8 @@ function Set-Registry {
 
     foreach ($Item in $Setting) {
         if (-not(Test-Path -Path $Item.path)) {
-            try {
-                if ($PSCmdlet.ShouldProcess($Item.path, "New-Item")) {
+            if ($PSCmdlet.ShouldProcess($Item.path, "New-Item")) {
+                try {
                     $params = @{
                         Path  = $Item.path
                         Type  = "RegistryKey"
@@ -410,18 +396,17 @@ function Set-Registry {
                     $ItemResult = New-Item @params
                     Write-LogFile -Message "New registry path: $($Item.path)"
                 }
-            }
-            catch {
-                Write-LogFile -Message $_.Exception.Message -LogLevel 3
-            }
-            finally {
-                if ("Handle" -in ($ItemResult | Get-Member | Select-Object -ExpandProperty "Name")) { $ItemResult.Handle.Close() }
+                catch {
+                    Write-LogFile -Message $_.Exception.Message -LogLevel 3
+                }
+                finally {
+                    if ("Handle" -in ($ItemResult | Get-Member | Select-Object -ExpandProperty "Name")) { $ItemResult.Handle.Close() }
+                }
             }
         }
 
-        try {
-            if ($PSCmdlet.ShouldProcess("$($Item.path), $($Item.name), $($Item.value)", "Set-ItemProperty")) {
-
+        if ($PSCmdlet.ShouldProcess("$($Item.path), $($Item.name), $($Item.value)", "Set-ItemProperty")) {
+            try {
                 # Convert binary values to byte arrays
                 if ($Item.type -eq "Binary") {
                     $Value = -split $Item.value -replace ' ', { [Convert]::ToByte($_, 16) }
@@ -458,9 +443,9 @@ function Set-Registry {
                     Write-LogFile -Message "Set registry property: $($Item.path); $($Item.name), $($Item.value)"
                 }
             }
-        }
-        catch {
-            Write-LogFile -Message $_.Exception.Message -LogLevel 3
+            catch {
+                Write-LogFile -Message $_.Exception.Message -LogLevel 3
+            }
         }
     }
 }
@@ -471,8 +456,8 @@ function Remove-RegistryPath {
     param ($Path)
 
     foreach ($Item in $Path) {
-        try {
-            if ($PSCmdlet.ShouldProcess($Item.path, "Remove-Item")) {
+        if ($PSCmdlet.ShouldProcess($Item.path, "Remove-Item")) {
+            try {
                 if (Test-Path -Path $Item.path) {
                     $params = @{
                         Path  = $Item.path
@@ -482,9 +467,9 @@ function Remove-RegistryPath {
                     Write-LogFile -Message "Remove registry path: $($Item.path)"
                 }
             }
-        }
-        catch {
-            Write-LogFile -Message $_.Exception.Message -LogLevel 3
+            catch {
+                Write-LogFile -Message $_.Exception.Message -LogLevel 3
+            }
         }
     }
 }
@@ -499,9 +484,10 @@ function Set-DefaultUserProfile {
         $RegDefaultUser = "$env:SystemDrive\Users\Default\NTUSER.DAT"
         $DefaultUserPath = "HKLM:\MountDefaultUser"
 
-        try {
-            $RegPath = $DefaultUserPath -replace ":", ""
-            if ($PSCmdlet.ShouldProcess("reg load $RegPath $RegDefaultUser", "Start-Process")) {
+        if ($PSCmdlet.ShouldProcess("reg load $RegPath $RegDefaultUser", "Start-Process")) {
+            try {
+                $RegPath = $DefaultUserPath -replace ":", ""
+
                 # Load registry hive
                 $params = @{
                     FilePath     = "reg"
@@ -513,18 +499,18 @@ function Set-DefaultUserProfile {
                 $Result = Start-Process @params
                 Write-LogFile -Message "Load default user: $RegPath"
             }
-        }
-        catch {
-            Write-LogFile -Message $_.Exception.Message -LogLevel 3
-            throw $_
+            catch {
+                Write-LogFile -Message $_.Exception.Message -LogLevel 3
+                throw $_
+            }
         }
 
         # Process Registry Commands
         foreach ($Item in $Setting) {
             $RegPath = $Item.path -replace "HKCU:", $DefaultUserPath
             if (-not(Test-Path -Path $RegPath)) {
-                try {
-                    if ($PSCmdlet.ShouldProcess($RegPath, "New-Item")) {
+                if ($PSCmdlet.ShouldProcess($RegPath, "New-Item")) {
+                    try {
                         $params = @{
                             Path  = $RegPath
                             Type  = "RegistryKey"
@@ -533,20 +519,19 @@ function Set-DefaultUserProfile {
                         $ItemResult = New-Item @params
                         Write-LogFile -Message "New registry path: $($Item.path)"
                     }
-                }
-                catch {
-                    Write-LogFile -Message $_.Exception.Message -LogLevel 3
-                }
-                finally {
-                    if ($null -ne $Result) {
-                        if ("Handle" -in ($ItemResult | Get-Member -ErrorAction "SilentlyContinue" | Select-Object -ExpandProperty "Name")) { $ItemResult.Handle.Close() }
+                    catch {
+                        Write-LogFile -Message $_.Exception.Message -LogLevel 3
+                    }
+                    finally {
+                        if ($null -ne $Result) {
+                            if ("Handle" -in ($ItemResult | Get-Member -ErrorAction "SilentlyContinue" | Select-Object -ExpandProperty "Name")) { $ItemResult.Handle.Close() }
+                        }
                     }
                 }
             }
 
-            try {
-                if ($PSCmdlet.ShouldProcess("$RegPath, $($Item.name), $($Item.value)", "Set-ItemProperty")) {
-
+            if ($PSCmdlet.ShouldProcess("$RegPath, $($Item.name), $($Item.value)", "Set-ItemProperty")) {
+                try {
                     # Convert binary values to byte arrays
                     if ($Item.type -eq "Binary") {
                         $Value = -split $Item.value -replace ' ', { [Convert]::ToByte($_, 16) }
@@ -583,9 +568,9 @@ function Set-DefaultUserProfile {
                         Write-LogFile -Message "Set registry property: $($Item.path); $($Item.name), $($Item.value)"
                     }
                 }
-            }
-            catch {
-                Write-LogFile -Message $_.Exception.Message -LogLevel 3
+                catch {
+                    Write-LogFile -Message $_.Exception.Message -LogLevel 3
+                }
             }
         }
     }
@@ -593,8 +578,8 @@ function Set-DefaultUserProfile {
         Write-LogFile -Message $_.Exception.Message -LogLevel 3
     }
     finally {
-        try {
-            if ($PSCmdlet.ShouldProcess("reg unload $($DefaultUserPath -replace ':', '')", "Start-Process")) {
+        if ($PSCmdlet.ShouldProcess("reg unload $($DefaultUserPath -replace ':', '')", "Start-Process")) {
+            try {
                 # Unload Registry Hive
                 [gc]::Collect()
                 $params = @{
@@ -606,9 +591,9 @@ function Set-DefaultUserProfile {
                 $Result = Start-Process @params
                 Write-LogFile -Message "Unload default user: $DefaultUserPath"
             }
-        }
-        catch {
-            Write-LogFile -Message $_.Exception.Message -LogLevel 3
+            catch {
+                Write-LogFile -Message $_.Exception.Message -LogLevel 3
+            }
         }
     }
 }
@@ -624,8 +609,8 @@ function Copy-File {
         Write-LogFile -Message "Destination: $($Item.Destination)"
         if (Test-Path -Path $Source) {
             New-Directory -Path $(Split-Path -Path $Item.Destination -Parent)
-            try {
-                if ($PSCmdlet.ShouldProcess("$Source to $($Item.Destination)", "Copy-Item")) {
+            if ($PSCmdlet.ShouldProcess("$Source to $($Item.Destination)", "Copy-Item")) {
+                try {
                     $params = @{
                         Path        = $Source
                         Destination = $Item.Destination
@@ -635,9 +620,9 @@ function Copy-File {
                     Copy-Item @params
                     Write-LogFile -Message "Copy file: $Source to $($Item.Destination)"
                 }
-            }
-            catch {
-                Write-LogFile -Message $_.Exception.Message -LogLevel 3
+                catch {
+                    Write-LogFile -Message $_.Exception.Message -LogLevel 3
+                }
             }
         }
         else {
@@ -654,8 +639,9 @@ function New-Directory {
         Write-LogFile -Message "Path exists: $Path"
     }
     else {
-        try {
-            if ($PSCmdlet.ShouldProcess($Path, "New-Item")) {
+        if ($PSCmdlet.ShouldProcess($Path, "New-Item")) {
+            try {
+
                 $params = @{
                     Path     = $Path
                     ItemType = "Directory"
@@ -663,9 +649,9 @@ function New-Directory {
                 New-Item @params | Out-Null
                 Write-LogFile -Message "New path: $Path"
             }
-        }
-        catch {
-            Write-LogFile -Message $_.Exception.Message -LogLevel 3
+            catch {
+                Write-LogFile -Message $_.Exception.Message -LogLevel 3
+            }
         }
     }
 }
@@ -677,8 +663,8 @@ function Remove-Path {
 
     foreach ($Item in $Path) {
         if (Test-Path -Path $Item) {
-            try {
-                if ($PSCmdlet.ShouldProcess($Item, "Remove-Item")) {
+            if ($PSCmdlet.ShouldProcess($Item, "Remove-Item")) {
+                try {
                     $params = @{
                         Path    = $Item
                         Recurse = $true
@@ -688,9 +674,9 @@ function Remove-Path {
                     Remove-Item @params
                     Write-LogFile -Message "Remove path: $Item"
                 }
-            }
-            catch {
-                Write-LogFile -Message $_.Exception.Message -LogLevel 3
+                catch {
+                    Write-LogFile -Message $_.Exception.Message -LogLevel 3
+                }
             }
         }
     }
@@ -704,8 +690,8 @@ function Remove-Feature {
     if ($Feature.Count -ge 1) {
         $Feature | ForEach-Object { Get-WindowsOptionalFeature -Online -FeatureName $_ } | `
             ForEach-Object {
-            try {
-                if ($PSCmdlet.ShouldProcess($_.FeatureName, "Disable-WindowsOptionalFeature")) {
+            if ($PSCmdlet.ShouldProcess($_.FeatureName, "Disable-WindowsOptionalFeature")) {
+                try {
                     $params = @{
                         FeatureName = $_.FeatureName
                         Online      = $true
@@ -714,9 +700,9 @@ function Remove-Feature {
                     Disable-WindowsOptionalFeature @params | Out-Null
                     Write-LogFile -Message "Remove feature: $($_.FeatureName)"
                 }
-            }
-            catch {
-                Write-LogFile -Message $_.Exception.Message -LogLevel 3
+                catch {
+                    Write-LogFile -Message $_.Exception.Message -LogLevel 3
+                }
             }
         }
     }
@@ -729,8 +715,8 @@ function Remove-Capability {
 
     if ($Capability.Count -ge 1) {
         foreach ($Item in $Capability) {
-            try {
-                if ($PSCmdlet.ShouldProcess($Item, "Remove-WindowsCapability")) {
+            if ($PSCmdlet.ShouldProcess($Item, "Remove-WindowsCapability")) {
+                try {
                     $params = @{
                         Name   = $Item
                         Online = $true
@@ -738,9 +724,9 @@ function Remove-Capability {
                     Remove-WindowsCapability @params | Out-Null
                     Write-LogFile -Message "Remove capability: $($Item)"
                 }
-            }
-            catch {
-                Write-LogFile -Message $_.Exception.Message -LogLevel 3
+                catch {
+                    Write-LogFile -Message $_.Exception.Message -LogLevel 3
+                }
             }
         }
     }
@@ -753,8 +739,8 @@ function Add-Capability {
 
     if ($Capability.Count -ge 1) {
         foreach ($Item in $Capability) {
-            try {
-                if ($PSCmdlet.ShouldProcess($Item, "Add-WindowsCapability")) {
+            if ($PSCmdlet.ShouldProcess($Item, "Add-WindowsCapability")) {
+                try {
                     $params = @{
                         Name   = $Item
                         Online = $true
@@ -762,9 +748,9 @@ function Add-Capability {
                     Add-WindowsCapability @params | Out-Null
                     Write-LogFile -Message "Add capability: $($Item)"
                 }
-            }
-            catch {
-                Write-LogFile -Message $_.Exception.Message -LogLevel 3
+                catch {
+                    Write-LogFile -Message $_.Exception.Message -LogLevel 3
+                }
             }
         }
     }
@@ -778,8 +764,8 @@ function Add-Feature {
     if ($Feature.Count -ge 1) {
         $Feature | ForEach-Object { Get-WindowsOptionalFeature -Online -FeatureName $_ } | `
             ForEach-Object {
-            try {
-                if ($PSCmdlet.ShouldProcess($_.FeatureName, "Enable-WindowsOptionalFeature")) {
+            if ($PSCmdlet.ShouldProcess($_.FeatureName, "Enable-WindowsOptionalFeature")) {
+                try {
                     $params = @{
                         FeatureName = $_.FeatureName
                         Online      = $true
@@ -788,9 +774,9 @@ function Add-Feature {
                     Enable-WindowsOptionalFeature @params | Out-Null
                     Write-LogFile -Message "Add feature: $($_.FeatureName)"
                 }
-            }
-            catch {
-                Write-LogFile -Message $_.Exception.Message -LogLevel 3
+                catch {
+                    Write-LogFile -Message $_.Exception.Message -LogLevel 3
+                }
             }
         }
     }
@@ -805,8 +791,8 @@ function Remove-Package {
         foreach ($Item in $Package) {
             Get-WindowsPackage -Online | Where-Object { $_.PackageName -match $Item } | `
                 ForEach-Object {
-                try {
-                    if ($PSCmdlet.ShouldProcess($_.PackageName, "Remove-WindowsPackage")) {
+                if ($PSCmdlet.ShouldProcess($_.PackageName, "Remove-WindowsPackage")) {
+                    try {
                         $params = @{
                             PackageName = $_.PackageName
                             Online      = $true
@@ -814,9 +800,9 @@ function Remove-Package {
                         Remove-WindowsPackage @params | Out-Null
                         Write-LogFile -Message "Remove package: $($_.PackageName)"
                     }
-                }
-                catch {
-                    Write-LogFile -Message $_.Exception.Message -LogLevel 3
+                    catch {
+                        Write-LogFile -Message $_.Exception.Message -LogLevel 3
+                    }
                 }
             }
         }
@@ -835,14 +821,14 @@ function Restart-NamedService {
     param ($Service)
 
     foreach ($Item in $Service) {
-        try {
-            if ($PSCmdlet.ShouldProcess($Item, "Restart-Service")) {
+        if ($PSCmdlet.ShouldProcess($Item, "Restart-Service")) {
+            try {
                 Get-Service -Name $Item | Restart-Service -Force
                 Write-LogFile -Message "Restart service: $Item"
             }
-        }
-        catch {
-            Write-LogFile -Message $_.Exception.Message -LogLevel 3
+            catch {
+                Write-LogFile -Message $_.Exception.Message -LogLevel 3
+            }
         }
     }
 }
@@ -853,14 +839,14 @@ function Start-NamedService {
     param ($Service)
 
     foreach ($Item in $Service) {
-        try {
-            if ($PSCmdlet.ShouldProcess($Item, "Start-Service")) {
+        if ($PSCmdlet.ShouldProcess($Item, "Start-Service")) {
+            try {
                 Get-Service -Name $Item | Start-Service
                 Write-LogFile -Message "Start service: $Item"
             }
-        }
-        catch {
-            Write-LogFile -Message $_.Exception.Message -LogLevel 3
+            catch {
+                Write-LogFile -Message $_.Exception.Message -LogLevel 3
+            }
         }
     }
 }
@@ -871,14 +857,14 @@ function Stop-NamedService {
     param ($Service)
 
     foreach ($Item in $Service) {
-        try {
-            if ($PSCmdlet.ShouldProcess($Item, "Stop-Service")) {
+        if ($PSCmdlet.ShouldProcess($Item, "Stop-Service")) {
+            try {
                 Get-Service -Name $Item | Stop-Service -Force
                 Write-LogFile -Message "Stop service: $Item"
             }
-        }
-        catch {
-            Write-LogFile -Message $_.Exception.Message -LogLevel 3
+            catch {
+                Write-LogFile -Message $_.Exception.Message -LogLevel 3
+            }
         }
     }
 }
@@ -889,18 +875,18 @@ function Install-SystemLanguage {
     [CmdletBinding(SupportsShouldProcess = $true)]
     param ($Language)
 
-    try {
-        if ($PSCmdlet.ShouldProcess("LanguagePackManagement", "Import-Module")) {
+    if ($PSCmdlet.ShouldProcess("LanguagePackManagement", "Import-Module")) {
+        try {
             Write-LogFile -Message "Import module: LanguagePackManagement"
             Import-Module -Name "LanguagePackManagement"
         }
-    }
-    catch {
-        Write-LogFile -Message $_.Exception.Message -LogLevel 3
+        catch {
+            Write-LogFile -Message $_.Exception.Message -LogLevel 3
+        }
     }
 
-    try {
-        if ($PSCmdlet.ShouldProcess($Language, "Install-Language")) {
+    if ($PSCmdlet.ShouldProcess($Language, "Install-Language")) {
+        try {
             Write-LogFile -Message "Language pack install (this may take some time): $Language"
             $params = @{
                 Language        = $Language
@@ -914,9 +900,9 @@ function Install-SystemLanguage {
             }
             Write-LogFile -Message "Language pack install complete"
         }
-    }
-    catch {
-        Write-LogFile -Message $_.Exception.Message -LogLevel 3
+        catch {
+            Write-LogFile -Message $_.Exception.Message -LogLevel 3
+        }
     }
 }
 
@@ -924,8 +910,8 @@ function Set-SystemLocale {
     # Set system locale and regional settings
     [CmdletBinding(SupportsShouldProcess = $true)]
     param ([System.Globalization.CultureInfo] $Language)
-    try {
-        if ($PSCmdlet.ShouldProcess($Language, "Set locale")) {
+    if ($PSCmdlet.ShouldProcess($Language, "Set locale")) {
+        try {
             Write-LogFile -Message "Import module: International"
             Import-Module -Name "International"
 
@@ -958,9 +944,9 @@ function Set-SystemLocale {
                 Copy-UserInternationalSettingsToSystem -WelcomeScreen $true -NewUser $true
             }
         }
-    }
-    catch {
-        Write-LogFile -Message $_.Exception.Message -LogLevel 3
+        catch {
+            Write-LogFile -Message $_.Exception.Message -LogLevel 3
+        }
     }
 }
 
@@ -969,14 +955,14 @@ function Set-TimeZoneUsingName {
     # https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/default-time-zones
     [CmdletBinding(SupportsShouldProcess = $true)]
     param ([System.String] $TimeZone = "AUS Eastern Standard Time")
-    try {
-        if ($PSCmdlet.ShouldProcess($TimeZone, "Set-TimeZone")) {
+    if ($PSCmdlet.ShouldProcess($TimeZone, "Set-TimeZone")) {
+        try {
             Set-TimeZone -Name $TimeZone
             Write-LogFile -Message "Set-TimeZone: $($TimeZone)"
         }
-    }
-    catch {
-        Write-LogFile -Message $_.Exception.Message -LogLevel 3
+        catch {
+            Write-LogFile -Message $_.Exception.Message -LogLevel 3
+        }
     }
 }
 
@@ -1231,7 +1217,7 @@ function Set-Shortcut {
             # }
         }
         catch {
-            Write-LogFile -Message "Failed to modify shortcut '$Path': $($_.Exception.Message)" -Level 3
+            Write-LogFile -Message "Failed to modify shortcut '$Path': $($_.Exception.Message)" -LogLevel 3
         }
         finally {
             # Release COM object
@@ -1257,7 +1243,7 @@ Export-ModuleMember -Function 'Get-Symbol',
 'Get-OSName',
 'Get-SettingsContent',
 'Write-LogFile',
-'Set-RegistryKeyOwner',
+'Set-RegistryOwner',
 'Set-Registry',
 'Remove-RegistryPath',
 'Set-DefaultUserProfile',
