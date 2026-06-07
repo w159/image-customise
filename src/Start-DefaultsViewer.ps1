@@ -185,7 +185,7 @@ function Get-SchemaMap {
     return $map
 }
 
-function Convert-ToDisplayValue {
+function ConvertTo-DisplayValue {
     param(
         [System.Object] $Value
     )
@@ -265,7 +265,7 @@ function Add-FieldRow {
     [void] $grid.ColumnDefinitions.Add($columnValue)
 
     $labelBlock = New-TextBlock -Text $Label -FontSize 12 -Foreground $Theme.MutedBrush -Weight ([System.Windows.FontWeights]::SemiBold)
-    $valueBlock = New-TextBlock -Text (Convert-ToDisplayValue -Value $Value) -FontSize 12 -Foreground $Theme.PrimaryTextBrush
+    $valueBlock = New-TextBlock -Text (ConvertTo-DisplayValue -Value $Value) -FontSize 12 -Foreground $Theme.PrimaryTextBrush
 
     [System.Windows.Controls.Grid]::SetColumn($labelBlock, 0)
     [System.Windows.Controls.Grid]::SetColumn($valueBlock, 1)
@@ -382,7 +382,7 @@ function New-StringListGroup {
         $itemBorder.BorderBrush = $Theme.BorderBrush
         $itemBorder.BorderThickness = [System.Windows.Thickness]::new(1)
 
-        $valueText = New-TextBlock -Text (Convert-ToDisplayValue -Value $item) -FontSize 12 -Foreground $Theme.PrimaryTextBrush
+        $valueText = New-TextBlock -Text (ConvertTo-DisplayValue -Value $item) -FontSize 12 -Foreground $Theme.PrimaryTextBrush
         $itemBorder.Child = $valueText
         [void] $groupPanel.Children.Add($itemBorder)
     }
@@ -458,7 +458,33 @@ function New-Badge {
     return $badge
 }
 
-function Get-ConfigEntries {
+function Get-OsBuildList {
+    param(
+        [System.String] $ScriptRoot
+    )
+
+    $entries = [System.Collections.Generic.List[PSCustomObject]]::new()
+    $csvPaths = @(
+        (Join-Path -Path $ScriptRoot -ChildPath "builds\WindowsClient.csv"),
+        (Join-Path -Path $ScriptRoot -ChildPath "builds\WindowsServer.csv")
+    )
+
+    foreach ($csvPath in $csvPaths) {
+        if (Test-Path -Path $csvPath) {
+            Import-Csv -Path $csvPath | ForEach-Object {
+                $entries.Add([PSCustomObject]@{
+                    Label    = $_.Label
+                    Build    = $_.Build
+                    Platform = $_.Platform
+                })
+            }
+        }
+    }
+
+    return , ($entries.ToArray() | Sort-Object -Property @{Expression = { [System.Version] $_.Build }} -Descending)
+}
+
+function Get-ConfigEntry {
     param(
         [System.String] $Path
     )
@@ -621,6 +647,127 @@ $theme = @{
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <!-- Fluent ComboBox toggle button: draws border + chevron, no content area -->
+        <Style x:Key="FluentComboBoxToggleButton" TargetType="ToggleButton">
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="ClickMode" Value="Press" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border Name="ToggleBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4">
+                            <Path Name="Arrow"
+                                  Data="M 0 0 L 4 4 L 8 0"
+                                  Stroke="#606060"
+                                  StrokeThickness="1.5"
+                                  HorizontalAlignment="Right"
+                                  VerticalAlignment="Center"
+                                  Margin="0,0,10,0"
+                                  SnapsToDevicePixels="True" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ToggleBorder" Property="Background" Value="#F5F5F5" />
+                                <Setter TargetName="ToggleBorder" Property="BorderBrush" Value="#8A8A8A" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="ToggleBorder" Property="BorderBrush" Value="#0078D4" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Fluent ComboBoxItem -->
+        <Style x:Key="FluentComboBoxItem" TargetType="ComboBoxItem">
+            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="#1B1B1B" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border Name="ItemBorder"
+                                Background="Transparent"
+                                Padding="{TemplateBinding Padding}"
+                                CornerRadius="4"
+                                Margin="2,1">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#F5F5F5" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#CCE4F7" />
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsSelected" Value="True" />
+                                    <Condition Property="IsHighlighted" Value="True" />
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#B8D9F0" />
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Fluent ComboBox: rounded border, custom chevron, styled dropdown -->
+        <Style x:Key="FluentComboBox" TargetType="ComboBox">
+            <Setter Property="Height" Value="32" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="#1B1B1B" />
+            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="BorderBrush" Value="#E0E0E0" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="ItemContainerStyle" Value="{StaticResource FluentComboBoxItem}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton Name="ToggleButton"
+                                          Background="{TemplateBinding Background}"
+                                          BorderBrush="{TemplateBinding BorderBrush}"
+                                          BorderThickness="{TemplateBinding BorderThickness}"
+                                          IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                                          Style="{StaticResource FluentComboBoxToggleButton}" />
+                            <ContentPresenter Name="ContentSite"
+                                              IsHitTestVisible="False"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              Margin="10,0,28,0"
+                                              VerticalAlignment="Center" />
+                            <Popup Name="PART_Popup"
+                                   Placement="Bottom"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   AllowsTransparency="True"
+                                   Focusable="False"
+                                   PopupAnimation="Fade">
+                                <Border Name="DropDownBorder"
+                                        MinWidth="{TemplateBinding ActualWidth}"
+                                        MaxHeight="300"
+                                        Background="#FFFFFF"
+                                        BorderBrush="#E0E0E0"
+                                        BorderThickness="1"
+                                        CornerRadius="4"
+                                        Margin="0,2,0,0">
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                        <ItemsPresenter />
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
     <Grid Margin="16">
         <Grid.RowDefinitions>
@@ -629,10 +776,28 @@ $theme = @{
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0" Background="#FFFFFF" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="8" Padding="16,12" Margin="0,0,0,12">
-            <StackPanel Orientation="Vertical">
-                <TextBlock Text="Enterprise Defaults Viewer" FontSize="20" FontWeight="SemiBold" Foreground="#1B1B1B" />
-                <TextBlock Name="SubtitleTextBlock" Margin="0,4,0,0" FontSize="12" Foreground="#606060" />
-            </StackPanel>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Orientation="Vertical">
+                    <TextBlock Text="Enterprise Defaults Viewer" FontSize="20" FontWeight="SemiBold" Foreground="#1B1B1B" />
+                    <TextBlock Name="SubtitleTextBlock" Margin="0,4,0,0" FontSize="12" Foreground="#606060" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
+                    <TextBlock Text="OS:" FontSize="12" Foreground="#606060" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <ComboBox Name="OsComboBox" Style="{StaticResource FluentComboBox}" MinWidth="200" Margin="0,0,16,0">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Label}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <TextBlock Text="Model:" FontSize="12" Foreground="#606060" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <ComboBox Name="ModelComboBox" Style="{StaticResource FluentComboBox}" MinWidth="120" />
+                </StackPanel>
+            </Grid>
         </Border>
 
         <Grid Grid.Row="1">
@@ -675,11 +840,27 @@ $configsListBox = [System.Windows.Controls.ListBox] $window.FindName("ConfigsLis
 $detailsPanel = [System.Windows.Controls.StackPanel] $window.FindName("DetailsPanel")
 $listHeaderTextBlock = [System.Windows.Controls.TextBlock] $window.FindName("ListHeaderTextBlock")
 $subtitleTextBlock = [System.Windows.Controls.TextBlock] $window.FindName("SubtitleTextBlock")
+$osComboBox = [System.Windows.Controls.ComboBox] $window.FindName("OsComboBox")
+$modelComboBox = [System.Windows.Controls.ComboBox] $window.FindName("ModelComboBox")
 
 $subtitleTextBlock.Text = "Configuration profiles viewer. Path: $ConfigsPath"
 
 $schemaMap = Get-SchemaMap -RemoteSchemaUrl $SchemaUrl
-$script:configEntries = @()
+$script:allConfigEntries = @()
+
+# Populate OS ComboBox from the Windows client and server build CSV files
+$osBuildList = Get-OsBuildList -ScriptRoot $PSScriptRoot
+[void] $osComboBox.Items.Add([PSCustomObject]@{ Label = "All OS"; Build = $null; Platform = $null })
+foreach ($osBuildEntry in $osBuildList) {
+    [void] $osComboBox.Items.Add($osBuildEntry)
+}
+$osComboBox.SelectedIndex = 0
+
+# Populate Model ComboBox
+foreach ($modelLabel in @("All", "Physical", "Virtual")) {
+    [void] $modelComboBox.Items.Add($modelLabel)
+}
+$modelComboBox.SelectedIndex = 0
 
 function Add-EmptyMessage {
     param(
@@ -790,14 +971,14 @@ function Add-MachineRegistrySection {
 
     $body = [System.Windows.Controls.StackPanel]::new()
 
-    Add-GroupFromObjects -Parent $body -Title "ChangeOwner" -Items $changeOwnerItems -HeaderFactory { param($item) "{0}\\{1}" -f (Convert-ToDisplayValue (Get-PropertyValue -Object $item -Names @("Root"))), (Convert-ToDisplayValue (Get-PropertyValue -Object $item -Names @("Key"))) } -Fields @(
+    Add-GroupFromObjects -Parent $body -Title "ChangeOwner" -Items $changeOwnerItems -HeaderFactory { param($item) "{0}\\{1}" -f (ConvertTo-DisplayValue (Get-PropertyValue -Object $item -Names @("Root"))), (ConvertTo-DisplayValue (Get-PropertyValue -Object $item -Names @("Key"))) } -Fields @(
         @{ Label = "Root"; Names = @("Root"); SchemaKey = "MachineRegistry.ChangeOwner.Root" },
         @{ Label = "Key"; Names = @("Key"); SchemaKey = "MachineRegistry.ChangeOwner.Key" },
         @{ Label = "SID"; Names = @("Sid", "SID"); SchemaKey = "MachineRegistry.ChangeOwner.Sid" },
         @{ Label = "Note"; Names = @("note", "Note"); SchemaKey = "MachineRegistry.ChangeOwner.note" }
     ) -Prefix "MachineRegistry.ChangeOwner"
 
-    Add-GroupFromObjects -Parent $body -Title "Set" -Items $setItems -HeaderFactory { param($item) "{0}  ->  {1}" -f (Convert-ToDisplayValue (Get-PropertyValue -Object $item -Names @("path", "Path"))), (Convert-ToDisplayValue (Get-PropertyValue -Object $item -Names @("name", "Name"))) } -Fields @(
+    Add-GroupFromObjects -Parent $body -Title "Set" -Items $setItems -HeaderFactory { param($item) "{0}  ->  {1}" -f (ConvertTo-DisplayValue (Get-PropertyValue -Object $item -Names @("path", "Path"))), (ConvertTo-DisplayValue (Get-PropertyValue -Object $item -Names @("name", "Name"))) } -Fields @(
         @{ Label = "Path"; Names = @("path", "Path"); SchemaKey = "MachineRegistry.Set.path" },
         @{ Label = "Name"; Names = @("name", "Name"); SchemaKey = "MachineRegistry.Set.name" },
         @{ Label = "Type"; Names = @("type", "Type"); SchemaKey = "MachineRegistry.Set.type" },
@@ -806,7 +987,7 @@ function Add-MachineRegistrySection {
         @{ Label = "Note"; Names = @("note", "Note"); SchemaKey = "MachineRegistry.Set.note" }
     ) -Prefix "MachineRegistry.Set"
 
-    Add-GroupFromObjects -Parent $body -Title "Remove" -Items $removeItems -HeaderFactory { param($item) (Convert-ToDisplayValue (Get-PropertyValue -Object $item -Names @("path", "Path"))) } -Fields @(
+    Add-GroupFromObjects -Parent $body -Title "Remove" -Items $removeItems -HeaderFactory { param($item) (ConvertTo-DisplayValue (Get-PropertyValue -Object $item -Names @("path", "Path"))) } -Fields @(
         @{ Label = "Path"; Names = @("path", "Path"); SchemaKey = "MachineRegistry.Remove.path" },
         @{ Label = "Note"; Names = @("note", "Note"); SchemaKey = "MachineRegistry.Remove.note" }
     ) -Prefix "MachineRegistry.Remove"
@@ -839,7 +1020,7 @@ function Add-UserRegistrySection {
         [void] $body.Children.Add($sourceBox)
     }
 
-    Add-GroupFromObjects -Parent $body -Title "Set" -Items $setItems -HeaderFactory { param($item) "{0}  ->  {1}" -f (Convert-ToDisplayValue (Get-PropertyValue -Object $item -Names @("path", "Path"))), (Convert-ToDisplayValue (Get-PropertyValue -Object $item -Names @("name", "Name"))) } -Fields @(
+    Add-GroupFromObjects -Parent $body -Title "Set" -Items $setItems -HeaderFactory { param($item) "{0}  ->  {1}" -f (ConvertTo-DisplayValue (Get-PropertyValue -Object $item -Names @("path", "Path"))), (ConvertTo-DisplayValue (Get-PropertyValue -Object $item -Names @("name", "Name"))) } -Fields @(
         @{ Label = "Path"; Names = @("path", "Path"); SchemaKey = "UserRegistry.Set.path" },
         @{ Label = "Name"; Names = @("name", "Name"); SchemaKey = "UserRegistry.Set.name" },
         @{ Label = "Type"; Names = @("type", "Type"); SchemaKey = "UserRegistry.Set.type" },
@@ -848,7 +1029,7 @@ function Add-UserRegistrySection {
         @{ Label = "Note"; Names = @("note", "Note"); SchemaKey = "UserRegistry.Set.note" }
     ) -Prefix "UserRegistry.Set"
 
-    Add-GroupFromObjects -Parent $body -Title "Others" -Items $otherItems -HeaderFactory { param($item) "{0}  ->  {1}" -f (Convert-ToDisplayValue (Get-PropertyValue -Object $item -Names @("path", "Path"))), (Convert-ToDisplayValue (Get-PropertyValue -Object $item -Names @("name", "Name"))) } -Fields @(
+    Add-GroupFromObjects -Parent $body -Title "Others" -Items $otherItems -HeaderFactory { param($item) "{0}  ->  {1}" -f (ConvertTo-DisplayValue (Get-PropertyValue -Object $item -Names @("path", "Path"))), (ConvertTo-DisplayValue (Get-PropertyValue -Object $item -Names @("name", "Name"))) } -Fields @(
         @{ Label = "Path"; Names = @("path", "Path"); SchemaKey = "UserRegistry.Set.path" },
         @{ Label = "Name"; Names = @("name", "Name"); SchemaKey = "UserRegistry.Set.name" },
         @{ Label = "Type"; Names = @("type", "Type"); SchemaKey = "UserRegistry.Set.type" },
@@ -932,7 +1113,7 @@ function Add-ShortcutsSection {
 
     $body = [System.Windows.Controls.StackPanel]::new()
 
-    Add-GroupFromObjects -Parent $body -Title "Edit" -Items $editItems -HeaderFactory { param($item) (Convert-ToDisplayValue (Get-PropertyValue -Object $item -Names @("Path"))) } -Fields @(
+    Add-GroupFromObjects -Parent $body -Title "Edit" -Items $editItems -HeaderFactory { param($item) (ConvertTo-DisplayValue (Get-PropertyValue -Object $item -Names @("Path"))) } -Fields @(
         @{ Label = "Path"; Names = @("Path", "path"); SchemaKey = "Shortcuts.Edit.Path" },
         @{ Label = "Arguments"; Names = @("Arguments", "arguments"); SchemaKey = "Shortcuts.Edit.Arguments" }
     ) -Prefix "Shortcuts.Edit"
@@ -956,7 +1137,7 @@ function Add-FilesSection {
 
     Add-GroupFromObjects -Parent $body -Title "Copy" -Items $copyItems -HeaderFactory {
         param($item)
-        "{0}  ->  {1}" -f (Convert-ToDisplayValue (Get-PropertyValue -Object $item -Names @("Source", "source"))), (Convert-ToDisplayValue (Get-PropertyValue -Object $item -Names @("Destination", "destination")))
+        "{0}  ->  {1}" -f (ConvertTo-DisplayValue (Get-PropertyValue -Object $item -Names @("Source", "source"))), (ConvertTo-DisplayValue (Get-PropertyValue -Object $item -Names @("Destination", "destination")))
     } -Fields $fields -Prefix "Files.Copy"
 
     if ($copyItems.Count -gt 0) {
@@ -1037,13 +1218,47 @@ function Render-Config {
     Add-FilesSection -FilesSection (Get-PropertyValue -Object $config -Names @("Files"))
 }
 
-function Reload-Configs {
-    $script:configEntries = Get-ConfigEntries -Path $ConfigsPath
-    $configsListBox.ItemsSource = $null
-    $configsListBox.ItemsSource = $script:configEntries
-    $listHeaderTextBlock.Text = "Configuration Files ({0})" -f $script:configEntries.Count
+function Apply-ConfigFilter {
+    $selectedOs = $osComboBox.SelectedItem
+    $selectedModel = [System.String] $modelComboBox.SelectedItem
 
-    if ($script:configEntries.Count -gt 0) {
+    $filtered = $script:allConfigEntries
+
+    if ($null -ne $selectedOs -and $null -ne $selectedOs.Build) {
+        $osVersion = [System.Version] $selectedOs.Build
+        $platform  = [System.String] $selectedOs.Platform
+
+        $filtered = $filtered | Where-Object {
+            if (-not [System.String]::IsNullOrWhiteSpace([System.String] $_.ParseError)) { return $true }
+            $targets  = Get-PropertyValue -Object $_.Config -Names @("Targets")
+            $platforms = @(Get-PropertyValue -Object $targets -Names @("Platforms"))
+            $minBuild = Get-PropertyValue -Object $_.Config -Names @("MinimumBuild")
+            $maxBuild = Get-PropertyValue -Object $_.Config -Names @("MaximumBuild")
+
+            $platformMatch = $platform -in $platforms
+            $minMatch = $null -eq $minBuild -or $osVersion -ge [System.Version]$minBuild
+            $maxMatch = $null -eq $maxBuild -or $osVersion -le [System.Version]$maxBuild
+
+            $platformMatch -and $minMatch -and $maxMatch
+        }
+    }
+
+    if ($selectedModel -ne "All") {
+        $modelValue = $selectedModel.ToLower()
+        $filtered = $filtered | Where-Object {
+            if (-not [System.String]::IsNullOrWhiteSpace([System.String] $_.ParseError)) { return $true }
+            $targets = Get-PropertyValue -Object $_.Config -Names @("Targets")
+            $models  = @(Get-PropertyValue -Object $targets -Names @("Models"))
+            $modelValue -in $models
+        }
+    }
+
+    $filteredArray = @($filtered)
+    $configsListBox.ItemsSource = $null
+    $configsListBox.ItemsSource = $filteredArray
+    $listHeaderTextBlock.Text = "Configuration Files ({0})" -f $filteredArray.Count
+
+    if ($filteredArray.Count -gt 0) {
         $configsListBox.SelectedIndex = 0
     }
     else {
@@ -1051,8 +1266,21 @@ function Reload-Configs {
     }
 }
 
+function Reload-Configs {
+    $script:allConfigEntries = Get-ConfigEntry -Path $ConfigsPath
+    Apply-ConfigFilter
+}
+
 $configsListBox.Add_SelectionChanged({
     Render-Config -Entry $configsListBox.SelectedItem
+})
+
+$osComboBox.Add_SelectionChanged({
+    Apply-ConfigFilter
+})
+
+$modelComboBox.Add_SelectionChanged({
+    Apply-ConfigFilter
 })
 
 Reload-Configs

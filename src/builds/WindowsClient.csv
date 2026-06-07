@@ -1,0 +1,19 @@
+Label,Build,Platform
+Windows 11 26H2,10.0.28000.0,client
+Windows 11 25H2,10.0.26200.0,client
+Windows 11 24H2,10.0.26100.0,client
+Windows 11 23H3,10.0.22631.0,client
+Windows 10 22H2,10.0.19045.0,client
+Windows 11 22H2,10.0.22621.0,client
+Windows 10 21H2,10.0.19044.0,client
+Windows 11 21H2,10.0.22000.0,client
+Windows 10 21H1,10.0.19043.0,client
+Windows 10 20H2,10.0.19042.0,client
+Windows 10 2004,10.0.19041.0,client
+Windows 10 1909,10.0.18363.0,client
+Windows 10 1903,10.0.18362.0,client
+Windows 10 1809,10.0.17763.0,client
+Windows 10 1803,10.0.17134.0,client
+Windows 10 1709,10.0.16299.0,client
+Windows 10 1703,10.0.15063.0,client
+Windows 10 1607,10.0.14393.0,client

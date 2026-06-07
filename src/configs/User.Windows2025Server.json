@@ -68,10 +68,6 @@
     },
     "Files": {
         "Copy": [
-            {
-                "Source": "apps\\initial_preferences.json",
-                "Destination": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\initial_preferences"
-            }
         ]
     }
 }

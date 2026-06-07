@@ -1,0 +1,9 @@
+Label,Build,Platform
+Windows Server 2025,10.0.26100.0,server
+Windows Server 2022,10.0.20348.0,server
+Windows Server 2019,10.0.17763.0,server
+Windows Server 2016,10.0.14393.0,server
+Windows Server 2025 RDSH,10.0.26100.0,rds-server
+Windows Server 2022 RDSH,10.0.20348.0,rds-server
+Windows Server 2019 RDSH,10.0.17763.0,rds-server
+Windows Server 2016 RDSH,10.0.14393.0,rds-server
