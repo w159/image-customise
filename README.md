@@ -6,4 +6,4 @@ Designed for use with deploying physical PCs and virtual desktop gold images (Az
 
 Documentation on how to use and implement these scripts is found here: [Windows Enterprise Defaults](https://stealthpuppy.com/defaults/).
 
-![Build status](https://github.com/aaronparker/defaults/actions/workflows/validate-scripts.yml/badge.svg) [![codecov](https://codecov.io/gh/aaronparker/defaults/branch/main/graph/badge.svg?token=PINVKVG70I)](https://codecov.io/gh/aaronparker/defaults)
+![Build status](https://github.com/aaronparker/defaults/actions/workflows/validate-scripts.yml/badge.svg)
