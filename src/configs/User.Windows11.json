@@ -1,6 +1,6 @@
 {
     "$schema": "https://raw.githubusercontent.com/aaronparker/defaults/refs/heads/main/schema/configuration.schema.json",
-    "Description": "Default user profile settings for Windows 11.",
+    "Description": "Default user profile settings for Windows 11",
     "MinimumBuild": "10.0.22000.0",
     "MaximumBuild": "10.0.29999.0",
     "Targets": {
@@ -40,7 +40,7 @@
                 "name": "VisiblePlaces",
                 "value": "188 36 138 20 12 214 137 66 160 128 110 217 187 162 72 130 134 8 115 82 170 81 67 66 159 123 39 118 88 70 89 212",
                 "type": "Binary",
-                "note": "Adds 'Settings' and 'File Explorer' next to the power button on the Start menu.",
+                "note": "Adds 'Settings' and 'File Explorer' next to the power button on the Start menu",
                 "protected": false
             },
             {
@@ -48,7 +48,7 @@
                 "name": "PlacesInitializedVersion",
                 "value": "2",
                 "type": "Dword",
-                "note": "Required to support the setting selected for VisiblePlaces.",
+                "note": "Required to support the setting selected for VisiblePlaces",
                 "protected": false
             },
             {
@@ -182,11 +182,35 @@
                 "protected": false
             },
             {
+                "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced\\TaskbarDeveloperSettings",
+                "name": "Run",
+                "value": 1,
+                "type": "DWord",
+                "note": "Use the modern Run dialog when pressing Win + R",
+                "protected": false
+            },
+            {
+                "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced\\TaskbarDeveloperSettings",
+                "name": "TaskbarEndTask",
+                "value": 1,
+                "type": "DWord",
+                "note": "Enable end task in the taskbar by right click",
+                "protected": false
+            },
+            {
                 "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\SystemSettings\\AccountNotifications",
                 "name": "EnableAccountNotifications",
                 "value": 0,
                 "type": "DWord",
                 "note": "Disables 'Settings / Privacy & Security / Recommendations & offers / Show notifications in Settings'",
+                "protected": false
+            },
+            {
+                "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Start",
+                "name": "AllAppsViewMode",
+                "value": "1",
+                "type": "Dword",
+                "note": "Sets the Grid mode for the All Apps view on the new Start menu layout",
                 "protected": false
             }
         ]
