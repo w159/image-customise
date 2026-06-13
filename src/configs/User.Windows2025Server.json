@@ -1,6 +1,6 @@
 {
     "$schema": "https://raw.githubusercontent.com/aaronparker/defaults/refs/heads/main/schema/configuration.schema.json",
-    "Description": "Default user profile settings for Windows Server 2025 and above.",
+    "Description": "Default user profile settings for Windows Server 2025 and above",
     "MinimumBuild": "10.0.26100.0",
     "MaximumBuild": "10.0.99999.0",
     "Targets": {
@@ -32,7 +32,7 @@
                 "name": "VisiblePlaces",
                 "value": "188 36 138 20 12 214 137 66 160 128 110 217 187 162 72 130 134 8 115 82 170 81 67 66 159 123 39 118 88 70 89 212",
                 "type": "Binary",
-                "note": "Adds 'Settings' and 'File Explorer' next to the power button on the Start menu.",
+                "note": "Adds 'Settings' and 'File Explorer' next to the power button on the Start menu",
                 "protected": false
             },
             {
@@ -40,7 +40,7 @@
                 "name": "PlacesInitializedVersion",
                 "value": "2",
                 "type": "Dword",
-                "note": "Required to support the setting selected for VisiblePlaces.",
+                "note": "Required to support the setting selected for VisiblePlaces",
                 "protected": false
             }
         ]
