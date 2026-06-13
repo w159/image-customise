@@ -41,8 +41,15 @@ foreach ($file in $Configs) {
             $Markdown += "`n"
         }
 
+        if ($json.MachineRegistry.Others.Count -gt 0) {
+            $Markdown += New-MDHeader -Text "Other Machine Registry Values (not set)" -Level 3
+            $Markdown += "`n"
+            $Markdown += $json.MachineRegistry.Others | New-MDTable -Shrink
+            $Markdown += "`n"
+        }
+
         if ($json.MachineRegistry.Remove.Count -gt 0) {
-            $Markdown += New-MDHeader -Text "Remove Machine Registry Vaues" -Level 3
+            $Markdown += New-MDHeader -Text "Remove Machine Registry Values" -Level 3
             $Markdown += "`n"
             $Markdown += $json.MachineRegistry.Remove | New-MDTable -Shrink
             $Markdown += "`n"
@@ -52,6 +59,13 @@ foreach ($file in $Configs) {
             $Markdown += New-MDHeader -Text "Set User Registry Values" -Level 3
             $Markdown += "`n"
             $Markdown += $json.UserRegistry.Set | New-MDTable -Shrink
+            $Markdown += "`n"
+        }
+
+        if ($json.UserRegistry.Others.Count -gt 0) {
+            $Markdown += New-MDHeader -Text "Other User Registry Values (not set)" -Level 3
+            $Markdown += "`n"
+            $Markdown += $json.UserRegistry.Others | New-MDTable -Shrink
             $Markdown += "`n"
         }
     }
