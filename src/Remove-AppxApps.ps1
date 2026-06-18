@@ -155,6 +155,7 @@ namespace Api {
     function Add-DeprovisionedPackageKey {
         # Explicitly create the registry key for deprovisioned packages
         # Silently fail if we don't have permissions to create the key
+        [CmdletBinding()]
         param (
             [Parameter(Mandatory = $true)]
             [System.String] $PackageFamilyName
@@ -197,7 +198,9 @@ process {
         $AppxPackagesToRemove | ForEach-Object {
             if ($PSCmdlet.ShouldProcess($_.PackageFullName, "Remove AppX package")) {
                 Remove-AppxPackage -Package $_.PackageFullName -AllUsers:$Elevated
-                Add-DeprovisionedPackageKey -PackageFamilyName $_.PackageFamilyName
+                if ($_.PSObject.Properties.Name -contains 'PackageFamilyName') {
+                    Add-DeprovisionedPackageKey -PackageFamilyName $_.PackageFamilyName
+                }
             }
             $_.PackageFamilyName | Write-Output
         }
@@ -232,7 +235,9 @@ process {
             $AppxPackagesToRemove | ForEach-Object {
                 if ($PSCmdlet.ShouldProcess($_.PackageFullName, "Remove AppX package")) {
                     Remove-AppxPackage -Package $_.PackageFullName -AllUsers:$Elevated
-                    Add-DeprovisionedPackageKey -PackageFamilyName $_.PackageFamilyName
+                    if ($_.PSObject.Properties.Name -contains 'PackageFamilyName') {
+                        Add-DeprovisionedPackageKey -PackageFamilyName $_.PackageFamilyName
+                    }
                 }
                 $_.PackageFamilyName | Write-Output
             }
@@ -246,7 +251,9 @@ process {
                 $PackagesToRemove | ForEach-Object {
                     if ($PSCmdlet.ShouldProcess($_.PackageName, "Remove AppX provisioned package")) {
                         Remove-AppxProvisionedPackage -Package $_.PackageName -Online -AllUsers
-                        Add-DeprovisionedPackageKey -PackageFamilyName $_.PackageFamilyName
+                        if ($_.PSObject.Properties.Name -contains 'PackageFamilyName') {
+                            Add-DeprovisionedPackageKey -PackageFamilyName $_.PackageFamilyName
+                        }
                     }
                     $_.PackageName | Write-Output
                 }
