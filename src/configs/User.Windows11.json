@@ -52,6 +52,14 @@
                 "protected": false
             },
             {
+                "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Start",
+                "name": "AllAppsViewMode",
+                "value": "1",
+                "type": "Dword",
+                "note": "Sets the Grid mode for the All Apps view on the new Start menu layout",
+                "protected": false
+            },
+            {
                 "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
                 "name": "ShowNotificationIcon",
                 "value": 1,
@@ -203,14 +211,6 @@
                 "value": 0,
                 "type": "DWord",
                 "note": "Disables 'Settings / Privacy & Security / Recommendations & offers / Show notifications in Settings'",
-                "protected": false
-            },
-            {
-                "path": "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Start",
-                "name": "AllAppsViewMode",
-                "value": "1",
-                "type": "Dword",
-                "note": "Sets the Grid mode for the All Apps view on the new Start menu layout",
                 "protected": false
             }
         ]
