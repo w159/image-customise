@@ -124,6 +124,13 @@ param (
 )
 
 begin {
+    #region Configure the environment
+    Set-StrictMode -Version Latest
+    $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Stop
+    $InformationPreference = [System.Management.Automation.ActionPreference]::continue
+    $ProgressPreference = [System.Management.Automation.ActionPreference]::SilentlyContinue
+    $WarningPreference = [System.Management.Automation.ActionPreference]::SilentlyContinue
+
     #region Functions
     function Test-IsOobeComplete {
         # https://oofhours.com/2023/09/15/detecting-when-you-are-in-oobe/
@@ -152,7 +159,7 @@ namespace Api {
             [Parameter(Mandatory = $true)]
             [System.String] $PackageFamilyName
         )
-        if ($null -ne $PackageFamilyName -or $PackageFamilyName -eq "") {
+        if ([System.String]::IsNullOrWhiteSpace($PackageFamilyName)) {
             Write-Verbose -Message "PackageFamilyName is null or empty. Skipping registry key creation."
             return
         }
@@ -206,8 +213,9 @@ process {
         }
 
         # Remove all AppX packages, except for packages that can't be removed, frameworks, and the safe packages list
-        $AppxPackagesToRemove = $AppxPackages | `
-            Where-Object { $_.NonRemovable -eq $false -and $_.IsFramework -eq $false -and $_.PackageFamilyName -notin $SafePackageList }
+        $AppxPackagesToRemove = @(
+            $AppxPackages | Where-Object { $_.NonRemovable -eq $false -and $_.IsFramework -eq $false -and $_.PackageFamilyName -notin $SafePackageList }
+        )
 
         # Further filter out packages that match the safe wildcard patterns
         $MatchingPackages = $AppxPackagesToRemove | Where-Object {
@@ -233,7 +241,8 @@ process {
             # OS version is less than 10.0.22000, so we're on Windows 10, Windows Server 2022 or below
             if ($Elevated) {
                 $ProvisionedAppxPackages = Get-AppxProvisionedPackage -Online
-                $PackagesToRemove = $ProvisionedAppxPackages | Where-Object { $_.DisplayName -in $AppxPackagesToRemove.Name }
+                $AppxPackageNamesToRemove = @($AppxPackagesToRemove | ForEach-Object { $_.Name })
+                $PackagesToRemove = $ProvisionedAppxPackages | Where-Object { $_.DisplayName -in $AppxPackageNamesToRemove }
                 $PackagesToRemove | ForEach-Object {
                     if ($PSCmdlet.ShouldProcess($_.PackageName, "Remove AppX provisioned package")) {
                         Remove-AppxProvisionedPackage -Package $_.PackageName -Online -AllUsers
