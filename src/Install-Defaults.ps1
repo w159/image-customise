@@ -119,6 +119,9 @@ $ProgressPreference = [System.Management.Automation.ActionPreference]::SilentlyC
 $WarningPreference = [System.Management.Automation.ActionPreference]::SilentlyContinue
 
 try {
+    # Create a description string for later use
+    $Description = "No configuration file set."
+
     # Get start time of the script
     $StartTime = Get-Date
 
@@ -167,7 +170,8 @@ try {
 
     #region Implement the settings defined in each config file
     foreach ($ConfigSet in $Configurations) {
-        Write-LogFile -Message "Configuration set: $($ConfigSet.Description)" 
+        Write-LogFile -Message "Configuration set: $($ConfigSet.Description)"
+        $Description = $ConfigSet.Description
 
         #region Configure machine level settings. Validate that each property exists and has items before attempting to apply the setting
         if (($null -ne $ConfigSet.MachineRegistry.PSObject.Properties['ChangeOwner']) -and ($ConfigSet.MachineRegistry.ChangeOwner.Length -gt 0)) {
@@ -239,7 +243,7 @@ try {
         }
         else {
             # Run the script to remove AppX/UWP apps; Get the script location
-            $Script = Get-ChildItem -Path $WorkingPath -Include "Remove-AppxApps.ps1" -Recurse -ErrorAction "Continue"
+            $Script = Get-ChildItem -Path $WorkingPath -Include "Remove-AppxApps.ps1" -Recurse
             if ($null -eq $Script) {
                 Write-LogFile -Message "Script not found: $WorkingPath\Remove-AppxApps.ps1" -LogLevel 3
             }
@@ -311,19 +315,20 @@ catch {
     Write-LogFile -Message "Offset: $($_.InvocationInfo.OffsetInLine)" -LogLevel 3
     Write-LogFile -Message "Line text: $($_.InvocationInfo.Line.Trim())" -LogLevel 3
     Write-LogFile -Message "Category: $($_.CategoryInfo)" -LogLevel 3
+    Write-LogFile -Message "Description: $Description" -LogLevel 3
     Write-LogFile -Message "FullyQualifiedErrorId: $($_.FullyQualifiedErrorId)" -LogLevel 3
 }
 
 #region Set uninstall registry value for detecting as an installed application
 $Key = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"
-New-Item -Path "$Key\{$Guid}" -Type "RegistryKey" -Force -ErrorAction "Continue" | Out-Null
+New-Item -Path "$Key\{$Guid}" -Type "RegistryKey" -Force | Out-Null
 if ($PSCmdlet.ShouldProcess("Set uninstall key values")) {
-    Set-ItemProperty -Path "$Key\{$Guid}" -Name "DisplayName" -Value $Project -Type "String" -Force -ErrorAction "Continue" | Out-Null
-    Set-ItemProperty -Path "$Key\{$Guid}" -Name "Publisher" -Value $Publisher -Type "String" -Force -ErrorAction "Continue" | Out-Null
-    Set-ItemProperty -Path "$Key\{$Guid}" -Name "DisplayVersion" -Value $DisplayVersion -Type "String" -Force -ErrorAction "Continue" | Out-Null
-    Set-ItemProperty -Path "$Key\{$Guid}" -Name "RunOn" -Value $RunOn -Type "String" -Force -ErrorAction "Continue" | Out-Null
-    Set-ItemProperty -Path "$Key\{$Guid}" -Name "SystemComponent" -Value 1 -Type "DWord" -Force -ErrorAction "Continue" | Out-Null
-    Set-ItemProperty -Path "$Key\{$Guid}" -Name "HelpLink" -Value $HelpLink -Type "String" -Force -ErrorAction "Continue" | Out-Null
+    Set-ItemProperty -Path "$Key\{$Guid}" -Name "DisplayName" -Value $Project -Type "String" -Force | Out-Null
+    Set-ItemProperty -Path "$Key\{$Guid}" -Name "Publisher" -Value $Publisher -Type "String" -Force | Out-Null
+    Set-ItemProperty -Path "$Key\{$Guid}" -Name "DisplayVersion" -Value $DisplayVersion -Type "String" -Force | Out-Null
+    Set-ItemProperty -Path "$Key\{$Guid}" -Name "RunOn" -Value $RunOn -Type "String" -Force | Out-Null
+    Set-ItemProperty -Path "$Key\{$Guid}" -Name "SystemComponent" -Value 1 -Type "DWord" -Force | Out-Null
+    Set-ItemProperty -Path "$Key\{$Guid}" -Name "HelpLink" -Value $HelpLink -Type "String" -Force | Out-Null
 }
 #endregion
 
