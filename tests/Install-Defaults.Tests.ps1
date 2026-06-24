@@ -14,7 +14,7 @@ BeforeAll {
     }
     $ScriptPath = Get-ChildItem -Path $([System.IO.Path]::Combine($Path, "src")) -Include "Install-Defaults.ps1" -Recurse | Select-Object -First 1
     $ModulePath = Get-ChildItem -Path $([System.IO.Path]::Combine($Path, "src")) -Include "Install-Defaults.psm1" -Recurse | Select-Object -First 1
-    
+
     # Helper function to get OS version
     function Get-OSVersionInfo {
         $OS = Get-CimInstance -ClassName CIM_OperatingSystem
@@ -23,7 +23,7 @@ BeforeAll {
         $IsWindows11 = $OS.Caption -match 'Windows 11' -or ($Build -ge 22000 -and -not $IsServer)
         $IsServer2025 = $OS.Caption -match 'Server 2025' -or ($Build -ge 26100 -and $IsServer)
         $SupportsLanguagePack = $IsWindows11 -or $IsServer2025
-        
+
         return @{
             Build                = $Build
             IsServer             = $IsServer
@@ -223,7 +223,7 @@ Describe 'Install-Defaults.ps1 Logging' -Skip:(-not $IsAdmin) {
         # Check for log file
         $LogPath = "$Env:SystemRoot\Logs\defaults\WindowsEnterpriseDefaults.log"
         $IntunePath = "$Env:ProgramData\Microsoft\IntuneManagementExtension\Logs\WindowsEnterpriseDefaults.log"
-        
+
         $LogExists = (Test-Path -Path $LogPath) -or (Test-Path -Path $IntunePath)
         $LogExists | Should -Be $true
     }

@@ -15,7 +15,7 @@ BeforeAll {
     else {
         $ScriptPath = Join-Path -Path $PSScriptRoot -ChildPath "..\src\Remove-AppxApps.ps1"
     }
-    
+
     # Helper function to get OS version
     function Get-OSVersionInfo {
         $OS = Get-CimInstance -ClassName CIM_OperatingSystem
@@ -24,7 +24,7 @@ BeforeAll {
         $IsWindows11 = $OS.Caption -match 'Windows 11' -or ($Build -ge 22000 -and -not $IsServer)
         $IsWindows10 = $OS.Caption -match 'Windows 10'
         $IsClient = -not $IsServer
-        
+
         return @{
             Build       = $Build
             IsServer    = $IsServer
@@ -44,7 +44,7 @@ Describe 'Remove-AppxApps Script Requirements' {
         if (-not $OSInfo.IsClient) {
             Set-ItResult -Skipped -Because "Remove-AppxApps.ps1 requires Windows Client OS. Current OS: $($OSInfo.Caption)"
         }
-        
+
         $OSInfo.IsClient | Should -Be $true
     }
 
@@ -91,7 +91,7 @@ Describe 'Remove-AppxApps on Windows 11' -Skip:(-not $OSInfo.IsWindows11 -or -no
             'Microsoft.DesktopAppInstaller_8wekyb3d8bbwe',
             'Microsoft.SecHealthUI_8wekyb3d8bbwe'
         )
-        
+
         foreach ($Package in $EssentialPackages) {
             $SafePackageList | Should -Contain $Package
         }
@@ -166,7 +166,7 @@ Describe 'Remove-AppxApps Safety Checks' -Skip:(-not $OSInfo.IsClient) {
             'Microsoft.WindowsTerminal_8wekyb3d8bbwe',
             'Microsoft.SecHealthUI_8wekyb3d8bbwe'
         )
-        
+
         foreach ($Package in $EssentialPackages) {
             $SafePackageList | Should -Contain $Package
         }

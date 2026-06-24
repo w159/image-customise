@@ -19,7 +19,7 @@ BeforeAll {
         $IsServer2025 = $OS.Caption -match 'Server 2025' -or ($Build -ge 26100 -and $IsServer)
         $IsServer2022 = $OS.Caption -match 'Server 2022'
         $SupportsLanguagePack = $IsWindows11 -or $IsServer2025
-        
+
         return @{
             Build                 = $Build
             IsServer              = $IsServer
@@ -57,7 +57,7 @@ Describe 'Module Import' {
             'Test-IsOobeComplete',
             'Write-LogFile', 'Write-Message'
         )
-        
+
         $Module = Get-Module -Name 'Install-Defaults'
         foreach ($Function in $ExportedFunctions) {
             $Module.ExportedFunctions.Keys | Should -Contain $Function
@@ -179,9 +179,9 @@ Describe 'Set-Registry' {
                 protected = $false
             }
         )
-        
+
         { Set-Registry -Setting $Setting -Confirm:$false } | Should -Not -Throw
-        
+
         if (Test-Path $TestRegPath) {
             $Value = Get-ItemProperty -Path $TestRegPath -Name 'TestValue' -ErrorAction SilentlyContinue
             $Value.TestValue | Should -Be 'TestData'
@@ -287,7 +287,7 @@ Describe 'Copy-RegExe' {
         $Result = Copy-RegExe
         $Result | Should -Not -BeNullOrEmpty
         Test-Path -Path $Result | Should -Be $true
-        
+
         # Cleanup
         if (Test-Path $Result) {
             Remove-Item -Path $Result -Force -ErrorAction SilentlyContinue
