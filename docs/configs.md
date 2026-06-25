@@ -34,6 +34,187 @@ Each JSON file includes a `MinimumBuild` and `MaximumBuild` properties that are 
 
 All JSON files the `config` directory are read and then filtered based on these properties to create a list of configurations to apply to the current system.
 
+## Configuration Schema And Property Requirements
+
+Configuration files are validated with [`schema/configuration.schema.json`](https://github.com/aaronparker/defaults/blob/main/schema/configuration.schema.json).
+
+To enable editor IntelliSense and validation, include this schema reference in each config file:
+
+```json
+"$schema": "https://raw.githubusercontent.com/aaronparker/defaults/refs/heads/main/schema/configuration.schema.json"
+```
+
+### Requirements and empty values
+
+* Required means the property must exist.
+* For array properties, an empty array (`[]`) is valid and should be used when no values are needed.
+* Do not use `null` for properties that are defined as `string`, `object`, or `array`.
+* The template in `src/configs/_Configuration.Template.json` shows the preferred authoring pattern with empty arrays for non-used sections.
+
+### Top-level properties
+
+| Property | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `$schema` | `string` (URI) | No | Optional schema reference for editors. |
+| `Description` | `string` | Yes | Human-readable profile description. |
+| `MinimumBuild` | `string` | Yes | Build floor. Supports values like `19041` or `10.0.14393.0`. |
+| `MaximumBuild` | `string` | Yes | Build ceiling. Supports values like `99999` or `10.0.99999.0`. |
+| `Targets` | `object` | Yes | Requires `Platforms` and `Models`. |
+| `MachineRegistry` | `object` | Yes | Requires `ChangeOwner` and `Set`. |
+| `UserRegistry` | `object` | Yes | Requires `Set`. |
+| `Features` | `object` | No | If included, requires `Disable`. |
+| `Capabilities` | `object` | No | If included, requires `Remove` and `Others`. |
+| `Packages` | `object` | No | If included, requires `Remove`. |
+| `Paths` | `object` | No | If included, requires `Remove`. |
+| `Shortcuts` | `object` | No | If included, requires `Edit`. |
+| `Services` | `object` | No | Optional service operations. |
+| `Files` | `object` | No | If included, requires `Copy`. |
+
+### Property requirements by section
+
+#### `Targets` (required)
+
+* `Platforms` (required): array of `client`, `multisession`, `rds-server`, `server`.
+* `Models` (required): array of `physical`, `virtual`.
+
+Both arrays can be empty in schema terms, but should include applicable values for profile targeting.
+
+#### `MachineRegistry` (required)
+
+* `ChangeOwner` (required): array of objects with required `Root`, `Key`, `Sid`, `note`.
+* `Set` (required): array of objects with required `name`, `note`, `path`, `protected`, `type`, `value`.
+* `Remove` (optional): array of objects with required `path`, `note`.
+
+`MachineRegistry.Set.type` supports `String`, `DWord`, `Dword`.
+
+#### `UserRegistry` (required)
+
+* `Set` (required): array of objects with required `name`, `note`, `path`, `protected`, `value`, and either `type` or `Type`.
+* `Others` (optional): array of objects with required `name`, `note`, `path`, `protected`, `type`, `value`.
+* `Source` (optional): string.
+
+For consistency with existing configs and script logic, use lowercase `type`.
+
+`UserRegistry.Set.type` supports `Binary`, `String`, `DWord`, `Dword`.
+
+#### `Features` (optional)
+
+* `Disable` (required when section exists): array of feature names.
+
+#### `Capabilities` (optional)
+
+* `Remove` (required when section exists): array of capability names.
+* `Others` (required when section exists): array of capability names.
+
+#### `Packages` (optional)
+
+* `Remove` (required when section exists): array of package names.
+
+#### `Paths` (optional)
+
+* `Remove` (required when section exists): array of file system paths.
+
+#### `Shortcuts` (optional)
+
+* `Edit` (required when section exists): array of objects with required `Path` and `Arguments`.
+
+#### `Services` (optional)
+
+* `Stop` (optional): array of service names.
+* `Start` (optional): array of service names.
+* `Restart` (optional): array of service names.
+* `Enable` (optional): array of service names.
+* `Feature` (optional): string gate for role/feature-specific service operations.
+
+#### `Files` (optional)
+
+* `Copy` (required when section exists): array of objects with required `Source` and `Destination`.
+
+### Complete authoring skeleton
+
+Use this structure when creating new configuration files so all expected properties are present, even when values are empty:
+
+```json
+{
+	"$schema": "https://raw.githubusercontent.com/aaronparker/defaults/refs/heads/main/schema/configuration.schema.json",
+	"Description": "Configuration settings template file",
+	"MinimumBuild": "10.0.14393.0",
+	"MaximumBuild": "10.0.99999.0",
+	"Targets": {
+		"Platforms": [
+			"client",
+			"multisession",
+			"rds-server",
+			"server"
+		],
+		"Models": [
+			"physical",
+			"virtual"
+		]
+	},
+	"MachineRegistry": {
+		"ChangeOwner": [],
+		"Set": [],
+		"Remove": []
+	},
+	"UserRegistry": {
+		"Set": [],
+		"Others": [],
+		"Source": ""
+	},
+	"Paths": {
+		"Remove": []
+	},
+	"Features": {
+		"Disable": []
+	},
+	"Capabilities": {
+		"Remove": [],
+		"Others": []
+	},
+	"Packages": {
+		"Remove": []
+	},
+	"Shortcuts": {
+		"Edit": []
+	},
+	"Services": {
+		"Enable": [],
+		"Feature": "",
+		"Restart": [],
+		"Stop": [],
+		"Start": []
+	},
+	"Files": {
+		"Copy": []
+	}
+}
+```
+
+### Validation
+
+Validate a configuration file against the schema with PowerShell:
+
+```powershell
+$schemaPath = ".\schema\configuration.schema.json"
+$configPath = ".\src\configs\User.Windows11.json"
+
+Get-Content -Path $configPath -Raw |
+	Test-Json -SchemaFile $schemaPath
+```
+
+Validate all configuration files in `src/configs` in one command:
+
+```powershell
+Get-ChildItem .\src\configs -Filter *.json -File | Where-Object { $_.Name -ne '_Configuration.Template.json' } | ForEach-Object { [pscustomobject]@{ File = $_.Name; Valid = (Get-Content $_.FullName -Raw | Test-Json -SchemaFile .\schema\configuration.schema.json) } }
+```
+
+Expected behavior for authors:
+
+* Pass: returns `True`; the file is structurally valid for the schema.
+* Fail: returns `False` (or throws if JSON is malformed); fix missing required properties, invalid enum values, or incorrect value types.
+* Empty arrays: still pass where allowed and are preferred for sections with no active items.
+
 ## Configuration Viewer
 
 The repository includes a read-only WPF viewer script to inspect configuration files:
